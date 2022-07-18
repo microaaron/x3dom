@@ -205,14 +205,7 @@ x3dom.registerNodeType(
 
             parentRemoved : function ( parent )
             {
-                for ( var i = 0, n = this._childNodes.length; i < n; i++ )
-                {
-                    var child = this._childNodes[ i ];
-                    if ( child )
-                    {
-                        child.parentRemoved( this );
-                    }
-                }
+                x3dom.nodeTypes.X3DBoundedObject.prototype.parentRemoved.call( this, parent );
 
                 if ( parent )
                 {parent.invalidateVolume();}

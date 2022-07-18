@@ -180,13 +180,7 @@ x3dom.registerNodeType(
                 }
                 //}
 
-                for ( i = 0, n = this._childNodes.length; i < n; i++ )
-                {
-                    if ( this._childNodes[ i ] )
-                    {
-                        this._childNodes[ i ].parentRemoved( this );
-                    }
-                }
+                x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
             }
         }
     )

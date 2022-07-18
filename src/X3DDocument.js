@@ -624,7 +624,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
     if ( domNode._x3domNode )
     {
         var node = domNode._x3domNode;
-        var nameSpace = node._nameSpace;
+        //var nameSpace = node._nameSpace;
 
         if ( x3dom.isa( node, x3dom.nodeTypes.X3DShapeNode ) )
         {
@@ -698,37 +698,11 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         }
 
         //do not remove node from namespace if it was only "USE"d
-        if ( nameSpace && !( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) ) )
+        //if ( nameSpace && !( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) ) )
+        if ( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
         {
-            nameSpace.removeNode( node._DEF );
-            //remove imported node from namespace
-            var superInlineNode = nameSpace.superInlineNode;
-            if ( superInlineNode && superInlineNode._nameSpace )
-            {
-                var imports = superInlineNode._nameSpace.imports;
-                var exports = nameSpace.exports;
-                var inlineDEFMap = imports.get( superInlineNode._DEF );
-                if ( inlineDEFMap )
-                {
-                    exports.forEach( function ( localDEF, exportedAS )
-                    {
-                        if ( node._DEF == localDEF )
-                        {
-                            inlineDEFMap.forEach( function ( importedDEF, importedAS )
-                            {
-                                if ( exportedAS == importedDEF )
-                                {
-                                    delete superInlineNode._nameSpace.defMap[ importedAS ];
-                                }
-                            } );
-                        }
-                    } );
-                }
-            }
+            delete domNode._x3domNode;
         }
-        node._xmlNode = null;
-
-        delete domNode._x3domNode;
     }
 };
 

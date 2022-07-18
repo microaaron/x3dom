@@ -216,11 +216,46 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 // attention: overwritten by concrete classes
-                for ( var i = 0, n = this._childNodes.length; i < n; i++ )
+                if ( this._parentNodes.length == 0 )
                 {
-                    if ( this._childNodes[ i ] )
+                    //x3dom.debug.logInfo( this.typeName() + ": " + this._DEF + " is no longer used." );
+                    for ( var i = this._childNodes.length - 1;i >= 0;i-- )
                     {
-                        this._childNodes[ i ].parentRemoved( this );
+                        this.removeChild( this._childNodes[ i ] ); //remove this node from child's _parentNodes then trigger child.parentRemoved()
+                    }
+                    var nameSpace = this._nameSpace;
+                    if ( nameSpace )
+                    {
+                        nameSpace.removeNode( this._DEF );
+                        //remove imported node from namespace
+                        var superInlineNode = nameSpace.superInlineNode;
+                        if ( superInlineNode && superInlineNode._nameSpace )
+                        {
+                            var imports = superInlineNode._nameSpace.imports;
+                            var exports = nameSpace.exports;
+                            var inlineDEFMap = imports.get( superInlineNode._DEF );
+                            if ( inlineDEFMap )
+                            {
+                                exports.forEach( function ( localDEF, exportedAS )
+                                {
+                                    if ( this._DEF == localDEF )
+                                    {
+                                        inlineDEFMap.forEach( function ( importedDEF, importedAS )
+                                        {
+                                            if ( exportedAS == importedDEF )
+                                            {
+                                                delete superInlineNode._nameSpace.defMap[ importedAS ];
+                                            }
+                                        } );
+                                    }
+                                } );
+                            }
+                        }
+                    }
+                    if ( this._xmlNode )
+                    {
+                        delete this._xmlNode._x3domNode;
+                        this._xmlNode = null;
                     }
                 }
             },
