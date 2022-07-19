@@ -400,6 +400,11 @@ x3dom.NodeNameSpace.prototype.setupTree = function ( domNode, parent )
             if ( n )
             {
                 domNode._x3domNode = n;
+                // attach X3DOM's custom field interface functions
+                domNode.requestFieldRef = x3dom.requestFieldRef;
+                domNode.releaseFieldRef = x3dom.releaseFieldRef;
+                domNode.getFieldValue = x3dom.getFieldValue;
+                domNode.setFieldValue = x3dom.setFieldValue;
             }
             return n;
         }
