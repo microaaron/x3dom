@@ -77,6 +77,7 @@ x3dom.registerNodeType(
                         }
                     }
                 }
+                x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
             },
 
             tick : function ( t )

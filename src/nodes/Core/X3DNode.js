@@ -216,10 +216,10 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 // attention: overwritten by concrete classes
-                if ( this._parentNodes.length == 0 )
+                if ( this._parentNodes.length === 0 )
                 {
-                    //x3dom.debug.logInfo( this.typeName() + ": " + this._DEF + " is no longer used." );
-                    for ( var i = this._childNodes.length - 1;i >= 0;i-- )
+                    x3dom.debug.logInfo( this.typeName() + ": " + this._DEF + " is no longer used." );
+                    for ( var i = this._childNodes.length - 1;i >= 0;--i )
                     {
                         this.removeChild( this._childNodes[ i ] ); //remove this node from child's _parentNodes then trigger child.parentRemoved()
                     }

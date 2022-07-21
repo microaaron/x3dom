@@ -181,7 +181,7 @@ x3dom.registerNodeType(
                 }
             },
 
-            parentRemoved : function ( parent )
+            /*parentRemoved : function ( parent )
             {
                 if ( this._parentNodes.length === 1 && this._parentNodes[ 0 ] == parent )
                 {
@@ -198,7 +198,8 @@ x3dom.registerNodeType(
                         }
                     }
                 }
-            },
+                x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
+            },*/
             onRemove : function ()
             {
                 //console.log("remove");

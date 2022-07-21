@@ -110,7 +110,7 @@ x3dom.registerNodeType(
                 if ( fieldName == "url" || fieldName == "load" )
                 {
                     //Remove the childs of the x3domNode
-                    for ( var i = 0; i < this._childNodes.length; i++ )
+                    for ( var i = this._childNodes.length - 1;i >= 0;--i )
                     {
                         this.removeChild( this._childNodes[ i ] );
                     }
@@ -147,23 +147,28 @@ x3dom.registerNodeType(
                 }
             },
 
-            parentRemoved : function ()
+            parentRemoved : function ( parent )
             {
-                var global = x3dom.getGlobal();
+                //var global = x3dom.getGlobal();
 
-                if ( this._childNodes.length > 0 && this._childNodes[ 0 ] && this._childNodes[ 0 ]._nameSpace )
-                {this._nameSpace.removeSpace( this._childNodes[ 0 ]._nameSpace );}
+                /*if ( this._childNodes.length > 0 && this._childNodes[ 0 ] && this._childNodes[ 0 ]._nameSpace )
+                {this._nameSpace.removeSpace( this._childNodes[ 0 ]._nameSpace );}*/
+                for ( var child of this._childNodes )
+                {
+                    this._nameSpace.removeSpace( child._nameSpace );
+                }
 
-                for ( var i = 0, n = this._childNodes.length; i < n; i++ )
+                x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
+                /*for ( var i = 0, n = this._childNodes.length; i < n; i++ )
                 {
                     if ( this._childNodes[ i ] )
                     {
                         this._childNodes[ i ].parentRemoved( this );
                         global[ "_remover" ] = this.removeChild( this._childNodes[ i ] );
                     }
-                }
+                }*/
 
-                delete global[ "_remover" ];
+                //delete global[ "_remover" ];
             },
 
             fireEvents : function ( eventType )

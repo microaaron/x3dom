@@ -380,6 +380,7 @@ x3dom.registerNodeType(
                 {
                     this._cf.scene.node.parentRemoved( this );
                 }
+                x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
             },
 
             requirePingPong : function ()
