@@ -108,7 +108,7 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 //TODO
-                x3dom.nodeTypes.X3DChildNode.parentRemoved.prototype.call( this, parent );
+                x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
             }
         }
     )
