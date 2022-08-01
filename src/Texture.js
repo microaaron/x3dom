@@ -467,6 +467,12 @@ x3dom.Texture.prototype.updateTexture = function ()
             tex._video.play()
                 .then( function fulfilled ()
                 {
+                    if ( tex._intervalID )
+                    {
+                        x3dom.debug.logInfo( "The video has already started, startVideo() is called repeatedly." );
+                        clearInterval( tex._intervalID );
+                        tex._intervalID = null;
+                    }
                     tex._intervalID = setInterval( updateMovie, 16 );
                 } )
                 .catch( function rejected ( err )
@@ -480,6 +486,7 @@ x3dom.Texture.prototype.updateTexture = function ()
         var videoDone = function ()
         {
             clearInterval( tex._intervalID );
+            tex._intervalID = null;
             if ( tex._vf.loop === true )
             {
                 tex._video.play();
