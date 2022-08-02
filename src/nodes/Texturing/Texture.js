@@ -106,17 +106,21 @@ x3dom.registerNodeType(
                 x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length == 0 && this._video )
                 {
-                    this._video.pause();
+                    this._video.pauseVideo();
                     while ( this._video.hasChildNodes() )
                     {
                         this._video.removeChild( this._video.firstChild );
                     }
                     //document.body.removeChild( this._video );
-                    clearTimeout( this._video.retryTimeoutID );
-                    this._video.retryTimeoutID = null;
+                    if ( this._video.startVideo )
+                    {
+                        this._video.startVideo = null;
+                    }
+                    if ( this._video.pauseVideo )
+                    {
+                        this._video.pauseVideo = null;
+                    }
                     this._video = null;
-                    clearInterval( this._intervalID );
-                    this._intervalID = null;
                 }
             }
         }
