@@ -666,10 +666,10 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             this.cleanNodeBag( this._nodeBag.affectedPointingSensors, node );
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
         {
             node.shutdown();    // general texture might have video
-        }
+        }*/
         else if ( x3dom.isa( node, x3dom.nodeTypes.AudioClip ) )
         {
             node.shutdown();
@@ -688,14 +688,14 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
                 node._cleanupGLObjects();
             }
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.Scene ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.Scene ) )
         {
             if ( node._webgl )
             {
                 node._webgl = null;
                 // TODO; explicitly delete all gl objects
             }
-        }
+        */
 
         //do not remove node from namespace if it was only "USE"d
         //if ( nameSpace && !( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) ) )
@@ -778,6 +778,11 @@ x3dom.X3DDocument.prototype.onNodeRemoved =  function ( removedNode, target )
                 this.needRender = true;
             }
         }
+    }
+    else if ( "_x3domNode" in domNode && x3dom.isa( domNode._x3domNode, x3dom.nodeTypes.Scene ) )
+    {
+        //Scene may have no parent, call parentRemoved() directly to clean up.
+        domNode._x3domNode.parentRemoved( null );
     }
     else if ( domNode.localName &&
              domNode.localName.toUpperCase() == "ROUTE" &&

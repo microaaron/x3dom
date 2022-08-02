@@ -103,13 +103,13 @@ x3dom.registerNodeType(
 
             parentAdded : function ( parent )
             {
-            },
+            }
 
-            parentRemoved : function ( parent )
+            /*parentRemoved : function ( parent )
             {
                 //TODO
                 x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
-            }
+            }*/
         }
     )
 );

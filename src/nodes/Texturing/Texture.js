@@ -100,9 +100,11 @@ x3dom.registerNodeType(
                 }
             },
 
-            shutdown : function ()
+            //shutdown : function ()
+            parentRemoved : function ( parent )
             {
-                if ( this._video )
+                x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
+                if ( this._parentNodes.length == 0 && this._video )
                 {
                     this._video.pause();
                     while ( this._video.hasChildNodes() )
