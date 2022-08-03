@@ -674,7 +674,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             node.shutdown();
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DBindableNode ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DBindableNode ) )
         {
             var stack = node._stack;
             if ( stack )
@@ -687,7 +687,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
             {
                 node._cleanupGLObjects();
             }
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.Scene ) )
         {
             if ( node._webgl )
@@ -782,7 +782,9 @@ x3dom.X3DDocument.prototype.onNodeRemoved =  function ( removedNode, target )
     else if ( "_x3domNode" in domNode && x3dom.isa( domNode._x3domNode, x3dom.nodeTypes.Scene ) )
     {
         //Scene may have no parent, call parentRemoved() directly to clean up.
-        domNode._x3domNode.parentRemoved( null );
+        var node = domNode._x3domNode;
+        node.parentRemoved( null );
+        node.onRemove();
     }
     else if ( domNode.localName &&
              domNode.localName.toUpperCase() == "ROUTE" &&

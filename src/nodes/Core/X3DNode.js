@@ -1028,6 +1028,18 @@ x3dom.registerNodeType(
             {
                 this._cf[ name ] = new x3dom.fields.MFNode( type );
                 this._cfFieldTypes[ name ] = "MFNode";
+            },
+
+            cleanNodeBag : function ( bag )
+            {
+                for ( var i = 0, n = bag.length; i < n; i++ )
+                {
+                    if ( bag[ i ] === this )
+                    {
+                        bag.splice( i, 1 );
+                        break;
+                    }
+                }
             }
         }
     )

@@ -126,6 +126,7 @@ x3dom.registerNodeType(
 
             parentRemoved : function ( parent )
             {
+                //Scene may have no parent, call parentRemoved() directly to clean up.
                 x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length == 0 && this._webgl )
                 {

@@ -110,6 +110,22 @@ x3dom.registerNodeType(
             nodeChanged : function ()
             {
                 this._stack = this._nameSpace.doc._bindableBag.addBindable( this );
+            },
+
+            parentRemoved : function ( parent )
+            {
+                x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
+                var stack = this._stack;
+                if ( stack )
+                {
+                    this.bind( false );
+                    this.cleanNodeBag( stack._bindBag );
+                }
+                // Background may have geometry
+                if ( this._cleanupGLObjects )
+                {
+                    this._cleanupGLObjects();
+                }
             }
         }
     )
