@@ -251,6 +251,7 @@ x3dom.registerNodeType(
                                 } );
                             }
                         }
+                        nameSpace = null;
                     }
                     if ( this._xmlNode )
                     {

@@ -124,14 +124,22 @@ x3dom.registerNodeType(
                 };
             },
 
+            //Root scene may have no parent, call parentRemoved() directly to clean up.
             parentRemoved : function ( parent )
             {
-                //Scene may have no parent, call parentRemoved() directly to clean up.
+                var nameSpace = this._nameSpace;  //this._nameSpace may be cleared in the next statement, saving it to a temporary variable for further cleanup.
                 x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
-                if ( this._parentNodes.length == 0 && this._webgl )
+                if ( this._parentNodes.length == 0 )
                 {
-                    this._webgl = null;
-                // TODO; explicitly delete all gl objects
+                    if ( this._webgl )
+                    {
+                        this._webgl = null;
+                        // TODO; explicitly delete all gl objects
+                    }
+                    if ( nameSpace && nameSpace.doc && nameSpace.doc._scene === this )
+                    {
+                        nameSpace.doc.onSceneRemoved();
+                    }
                 }
             }
         }
