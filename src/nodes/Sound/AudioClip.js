@@ -180,6 +180,15 @@ x3dom.registerNodeType(
                     document.body.removeChild( this._audio );
                     this._audio = null;
                 }
+            },
+            
+            parentRemoved : function ( parent )
+            {
+                x3dom.nodeTypes.X3DSoundSourceNode.prototype.parentRemoved.call( this, parent );
+                if ( this._parentNodes.length == 0 )
+                {
+                    this.shutdown();
+                }
             }
         }
     )

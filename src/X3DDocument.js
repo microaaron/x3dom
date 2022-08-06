@@ -707,10 +707,10 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             node.shutdown();    // general texture might have video
         }*/
-        else if ( x3dom.isa( node, x3dom.nodeTypes.AudioClip ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.AudioClip ) )
         {
             node.shutdown();
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DBindableNode ) )
         {
             var stack = node._stack;
