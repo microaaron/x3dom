@@ -115,16 +115,19 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
-                var stack = this._stack;
-                if ( stack )
+                if ( this._parentNodes.length == 0 )
                 {
-                    this.bind( false );
-                    this.cleanNodeBag( stack._bindBag );
-                }
-                // Background may have geometry
-                if ( this._cleanupGLObjects )
-                {
-                    this._cleanupGLObjects();
+                    var stack = this._stack;
+                    if ( stack )
+                    {
+                        this.bind( false );
+                        this.cleanNodeBag( stack._bindBag );  //X3DNode.cleanNodeBag()
+                    }
+                    // Background may have geometry
+                    if ( this._cleanupGLObjects )
+                    {
+                        this._cleanupGLObjects();
+                    }
                 }
             }
         }
