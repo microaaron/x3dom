@@ -181,11 +181,11 @@ x3dom.registerNodeType(
                     this._audio = null;
                 }
             },
-            
+
             parentRemoved : function ( parent )
             {
                 x3dom.nodeTypes.X3DSoundSourceNode.prototype.parentRemoved.call( this, parent );
-                if ( this._parentNodes.length == 0 )
+                if ( this._parentNodes.length === 0 )
                 {
                     this.shutdown();
                 }
