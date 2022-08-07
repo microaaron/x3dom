@@ -115,7 +115,7 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
-                if ( this._parentNodes.length == 0 )
+                if ( this._parentNodes.length === 0 )
                 {
                     var stack = this._stack;
                     if ( stack )
