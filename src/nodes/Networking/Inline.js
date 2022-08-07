@@ -153,9 +153,12 @@ x3dom.registerNodeType(
 
                 /*if ( this._childNodes.length > 0 && this._childNodes[ 0 ] && this._childNodes[ 0 ]._nameSpace )
                 {this._nameSpace.removeSpace( this._childNodes[ 0 ]._nameSpace );}*/
-                for ( var child of this._childNodes )
+                if ( this._parentNodes.length === 0 )
                 {
-                    this._nameSpace.removeSpace( child._nameSpace );
+                    for ( var child of this._childNodes )
+                    {
+                        this._nameSpace.removeSpace( child._nameSpace );
+                    }
                 }
 
                 x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
