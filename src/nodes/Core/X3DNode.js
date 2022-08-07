@@ -1033,13 +1033,10 @@ x3dom.registerNodeType(
 
             cleanNodeBag : function ( bag )
             {
-                for ( var i = 0, n = bag.length; i < n; i++ )
+                var i = bag.indexOf( this );
+                if ( i >= 0 )
                 {
-                    if ( bag[ i ] === this )
-                    {
-                        bag.splice( i, 1 );
-                        break;
-                    }
+                    bag.splice( i, 1 );
                 }
             }
         }
