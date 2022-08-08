@@ -185,6 +185,7 @@ x3dom.registerNodeType(
                                     {
                                         node._parentNodes.splice( i, 1 );
                                         node.parentRemoved( this );
+                                        break;
                                     }
                                 }
                                 for ( var j = this._childNodes.length - 1; j >= 0; j-- )
