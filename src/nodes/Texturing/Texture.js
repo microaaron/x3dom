@@ -104,7 +104,7 @@ x3dom.registerNodeType(
             parentRemoved : function ( parent )
             {
                 x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
-                if ( this._parentNodes.length == 0 && this._video )
+                if ( this._parentNodes.length === 0 && this._video )
                 {
                     this._video.pauseVideo();
                     while ( this._video.hasChildNodes() )
