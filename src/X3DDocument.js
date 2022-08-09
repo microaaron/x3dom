@@ -699,10 +699,10 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
                 node._cleanupGLObjects();
             }
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DPointingDeviceSensorNode ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DPointingDeviceSensorNode ) )
         {
             this.cleanNodeBag( this._nodeBag.affectedPointingSensors, node );
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
         {
             node.shutdown();    // general texture might have video
