@@ -125,13 +125,13 @@ x3dom.registerNodeType(
 
             parentRemoved : function ( parent )
             {
-                var nameSpace = this._nameSpace;  //this._nameSpace may be cleared in the next statement, saving it to a temporary variable for further cleanup.
+                var doc = this.findX3DDoc();
                 x3dom.nodeTypes.X3DSensorNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length === 0 )
                 {
-                    if ( nameSpace && nameSpace.doc && nameSpace.doc._nodeBag && nameSpace.doc._nodeBag.affectedPointingSensors )
+                    if ( doc && doc._nodeBag && doc._nodeBag.affectedPointingSensors )
                     {
-                        this.cleanNodeBag( nameSpace.doc._nodeBag.affectedPointingSensors );  //X3DNode.cleanNodeBag()
+                        this.cleanNodeBag( doc._nodeBag.affectedPointingSensors );  //X3DNode.cleanNodeBag()
                     }
                 }
             }
