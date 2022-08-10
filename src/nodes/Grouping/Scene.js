@@ -127,7 +127,7 @@ x3dom.registerNodeType(
             //Root scene may have no parent, call parentRemoved() directly to clean up.
             parentRemoved : function ( parent )
             {
-                var nameSpace = this._nameSpace;  //this._nameSpace may be cleared in the next statement, saving it to a temporary variable for further cleanup.
+                var doc = this.findX3DDoc();
                 x3dom.nodeTypes.X3DGroupingNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length == 0 )
                 {
@@ -136,9 +136,9 @@ x3dom.registerNodeType(
                         this._webgl = null;
                         // TODO; explicitly delete all gl objects
                     }
-                    if ( nameSpace && nameSpace.doc && nameSpace.doc._scene === this )
+                    if ( doc && doc._scene === this )
                     {
-                        nameSpace.doc.onSceneRemoved();
+                        doc.onSceneRemoved();
                     }
                 }
             }
