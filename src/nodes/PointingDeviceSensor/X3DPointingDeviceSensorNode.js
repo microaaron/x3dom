@@ -129,7 +129,7 @@ x3dom.registerNodeType(
                 x3dom.nodeTypes.X3DSensorNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length === 0 )
                 {
-                    if ( doc && doc._nodeBag && doc._nodeBag.affectedPointingSensors )
+                    if ( doc )
                     {
                         this.cleanNodeBag( doc._nodeBag.affectedPointingSensors );  //X3DNode.cleanNodeBag()
                     }
