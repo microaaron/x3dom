@@ -691,14 +691,14 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             this.cleanNodeBag( this._nodeBag.trans, node );
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.RenderedTexture ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.RenderedTexture ) )
         {
             this.cleanNodeBag( this._nodeBag.renderTextures, node );
             if ( node._cleanupGLObjects )
             {
                 node._cleanupGLObjects();
             }
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DPointingDeviceSensorNode ) )
         {
             this.cleanNodeBag( this._nodeBag.affectedPointingSensors, node );
