@@ -367,13 +367,6 @@ x3dom.registerNodeType(
                     if ( doc )
                     {
                         this.cleanNodeBag( doc._nodeBag.renderTextures );  //X3DNode.cleanNodeBag()
-                        /*for ( var i = 0, n = doc._nodeBag.renderTextures.length; i < n; i++ )
-                        {
-                            if ( doc._nodeBag.renderTextures[ i ] === this )
-                            {
-                                doc._nodeBag.renderTextures.splice( i, 1 );
-                            }
-                        }*/
                     }
                     if ( this._cleanupGLObjects )
                     {
@@ -381,11 +374,6 @@ x3dom.registerNodeType(
                     }
                     this._cf.scene.node = null;
                 }
-
-                /*if ( this._cf.scene.node )
-                {
-                    this._cf.scene.node.parentRemoved( this );
-                }*/
                 x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
             },
 
