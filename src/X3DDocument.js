@@ -683,10 +683,10 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             this.cleanNodeBag( this._nodeBag.lights, node );
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DFollowerNode ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DFollowerNode ) )
         {
             this.cleanNodeBag( this._nodeBag.followers, node );
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DTransformNode ) )
         {
             this.cleanNodeBag( this._nodeBag.trans, node );
