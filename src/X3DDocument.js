@@ -675,10 +675,10 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
                 delete x3dom.nodeTypes.Shape.idMap.nodeID[ node._objectID ];
             }
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.TimeSensor ) )
+        /*else if ( x3dom.isa( node, x3dom.nodeTypes.TimeSensor ) )
         {
             this.cleanNodeBag( this._nodeBag.timer, node );
-        }
+        }*/
         /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DLightNode ) )
         {
             this.cleanNodeBag( this._nodeBag.lights, node );
