@@ -658,7 +658,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
     {
         this.removeX3DOMBackendGraph( child );
     }
-    //These codes are moved to the corresponding _x3domNode's parentRemoved(). Aug.2022
+
     if ( domNode._x3domNode )
     {
         var node = domNode._x3domNode;
