@@ -654,9 +654,9 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
 {
     var children = domNode.childNodes;
 
-    for ( var i = 0, n = children.length; i < n; i++ )
+    for ( var child of domNode.children )
     {
-        this.removeX3DOMBackendGraph( children[ i ] );
+        this.removeX3DOMBackendGraph( child );
     }
 
     //These codes are moved to the corresponding _x3domNode's parentRemoved(). Aug.2022
@@ -769,7 +769,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
 
         delete domNode._x3domNode;
     }*/
-    if ( ( domNode instanceof Element ) && domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
+    if ( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
     {
         delete domNode._x3domNode;
     }
