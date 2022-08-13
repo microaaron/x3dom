@@ -113,7 +113,7 @@ x3dom.X3DDocument.prototype.findScene = function ( x3dElem )
                     {
                         if ( addedNode.tagName == "SCENE" )
                         {
-                            x3dom.debug.logInfo( "Scene node(s) found in X3D element." );
+                            x3dom.debug.logInfo( "Scene element(s) found in X3D element." );
                             observer.disconnect();
                             this._scene.parentRemoved( null );
                             this._scene.onRemove();
@@ -658,7 +658,6 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
     {
         this.removeX3DOMBackendGraph( child );
     }
-
     //These codes are moved to the corresponding _x3domNode's parentRemoved(). Aug.2022
     /*if ( domNode._x3domNode )
     {
