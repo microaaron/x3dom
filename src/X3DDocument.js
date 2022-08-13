@@ -769,7 +769,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
 
         delete domNode._x3domNode;
     }*/
-    if ( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
+    if ( domNode instanceof Element && domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
     {
         delete domNode._x3domNode;
     }
