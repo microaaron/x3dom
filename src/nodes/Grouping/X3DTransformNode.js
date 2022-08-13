@@ -164,7 +164,7 @@ x3dom.registerNodeType(
 
                 //I re-enabled this check because an x3domNode can be referenced by multiple USE elements,
                 //and it shouldn't be cleaned up until this x3domNode is no longer referenced(this._parentNodes.length === 0).
-                //    ———— microaaron(https://github.com/microaaron), Aug. 2022
+                //    ———— microaaron(https://github.com/microaaron), Aug.2022
                 if ( this._parentNodes.length === 0 )
                 {
                     var doc = this.findX3DDoc();
