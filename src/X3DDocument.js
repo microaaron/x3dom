@@ -637,7 +637,8 @@ x3dom.X3DDocument.prototype.decrementDownloads = function ()
     this.downloadCount--;
 };
 
-x3dom.X3DDocument.prototype.cleanNodeBag = function ( bag, node )
+//This function is superseded by X3DNode.cleanNodeBag( bag ). Aug.2022
+/*x3dom.X3DDocument.prototype.cleanNodeBag = function ( bag, node )
 {
     for ( var i = 0, n = bag.length; i < n; i++ )
     {
@@ -647,7 +648,7 @@ x3dom.X3DDocument.prototype.cleanNodeBag = function ( bag, node )
             break;
         }
     }
-};
+};*/
 
 x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
 {
@@ -658,10 +659,11 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         this.removeX3DOMBackendGraph( children[ i ] );
     }
 
-    if ( domNode._x3domNode )
+    //These codes are moved to the corresponding _x3domNode's parentRemoved(). Aug.2022
+    /*if ( domNode._x3domNode )
     {
         var node = domNode._x3domNode;
-        //var nameSpace = node._nameSpace;
+        var nameSpace = node._nameSpace;
 
         if ( x3dom.isa( node, x3dom.nodeTypes.X3DShapeNode ) )
         {
@@ -675,43 +677,43 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
                 delete x3dom.nodeTypes.Shape.idMap.nodeID[ node._objectID ];
             }
         }
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.TimeSensor ) )
+        else if ( x3dom.isa( node, x3dom.nodeTypes.TimeSensor ) )
         {
             this.cleanNodeBag( this._nodeBag.timer, node );
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DLightNode ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DLightNode ) )
         {
             this.cleanNodeBag( this._nodeBag.lights, node );
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DFollowerNode ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DFollowerNode ) )
         {
             this.cleanNodeBag( this._nodeBag.followers, node );
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DTransformNode ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DTransformNode ) )
         {
             this.cleanNodeBag( this._nodeBag.trans, node );
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.RenderedTexture ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.RenderedTexture ) )
         {
             this.cleanNodeBag( this._nodeBag.renderTextures, node );
             if ( node._cleanupGLObjects )
             {
                 node._cleanupGLObjects();
             }
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DPointingDeviceSensorNode ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DPointingDeviceSensorNode ) )
         {
             this.cleanNodeBag( this._nodeBag.affectedPointingSensors, node );
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
         {
             node.shutdown();    // general texture might have video
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.AudioClip ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.AudioClip ) )
         {
             node.shutdown();
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.X3DBindableNode ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DBindableNode ) )
         {
             var stack = node._stack;
             if ( stack )
@@ -724,22 +726,52 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
             {
                 node._cleanupGLObjects();
             }
-        }*/
-        /*else if ( x3dom.isa( node, x3dom.nodeTypes.Scene ) )
+        }
+        else if ( x3dom.isa( node, x3dom.nodeTypes.Scene ) )
         {
             if ( node._webgl )
             {
                 node._webgl = null;
                 // TODO; explicitly delete all gl objects
             }
-        */
+        }
 
         //do not remove node from namespace if it was only "USE"d
-        //if ( nameSpace && !( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) ) )
-        if ( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
+        if ( nameSpace && !( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) ) )
         {
-            delete domNode._x3domNode;
+            nameSpace.removeNode( node._DEF );
+            //remove imported node from namespace
+            var superInlineNode = nameSpace.superInlineNode;
+            if ( superInlineNode && superInlineNode._nameSpace )
+            {
+                var imports = superInlineNode._nameSpace.imports;
+                var exports = nameSpace.exports;
+                var inlineDEFMap = imports.get( superInlineNode._DEF );
+                if ( inlineDEFMap )
+                {
+                    exports.forEach( function ( localDEF, exportedAS )
+                    {
+                        if ( node._DEF == localDEF )
+                        {
+                            inlineDEFMap.forEach( function ( importedDEF, importedAS )
+                            {
+                                if ( exportedAS == importedDEF )
+                                {
+                                    delete superInlineNode._nameSpace.defMap[ importedAS ];
+                                }
+                            } );
+                        }
+                    } );
+                }
+            }
         }
+        node._xmlNode = null;
+
+        delete domNode._x3domNode;
+    }*/
+    if ( domNode.getAttribute( "use" ) || domNode.getAttribute( "USE" ) )
+    {
+        delete domNode._x3domNode;
     }
 };
 

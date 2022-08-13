@@ -212,10 +212,17 @@ x3dom.registerNodeType(
                 if ( this._parentNodes.length > 0 )
                 {this.invalidateVolume();}
 
-                // Cleans all GL objects for WebGL-based renderer
-                if ( this._cleanupGLObjects )
+                if ( this._parentNodes.length === 0 )
                 {
-                    this._cleanupGLObjects();
+                    // Cleans all GL objects for WebGL-based renderer
+                    if ( this._cleanupGLObjects )
+                    {
+                        this._cleanupGLObjects();
+                    }
+                    if ( x3dom.nodeTypes.Shape.idMap.nodeID[ this._objectID ] )
+                    {
+                        delete x3dom.nodeTypes.Shape.idMap.nodeID[ this._objectID ];
+                    }
                 }
             },
 
