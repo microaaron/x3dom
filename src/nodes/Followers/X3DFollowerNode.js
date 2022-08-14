@@ -68,7 +68,7 @@ x3dom.registerNodeType(
 
                     if ( doc )
                     {
-                        this.cleanNodeBag( doc._nodeBag.followers );
+                        this.cleanNodeBag( doc._nodeBag.followers );  //X3DNode.cleanNodeBag()
                     }
                 }
                 x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
