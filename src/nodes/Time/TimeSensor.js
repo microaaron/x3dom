@@ -346,7 +346,7 @@ x3dom.registerNodeType(
 
                     if ( doc )
                     {
-                        this.cleanNodeBag( doc._nodeBag.timer );
+                        this.cleanNodeBag( doc._nodeBag.timer );  //X3DNode.cleanNodeBag()
                     }
                 }
                 x3dom.nodeTypes.X3DSensorNode.prototype.parentRemoved.call( this, parent );
