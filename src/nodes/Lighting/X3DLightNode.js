@@ -189,7 +189,7 @@ x3dom.registerNodeType(
 
                     if ( doc )
                     {
-                        this.cleanNodeBag( doc._nodeBag.lights );
+                        this.cleanNodeBag( doc._nodeBag.lights );  //X3DNode.cleanNodeBag()
                     }
                 }
                 x3dom.nodeTypes.X3DChildNode.prototype.parentRemoved.call( this, parent );
