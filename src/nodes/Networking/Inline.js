@@ -151,7 +151,7 @@ x3dom.registerNodeType(
             {
                 if ( this._parentNodes.length === 0 )
                 {
-                    //It only has one child at most.
+                    //Inline only has one child at most.
                     for ( var child of this._childNodes )
                     {
                         this._nameSpace.removeSpace( child._nameSpace );
