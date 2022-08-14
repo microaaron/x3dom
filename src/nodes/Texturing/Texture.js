@@ -100,7 +100,6 @@ x3dom.registerNodeType(
                 }
             },
 
-            //shutdown : function ()
             parentRemoved : function ( parent )
             {
                 x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
