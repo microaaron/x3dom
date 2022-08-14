@@ -125,15 +125,15 @@ x3dom.registerNodeType(
 
             parentRemoved : function ( parent )
             {
-                var doc = this.findX3DDoc();
-                x3dom.nodeTypes.X3DSensorNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length === 0 )
                 {
+                    var doc = this.findX3DDoc();
                     if ( doc )
                     {
                         this.cleanNodeBag( doc._nodeBag.affectedPointingSensors );  //X3DNode.cleanNodeBag()
                     }
                 }
+                x3dom.nodeTypes.X3DSensorNode.prototype.parentRemoved.call( this, parent );
             }
             //----------------------------------------------------------------------------------------------------------------------
         }
