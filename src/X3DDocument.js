@@ -658,7 +658,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
     {
         this.removeX3DOMBackendGraph( child );
     }
-    //These codes are moved to the corresponding _x3domNode's parentRemoved(). Aug.2022
+    //These codes are moved to the corresponding x3domNode's parentRemoved(). Aug.2022
     /*if ( domNode._x3domNode )
     {
         var node = domNode._x3domNode;
@@ -1088,6 +1088,7 @@ x3dom.X3DDocument.prototype.onX3DMutation = function ( records )
 //Called by Scene.parentRemoved() when root scene is removed.
 x3dom.X3DDocument.prototype.onSceneRemoved = function ()
 {
+    //un-setup
     if ( this._bindableBag )
     {
         this._bindableBag.clearRefNode();
@@ -1095,14 +1096,16 @@ x3dom.X3DDocument.prototype.onSceneRemoved = function ()
     this._scene = null;
     if ( this._viewarea )
     {
-        if ( this._nodeBag.viewarea.includes( this._viewarea ) )
+        var i = this._nodeBag.viewarea.indexOf( this._viewarea );
+        if ( i >= 0 )
         {
-            this._nodeBag.viewarea.splice( this._nodeBag.viewarea.indexOf( this._viewarea ), 1 );
+            this._nodeBag.viewarea.splice( i, 1 );
         }
         this._viewarea._doc = null;
         this._viewarea._scene = null;
         this._viewarea = null;
     }
+    //re-setup
     this._setup( this._x3dElem );
     this.needRender = true;
 };
