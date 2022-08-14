@@ -102,7 +102,6 @@ x3dom.registerNodeType(
 
             parentRemoved : function ( parent )
             {
-                x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
                 if ( this._parentNodes.length === 0 && this._video )
                 {
                     this._video.pauseVideo();
@@ -121,6 +120,7 @@ x3dom.registerNodeType(
                     }
                     this._video = null;
                 }
+                x3dom.nodeTypes.X3DTextureNode.prototype.parentRemoved.call( this, parent );
             }
         }
     )
