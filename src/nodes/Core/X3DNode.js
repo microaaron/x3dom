@@ -179,23 +179,18 @@ x3dom.registerNodeType(
                             var field = this._cf[ fieldName ];
                             if ( field.rmLink( node ) || force )
                             {
-                                for ( var i = node._parentNodes.length - 1; i >= 0; i-- )
+                                var i = node._parentNodes.indexOf( this );
+                                if ( i >= 0 )
                                 {
-                                    if ( node._parentNodes[ i ] === this )
-                                    {
-                                        node._parentNodes.splice( i, 1 );
-                                        node.parentRemoved( this );
-                                        break;
-                                    }
+                                    node._parentNodes.splice( i, 1 );
+                                    node.parentRemoved( this );
                                 }
-                                for ( var j = this._childNodes.length - 1; j >= 0; j-- )
+                                var j = this._childNodes.indexOf( node );
+                                if ( j >= 0 )
                                 {
-                                    if ( this._childNodes[ j ] === node )
-                                    {
-                                        node.onRemove();
-                                        this._childNodes.splice( j, 1 );
-                                        return true;
-                                    }
+                                    node.onRemove();
+                                    this._childNodes.splice( j, 1 );
+                                    return true;
                                 }
                             }
                         }
