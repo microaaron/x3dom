@@ -131,14 +131,9 @@ x3dom.registerNodeType(
                     }
                 };
 
-                /*var log = function ( e )
-                {
-                    x3dom.debug.logWarning( "MediaEvent error:" + e );
-                };*/
-
                 this._audio.addEventListener( "canplaythrough", this._startAudio, true );
                 this._audio.addEventListener( "ended", this._audioEnded, true );
-                this._audio.addEventListener( "error", ()=>{x3dom.debug.logWarning( "MediaEvent error:" + e );}, true );
+                this._audio.addEventListener( "error", ( e )=>{x3dom.debug.logWarning( "MediaEvent error:" + e );}, true );
                 //this._audio.addEventListener( "pause", this._stopAudio, true );
 
                 this._createSources();
