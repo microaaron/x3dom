@@ -1472,30 +1472,21 @@ x3dom.Runtime.prototype.onAnimationFinished = function ()
 
 x3dom.Runtime.prototype.enterVR = function ()
 {
-    if ( this.canvas.vrDisplay && !this.canvas.vrDisplay.isPresenting )
-    {
-        this.canvas.vrDisplay.requestPresent( [ { source: this.canvas.canvas } ] ).then( function ()
-        {
-            this.canvas.doc.needRender = true;
-        }.bind( this ) );
-    }
+    this.canvas.enterVR();
 };
 
 x3dom.Runtime.prototype.exitVR = function ()
 {
-    if ( this.canvas.vrDisplay && this.canvas.vrDisplay.isPresenting )
-    {
-        this.canvas.vrDisplay.exitPresent();
-    }
+    this.canvas.exitVR();
 };
 
 x3dom.Runtime.prototype.toggleVR = function ()
 {
-    if ( this.canvas.vrDisplay && !this.canvas.vrDisplay.isPresenting )
+    if ( !this.canvas.xrSession )
     {
         this.enterVR();
     }
-    else if ( this.canvas.vrDisplay && this.canvas.vrDisplay.isPresenting )
+    else if ( this.canvas.xrSession )
     {
         this.exitVR();
     }
@@ -1573,18 +1564,32 @@ x3dom.Runtime.prototype.toggleProjection = function ( perspViewID, orthoViewID )
  */
 x3dom.Runtime.prototype.replaceWorld = function ( scene )
 {
-    var x3dElement = this.doc.cloneNode( false );
-    var child,
+    var x3dElement,
+        child,
         name;
+
+    if ( scene.localName.toUpperCase() === "X3D" )
+    {
+        x3dElement = scene.cloneNode( false );
+    }
+    else
+    {
+        x3dElement = this.doc.cloneNode( false );
+    }
+    //clean x3d element
     while ( child = scene.firstChild )
     {
         name = child.nodeType === 1 ? child.localName.toUpperCase() : null;
-        if ( name == "HEAD" || name == "SCENE" ) {x3dElement.appendChild( child );}
+        if ( name == "HEAD" || name == "SCENE" )
+        {
+            x3dElement.appendChild( child );
+        }
         else
         {
             child.remove();
         }
     }
+
     this.doc.parentNode.replaceChild( x3dElement, this.doc );
     this.doc = x3dElement;
     x3dom.reload();

@@ -3,6 +3,8 @@
 ## Version 1.8.3-dev
 
 * Bugfixes
+  * fog pass over shadow
+  * numerical field docs
   * improve sortType changes
   * MovieTexture: autostart, ios and removal
   * support url field change for AudioClip
@@ -18,6 +20,11 @@
   * allow smooth creaseAngle during coord updates for IFS
   * NormalInterpolator: array of MFVec3f
 * Improvements
+  * tolerate insufficient tex. coords. for IFS
+  * shadow/fog test scenes
+  * tweaked ESM with depth delta cutoff
+  * shadow blur ignores now background
+  * replaceWorld with X3D dom
   * prefer dom field updates through mutations
   * tune glTF alphaCutoff
   * auto sortType based on auto texture channel count
@@ -37,6 +44,8 @@
   * remove duplicate codes for x3dom-full-physics.js/x3dom-physics.debug.js
   * verify doc is available (not null), before manipulations
 * Features
+  * add basic webXR support
+  * baseURL parameter
   * bboxDisplay field for X3DBoundedObject, x3dom custom fields bboxMargin and bboxColor
   * support for glTF draco extension
   * support for EXPORT/IMPORT statements ([microaaron](https://github.com/microaaron))
