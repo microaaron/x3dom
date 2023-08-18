@@ -1,6 +1,17 @@
 # X3DOM Change Log
 
-## Version 1.8.3-dev
+## Version 1.8.4-dev
+
+* Features
+  
+* Improvements
+  * add "STEP" interpolator mode to interpolators
+  * update cycleInterval behaviour to X3Dv4
+
+* Bugfixes
+  * allow turntable as initial navigation
+    
+## Version 1.8.3
 
 * Bugfixes
   * fog pass over shadow
