@@ -3,10 +3,13 @@
 ## Version 1.8.4-dev
 
 * Features
+  * support for glTF punctual lights extension
+  * support for glTF emissive strength extension
   
 * Improvements
   * add "STEP" interpolator mode to interpolators
   * update cycleInterval behaviour to X3Dv4
+  * tune PhysicalMaterial for compatible light intensity
 
 * Bugfixes
   * allow turntable as initial navigation
