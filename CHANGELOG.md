@@ -3,15 +3,26 @@
 ## Version 1.8.4-dev
 
 * Features
-  * support for glTF punctual lights extension
-  * support for glTF emissive strength extension
-  
+  * ImageTexture colorSpaceConversion field
+  * support for glTF extensions:
+    * KHR_lights_punctual
+    * KHR_materials_emissive_strength
+    * KHR_mesh_quantization
+    * EXT_texture_webp
+    * EXT_meshopt_compression
+    * MSFT_texture_dds
+  * field values from metadata for non-standard nodes
 * Improvements
+  * improved fog over shadows ([dmorehead](https://github.com/dmorehead))
+  * enable negative scale auto-ccw for BufferGeometry/glTF
+  * enable shadows for BufferGeometry/glTF
   * add "STEP" interpolator mode to interpolators
   * update cycleInterval behaviour to X3Dv4
+  * more accurate startTime update
   * tune PhysicalMaterial for compatible light intensity
-
 * Bugfixes
+  * fix nav. type field updates
+  * fix mipmaps for compressed dds
   * allow turntable as initial navigation
     
 ## Version 1.8.3

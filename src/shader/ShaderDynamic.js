@@ -742,17 +742,14 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
         }
     }
 
-    //Fog
-    if ( properties.FOG )
-    {
-        shader += x3dom.shader.fog();
-    }
+    if ( properties.FOG ) { shader += x3dom.shader.fog(); }
 
-    if ( properties.LIGHTS || properties.CLIPPLANES )
+    // same as vertex shader but with fragPositionWS for fogNoise (w/ or w/out lights)
+    if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES )
     {
         shader += "varying vec4 fragPosition;\n";
-        shader += "varying vec4 fragPositionWS;\n";
         shader += "uniform float isOrthoView;\n";
+        shader += "varying vec4 fragPositionWS;\n";
     }
 
     //Lights
@@ -1069,16 +1066,30 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
                 shader += "_specularColor = texture2D(specularMap, vec2(texcoord.x, 1.0-texcoord.y)).rgb;\n";
             }
 
-            //Specularmap
+            //Emissivemap
             if ( properties.EMISSIVEMAP )
             {
                 if ( properties.EMISSIVEMAPCHANNEL )
                 {
-                    shader += "_emissiveColor = _emissiveColor * texture2D(emissiveMap, vec2(texcoord2.x, 1.0-texcoord2.y)).rgb;\n";
+                    if ( properties.PBR_MATERIAL )
+                    {
+                        shader += "_emissiveColor = _emissiveColor * " + x3dom.shader.decodeGamma( properties, "texture2D(emissiveMap, vec2(texcoord2.x, 1.0-texcoord2.y)).rgb" ) + ";\n";
+                    }
+                    else
+                    {
+                        shader += "_emissiveColor = _emissiveColor * texture2D(emissiveMap, vec2(texcoord2.x, 1.0-texcoord2.y)).rgb;\n";
+                    }
                 }
                 else
                 {
-                    shader += "_emissiveColor = _emissiveColor * texture2D(emissiveMap, vec2(texcoord.x, 1.0-texcoord.y)).rgb;\n";
+                    if ( properties.PBR_MATERIAL )
+                    {
+                        shader += "_emissiveColor = _emissiveColor * " + x3dom.shader.decodeGamma( properties, "texture2D(emissiveMap, vec2(texcoord.x, 1.0-texcoord.y)).rgb" ) + ";\n";
+                    }
+                    else
+                    {
+                        shader += "_emissiveColor = _emissiveColor * texture2D(emissiveMap, vec2(texcoord.x, 1.0-texcoord.y)).rgb;\n";
+                    }
                 }
             }
 
@@ -1336,11 +1347,10 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
 
     shader += "color = " + x3dom.shader.encodeGamma( properties, "color" ) + ";\n";
 
-    //Fog
-    if ( properties.FOG && !properties.SHADOW )
+    if ( properties.FOG )
     {
-        shader += "float f0 = calcFog(fragEyePosition);\n";
-        shader += "color.rgb = fogColor * (1.0-f0) + f0 * (color.rgb);\n";
+        shader += "     float f0 = calcFog(fragEyePosition);\n" +
+                  "     color.rgb = fogColor * (1.0-f0) + f0 * (color.rgb);\n";
     }
 
     shader += "gl_FragColor = color;\n";

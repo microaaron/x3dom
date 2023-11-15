@@ -1,10 +1,10 @@
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="chrome=1,IE=edge" />
     <meta name="theme-color" content="#86c540">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<title>X3DOM // GLTF 2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X3DOM // GLTF 2.0</title>
     <script type="text/javascript" src="../x3dom-include.js?full"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700,900" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -106,7 +106,8 @@
 
         .overflow-menu-entry:hover { background: #ccc; }
         .overflow-text { flex-grow: 10; color: #333; pointer-events: none;}
-        .overflow-icon-environment, .overflow-icon-tonemapping , .overflow-icon-light { font-size: 20px; color: #666;  pointer-events: none;}
+        .overflow-icon-environment, .overflow-icon-tonemapping, .overflow-icon-light, .overflow-icon-shadow {
+            font-size: 20px; color: #666;  pointer-events: none;}
         input[type=url] { flex-grow: 10; border: none; font-size: 22px; height: 100%; margin: 0 16px 0 16px; outline: none}
         .main-wrapper { width: 100%; height: calc(100% - 56px); position: absolute; top: 56px; left: 0; display: flex; flex-direction: row; }
         
@@ -146,6 +147,16 @@
             x3d.addEventListener( "downloadsfinished", onDownloadsFinished );
             
             g_runtime = x3d.runtime;
+            var url = new URL( document.location.href );
+            if ( url.searchParams.get( 'url' ) )
+            {
+                var query_url = url.search.match( /\?url=(.*)/ );
+                load( query_url[1], 'direct', 'negZ' );
+            }
+            else
+            {
+                load( 'Triangle', undefined, 'negZ' ); 
+            }
         };
 
         function updateInline(url)
@@ -276,6 +287,21 @@
             closeOverflowMenu();
         }
 
+        function setShadow( event )
+        {
+            var shadowRadio = document.querySelectorAll(".overflow-icon-shadow");
+
+            var radio = event.target.querySelector("i"); //.innerHTML = "radio_button_checked";
+            var on = radio.innerHTML == "radio_button_checked";
+            radio.innerHTML = on ? "radio_button_unchecked" : "radio_button_checked";
+
+            document.querySelector("directionallight").setAttribute("on", !on);
+            document.querySelector("physicalenvironmentlight").setAttribute("on", false);
+            document.querySelector(".overflow-icon-light").innerHTML="radio_button_unchecked";//first is IBL
+
+            closeOverflowMenu();
+        }
+
         function onKeyPress( e )
         {
             if( e.keyCode == 13 )
@@ -355,6 +381,10 @@
                     <div class="overflow-text">Scene Only</div>
                     <i class="material-icons overflow-icon-light">radio_button_unchecked</i>
                 </div>
+                <div class="overflow-menu-entry" onclick="setShadow(event)">
+                    <div class="overflow-text">Shadows</div>
+                    <i class="material-icons overflow-icon-shadow">radio_button_unchecked</i>
+                </div>
             </section>
         </section>
     </section>
@@ -368,35 +398,35 @@
     </section>  
 
     <section class="main-wrapper">
-
+            
         <section class="sidebar">
-          
+            
             <div class="sidebar-header">Basic Tests</div>
     
-            <div class="sidebar-entry" onclick="load('Triangle')">Triangle</div>
+            <div class="sidebar-entry" onclick="load('Triangle',undefined,'negZ')">Triangle</div>
             <div class="sidebar-entry" onclick="load('TriangleWithoutIndices',undefined,'negZ')">Triangle Without Indices</div>
             <div class="sidebar-entry" onclick="load('SimpleMeshes',undefined,'negZ')">Simple Meshes</div>
             <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/cx20/gltf-test/master/tutorialModels/SimpleMaterial/glTF/SimpleMaterial.gltf')">Simple Material</div>
             <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/bghgary/glTF-Asset-Generator/master/Output/Material_MetallicRoughness/Material_MetallicRoughness_09.gltf')">Simple Meshes</div>
+
             <div class="sidebar-header">Feature Tests</div>
     
             <div class="sidebar-entry" onclick="load('VertexColorTest', undefined, 'negZ')">Vertex Color Test</div>
-            <div class="sidebar-entry" onclick="load('TextureCoordinateTest',undefined,'negZ')">Texture Coordinate Test</div>
-            <div class="sidebar-entry" onclick="load('TextureSettingsTest',undefined,'negZ')">Texture Settings Test</div>
-            <div class="sidebar-entry" onclick="load('TextureTransformTest',undefined,'negZ')">Texture Transform Test</div>
-            <div class="sidebar-entry" onclick="load('AlphaBlendModeTest',undefined,'negZ')">Alpha Blend Mode Test</div>
-            <div class="sidebar-entry" onclick="load('NormalTangentTest',undefined,'negZ')">Normal Tangent Test</div>
-            <div class="sidebar-entry" onclick="load('NormalTangentMirrorTest',undefined,'negZ')">Normal Tangent Mirror Test</div>
-            <div class="sidebar-entry" onclick="load('MetalRoughSpheres',undefined,'negZ')">Metal Roughness Spheres</div>
-            <div class="sidebar-entry" onclick="load('UnlitTest',undefined,'negZ')">Unlit Test</div>
-            <div class="sidebar-entry" onclick="load('InterpolationTest',undefined,'negZ')">Interpolation Test</div>
+            <div class="sidebar-entry" onclick="load('TextureCoordinateTest', undefined, 'negZ')">Texture Coordinate Test</div>
+            <div class="sidebar-entry" onclick="load('TextureSettingsTest', undefined, 'negZ')">Texture Settings Test</div>
+            <div class="sidebar-entry" onclick="load('TextureTransformTest', undefined, 'negZ')">Texture Transform Test</div>
+            <div class="sidebar-entry" onclick="load('TextureEncodingTest', undefined, 'negZ')">Texture Encoding Test</div>
+            <div class="sidebar-entry" onclick="load('AlphaBlendModeTest', undefined, 'negZ')">Alpha Blend Mode Test</div>
+            <div class="sidebar-entry" onclick="load('NormalTangentTest', undefined, 'negZ')">Normal Tangent Test</div>
+            <div class="sidebar-entry" onclick="load('NormalTangentMirrorTest', undefined, 'negZ')">Normal Tangent Mirror Test</div>
+            <div class="sidebar-entry" onclick="load('MetalRoughSpheres', undefined, 'negZ')">Metal Roughness Spheres</div>
+            <div class="sidebar-entry" onclick="load('InterpolationTest', undefined, 'negZ')">Interpolation Test</div>
             
             <div class="sidebar-header">Advanced Tests</div>
     
             <div class="sidebar-entry" onclick="load('VC')">VC</div>
             <div class="sidebar-entry" onclick="load('Cameras')">Cameras</div>
             <div class="sidebar-entry" onclick="load('Box')">Box</div>
-            <div class="sidebar-entry" onclick="load('Box','Draco')">Box, Draco compressed</div>
             <div class="sidebar-entry" onclick="load('BoxVertexColors')">Box with Vertex Colors</div>
             <div class="sidebar-entry" onclick="load('BoxTextured')">Box Textured</div>
             <div class="sidebar-entry" onclick="load('BoxTextured', 'Embedded')">Box Textured (embedded)</div>
@@ -408,18 +438,11 @@
             <div class="sidebar-entry" onclick="load('ReciprocatingSaw')">Reciprocating Saw</div>
             <div class="sidebar-entry" onclick="load('GearboxAssy')">Gearbox Assy</div>
             <div class="sidebar-entry" onclick="load('Buggy')">Buggy</div>
-            <div class="sidebar-entry" onclick="load('Buggy','Draco')">Buggy, Draco compressed</div>
             <div class="sidebar-entry" onclick="load('CesiumMilkTruck')">Cesium Milk Truck</div>
-            <div class="sidebar-entry" onclick="updateInline('https://threejs.org/examples/models/gltf/LittlestTokyo.glb')">Tokyo, binary, Draco</div>
-            <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/andreasplesch/Library/20782db654ce04a3014a519bfd8a180278bbe9d3/Examples/gltf2/Crusader%20Shield%20Damara.glb')">BlenderDraco</div>
-            <div class="sidebar-entry" onclick="load('media/data/pointlight.gltf','direct','negZ')">Point Light, punctual</div>
-            <div class="sidebar-entry" onclick="load('media/data/spotlight.gltf','direct','negZ')">Spot Light, punctual</div>
-            <div class="sidebar-entry" onclick="load('media/data/lights.glb','direct','negZ')">Directional, punctual</div>
-            <!-- <div class="sidebar-entry" onclick="load('https://raw.githubusercontent.com/KhronosGroup/glTF/main/extensions/2.0/Khronos/KHR_lights_punctual/schema/examples/lights.gltf','direct','negZ')">directional, multibuffer</div> -->
-            <div class="sidebar-entry" onclick="load('EmissiveStrengthTest', undefined, 'negZ')">Emissive Strength</div>
+            <div class="sidebar-entry" onclick="load('NegativeScaleTest', undefined, 'negZ')">Negative Scale</div>
 
             <div class="sidebar-header">PBR Tests</div>
-        
+
             <div class="sidebar-entry" onclick="load('Avocado')">Avocado</div>
             <div class="sidebar-entry" onclick="load('BarramundiFish')">BarramundiFish</div>
             <div class="sidebar-entry" onclick="load('Lantern')">Lantern</div>
@@ -442,20 +465,37 @@
             <div class="sidebar-entry" onclick="load('DreamBike')">Dream Bike</div>
             <div class="sidebar-entry" onclick="load('MotorCycle')">Motor Cycle</div>
             <div class="sidebar-entry" onclick="load('WildWestBike')">Wild West Bike</div>
-           
 
-			<div class="sidebar-header">VR Controller</div>
-			
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/vive.glb')">Vive</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-go.glb')">Oculus Go</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-left.glb')">Oculus Left</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-right.glb')">Oculus Right</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/daydream.glb')">Daydream</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/gearvr.glb')">GearVR</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/microsoft-left.glb')">Microsoft Left</div>
-			<div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/microsoft-right.glb')">Microsoft Right</div>
-			<div class="sidebar-entry" onclick="updateInline('https://cdn.rawgit.com/KhronosGroup/glTF-Blender-Exporter/0e23c773bf27dad67d2c25f060370d6fa012d87d/polly/project_polly.gltf')">Polly</div>
-           
+            <div class="sidebar-header">Extension Tests</div>
+
+            <div class="sidebar-entry" onclick="load('UnlitTest', undefined, 'negZ')">Unlit</div>
+            <div class="sidebar-entry" onclick="load('Box','Draco')">Box, draco</div>
+            <div class="sidebar-entry" onclick="load('Buggy','Draco')">Buggy, draco</div>
+            <div class="sidebar-entry" onclick="updateInline('https://threejs.org/examples/models/gltf/LittlestTokyo.glb')">Tokyo, binary, draco</div>
+            <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/andreasplesch/Library/20782db654ce04a3014a519bfd8a180278bbe9d3/Examples/gltf2/Crusader%20Shield%20Damara.glb')">Blender, draco</div>
+            <div class="sidebar-entry" onclick="load('media/data/pointlight.gltf','direct','negZ')">Point Light, punctual</div>
+            <div class="sidebar-entry" onclick="load('media/data/spotlight.gltf','direct','negZ')">Spot Light, punctual</div>
+            <div class="sidebar-entry" onclick="load('media/data/lights.glb','direct','negZ')">Directional, punctual</div>
+            <div class="sidebar-entry" onclick="load('https://raw.githubusercontent.com/KhronosGroup/glTF/main/extensions/2.0/Khronos/KHR_lights_punctual/schema/examples/lights.gltf','direct','negZ')">Directional, multi-buffer</div>
+            <div class="sidebar-entry" onclick="load('EmissiveStrengthTest', undefined, 'negZ')">Emissive Strength</div>
+            <div class="sidebar-entry" onclick="load('https://raw.githubusercontent.com/andreasplesch/Library/6eadc3177341c9fd83b48880e0875aa67bde31fc/Examples/gltf2/webp.gltf','direct','negZ')">BJS test, webp</div>
+            <div class="sidebar-entry" onclick="load('https://raw.githubusercontent.com/CesiumGS/cesium/bd8be76b7707ddb9c858ae39538c18064c218f98/Specs/Data/Models/Box-Textured-Webp/CesiumBoxWebp.gltf','direct','negZ')">Cesium, embedded, webp</div>
+            <div class="sidebar-entry" onclick="load('https://raw.githubusercontent.com/zeux/meshoptimizer/master/demo/pirate.glb','direct','negZ')">Pirate, meshopt+quant., glb</div>
+            <div class="sidebar-entry" onclick="load('https://assets.babylonjs.com/meshes/Buggy/glTF-MeshOpt/Buggy.gltf','direct','negZ')">BJS Buggy, meshopt+quant., gltf</div>
+            <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/Keenuts/glTF-Sample-Models/cube/2.0/CubeDDS/glTF/CubeDDS.gltf')">DDS Texture</div>
+            <div class="sidebar-entry" onclick="updateInline('https://raw.githubusercontent.com/Keenuts/glTF-Sample-Models/cube/2.0/CubeDDS/glTF/CubeDDS.glb')">DDS Texture, binary</div>
+
+            <div class="sidebar-header">VR Controller</div>
+
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/vive.glb')">Vive</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-go.glb')">Oculus Go</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-left.glb')">Oculus Left</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/oculus-right.glb')">Oculus Right</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/daydream.glb')">Daydream</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/gearvr.glb')">GearVR</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/microsoft-left.glb')">Microsoft Left</div>
+            <div class="sidebar-entry" onclick="updateInline('https://x3dom.org/download/assets/vr/microsoft-right.glb')">Microsoft Right</div>
+            <div class="sidebar-entry" onclick="updateInline('https://cdn.rawgit.com/KhronosGroup/glTF-Blender-Exporter/0e23c773bf27dad67d2c25f060370d6fa012d87d/polly/project_polly.gltf')">Polly</div>
 		   
         </section>
 
@@ -466,6 +506,7 @@
                 <physicalenvironmentlight diffuse="https://x3dom.org/download/assets/pbr/papermillDiffuse.dds"
                                           specular="https://x3dom.org/download/assets/pbr/papermillSpecular.dds">
                 </physicalenvironmentlight>
+                <directionallight direction="1 -4 -2" shadowintensity="0.8" shadowfiltersize="7" on="false"></directionallight>
                 <background backURL="https://x3dom.org/download/assets/pbr/papermillDiffuse.dds"></background>
                 <Transform translation="0 0 0">
                     <Inline id="inline" url="" nameSpaceName="gltf" mapDEFToID="true"></Inline>
