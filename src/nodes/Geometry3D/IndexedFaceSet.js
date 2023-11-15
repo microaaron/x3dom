@@ -93,7 +93,7 @@ x3dom.registerNodeType(
         {
             nodeChanged : function ()
             {
-                var time0 = new Date().getTime();
+                var time0 = Date.now();
 
                 this.handleAttribs();
 
@@ -167,7 +167,7 @@ x3dom.registerNodeType(
                         hasTexCoord = true;
                         texCoords = texCoordNode._vf.point;
                         var nTexCoords = hasTexCoordInd ?
-                            Math.max( ...texCoordInd ) + 1 : positions.length;
+                            texCoordInd.max() + 1 : positions.length;
                         var i,
                             lastTexCoord = texCoords.length;
                         for ( i = lastTexCoord; i < nTexCoords; i++ )
@@ -746,7 +746,7 @@ x3dom.registerNodeType(
                     {this._mesh._numFaces += numCoords / 3;}
                 }
 
-                //var time1 = new Date().getTime() - time0;
+                //var time1 = Date.now() - time0;
                 //x3dom.debug.logInfo("Mesh load time: " + time1 + " ms");
             },
 
@@ -885,7 +885,7 @@ x3dom.registerNodeType(
                             hasTexCoord = true;
                             texCoords = texCoordNode._vf.point;
                             var nTexCoords = hasTexCoordInd ?
-                                Math.max( ...texCoordInd ) + 1 : positions.length;
+                                texCoordInd.max() + 1 : positions.length;
                             var i,
                                 lastTexCoord = texCoords.length;
                             for ( i = lastTexCoord; i < nTexCoords; i++ )

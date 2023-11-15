@@ -11,12 +11,19 @@ x3dom.glTF2Loader = function ( nameSpace )
         "KHR_materials_unlit",
         "KHR_texture_transform",
         "KHR_lights_punctual",
-        "KHR_materials_emissive_strength"
+        "KHR_materials_emissive_strength",
+        "KHR_mesh_quantization",
+        "EXT_texture_webp",
+        "EXT_meshopt_compression",
+        "MSFT_texture_dds"
     ];
     if ( x3dom.DracoDecoderModule )
     {
         this._supportedExtensions.push( "KHR_draco_mesh_compression" );
     }
+    this.meshoptDecoderWorkers = 2;
+    // this._meshoptDecoder = x3dom.MeshoptDecoder;
+    // this._meshoptDecoder.ready.then( () => this._meshoptDecoder.useWorkers( DecoderWorkers ) );
 };
 
 /**
@@ -26,49 +33,51 @@ x3dom.glTF2Loader = function ( nameSpace )
 
 x3dom.glTF2Loader.prototype.load = function ( input, binary )
 {
-    this._gltf = this._getGLTF( input, binary );
-
-    //generate X3D scene
-    var x3dScene = this._generateX3DScene();
-
-    //Get the scene ID
-    var sceneID = this._gltf.scene || 0;
-
-    //Get the scene
-    var scene = this._gltf.scenes[ sceneID ];
-
-    //generate worldinfo from asset properties and extras
-    this._generateX3DWorldInfo( scene, x3dScene );
-
-    //check if unsupported extensions are required
-    if ( this._unsupportedExtensionsRequired() )
+    return this._getGLTF( input, binary ).then( ( gltf ) =>
     {
-        x3dom.debug.logWarning( "Cannot render glTF." );
-        x3dom.debug.logWarning( "Some required extension of " + this._gltf.extensionsRequired + " not supported." );
-        return x3dScene;
-    }
+        this._gltf = gltf;
+        //generate X3D scene
+        var x3dScene = this._generateX3DScene();
 
-    // Get the nodes
-    for ( var i = 0; i < scene.nodes.length; i++ )
-    {
-        var node = this._gltf.nodes[ scene.nodes[ i ] ];
+        //Get the scene ID
+        var sceneID = this._gltf.scene || 0;
 
-        this._traverseNodes( node, x3dScene, scene.nodes[ i ] );
-    }
+        //Get the scene
+        var scene = this._gltf.scenes[ sceneID ];
 
-    //Get the animations
-    if ( this._gltf.animations )
-    {
-        for ( var i = 0; i < this._gltf.animations.length; i++ )
+        //generate worldinfo from asset properties and extras
+        this._generateX3DWorldInfo( scene, x3dScene );
+
+        //check if unsupported extensions are required
+        if ( this._unsupportedExtensionsRequired() )
         {
-            var animation   = this._gltf.animations[ i ];
-            var animationID = "glTF_ANIMATION_" + i;
-
-            this._generateX3DAnimationNodes( x3dScene, animation, animationID );
+            x3dom.debug.logWarning( "Cannot render glTF." );
+            x3dom.debug.logWarning( "Some required extension of " + this._gltf.extensionsRequired + " not supported." );
+            return x3dScene;
         }
-    }
 
-    return x3dScene;
+        // Get the nodes
+        for ( var i = 0; i < scene.nodes.length; i++ )
+        {
+            var node = this._gltf.nodes[ scene.nodes[ i ] ];
+
+            this._traverseNodes( node, x3dScene, scene.nodes[ i ] );
+        }
+
+        //Get the animations
+        if ( this._gltf.animations )
+        {
+            for ( var i = 0; i < this._gltf.animations.length; i++ )
+            {
+                var animation   = this._gltf.animations[ i ];
+                var animationID = "glTF_ANIMATION_" + i;
+
+                this._generateX3DAnimationNodes( x3dScene, animation, animationID );
+            }
+        }
+
+        return x3dScene;
+    } );
 };
 
 /**
@@ -767,7 +776,25 @@ x3dom.glTF2Loader.prototype._generateX3DPhysicalMaterial = function ( material )
  */
 x3dom.glTF2Loader.prototype._generateX3DImageTexture = function ( texture, containerField, channel, transform )
 {
-    var image   = this._gltf.images[ texture.source ];
+    var image = this._gltf.images[ texture.source ];
+
+    var extImageUrl = "";
+    var generateMipMaps = true;
+
+    if ( texture.extensions )
+    {
+        if ( texture.extensions.EXT_texture_webp && texture.extensions.EXT_texture_webp.source )
+        {
+            var extImage = this._gltf.images[ texture.extensions.EXT_texture_webp.source ];
+            extImageUrl = x3dom.Utils.dataURIToObjectURL( extImage.uri || "" );
+        }
+        else if ( texture.extensions.MSFT_texture_dds && texture.extensions.MSFT_texture_dds.source )
+        {
+            var extImage = this._gltf.images[ texture.extensions.MSFT_texture_dds.source ];
+            extImageUrl = x3dom.Utils.dataURIToObjectURL( extImage.uri || "" );
+            generateMipMaps = false;
+        }
+    }
 
     var imagetexture = document.createElement( "imagetexture" );
 
@@ -775,21 +802,27 @@ x3dom.glTF2Loader.prototype._generateX3DImageTexture = function ( texture, conta
 
     imagetexture.setAttribute( "origChannelCount", "2" );
     imagetexture.setAttribute( "flipY", "true" );
+    imagetexture.setAttribute( "colorSpaceConversion", "false" );
 
     if ( containerField )
     {
         imagetexture.setAttribute( "containerField", containerField );
     }
 
-    if ( image.uri != undefined )
+    if ( image.uri != undefined || extImageUrl.length > 0 )
     {
-        imagetexture.setAttribute( "url", x3dom.Utils.dataURIToObjectURL( image.uri ) );
+        var MFUrl = extImageUrl.length ? [ "\"" + extImageUrl + "\"" ] : [];
+        if ( image.uri )
+        {
+            MFUrl.push( "\"" + x3dom.Utils.dataURIToObjectURL( image.uri ) + "\"" );
+        }
+        imagetexture.setAttribute( "url", MFUrl.join( " " ) );
     }
 
     if ( texture.sampler != undefined )
     {
         var sampler = this._gltf.samplers[ texture.sampler ];
-        imagetexture.appendChild( this._createX3DTextureProperties( sampler ) );
+        imagetexture.appendChild( this._createX3DTextureProperties( sampler, generateMipMaps ) );
     }
 
     if ( channel )
@@ -811,7 +844,7 @@ x3dom.glTF2Loader.prototype._generateX3DImageTexture = function ( texture, conta
  * @param {Object} primitive - A glTF sampler node
  * @return {TextureProperties}
  */
-x3dom.glTF2Loader.prototype._createX3DTextureProperties = function ( sampler )
+x3dom.glTF2Loader.prototype._createX3DTextureProperties = function ( sampler, generateMipMaps )
 {
     var textureproperties = document.createElement( "textureproperties" );
 
@@ -821,7 +854,7 @@ x3dom.glTF2Loader.prototype._createX3DTextureProperties = function ( sampler )
     textureproperties.setAttribute( "magnificationFilter", x3dom.Utils.magFilterDicX3D( sampler.magFilter ) );
     textureproperties.setAttribute( "minificationFilter",  x3dom.Utils.minFilterDicX3D( sampler.minFilter ) );
 
-    if ( sampler.minFilter == undefined || ( sampler.minFilter >= 9984 && sampler.minFilter <= 9987 ) )
+    if ( generateMipMaps && ( sampler.minFilter == undefined || ( sampler.minFilter >= 9984 && sampler.minFilter <= 9987 ) ) )
     {
         textureproperties.setAttribute( "generateMipMaps", "true" );
     }
@@ -986,9 +1019,12 @@ x3dom.glTF2Loader.prototype._generateX3DBufferGeometry = function ( primitive, d
 x3dom.glTF2Loader.prototype._generateX3DBufferView = function ( view )
 {
     var bufferView = document.createElement( "bufferview" );
+    var buffer = view.buffer;
+    var superBufferByteOffset = 0;
+    this._gltf.buffers.slice( 0, buffer ).forEach( ( buffer ) => superBufferByteOffset += buffer.byteLength );
 
     bufferView.setAttribute( "target",     view.target );
-    bufferView.setAttribute( "byteOffset", view.byteOffset || 0 );
+    bufferView.setAttribute( "byteOffset", superBufferByteOffset + ( view.byteOffset || 0 ) );
     bufferView.setAttribute( "byteLength", view.byteLength );
     bufferView.setAttribute( "idx", view.idx );
     bufferView.setAttribute( "dracoId", view.dracoUniqueId !== undefined ? view.dracoUniqueId : -1 );
@@ -1124,9 +1160,6 @@ x3dom.glTF2Loader.prototype._generateX3DInterpolator = function ( id, path, samp
 };
 
 /**
- * Traverses all glTF nodes
- * @param {Object} node - A glTF-Node
- * @param {X3DNode} parent - A X3D-Node
  */
 x3dom.glTF2Loader.prototype._createX3DRoute = function ( fromField, fromNode, toField, toNode )
 {
@@ -1211,28 +1244,7 @@ x3dom.glTF2Loader.prototype._componentsOf = function ( type )
 
 x3dom.glTF2Loader.prototype._bufferURI = function ( value )
 {
-    var uri = "",
-        accessorIdx;
-
-    if ( value.attributes != undefined && value.attributes.POSITION != undefined )
-    {
-        accessorIdx = value.attributes.POSITION;
-    }
-    else if ( value.input )
-    {
-        accessorIdx = value.input;
-    }
-
-    if ( accessorIdx != undefined )
-    {
-        var accessor = this._gltf.accessors[ accessorIdx ];
-        var bufferView = this._gltf.bufferViews[ accessor.bufferView ];
-        var buffer     = this._gltf.buffers[ bufferView.buffer ];
-
-        uri = x3dom.Utils.dataURIToObjectURL( buffer.uri );
-    }
-
-    return uri;
+    return this._gltf.buffers[ 0 ].uri;
 };
 
 x3dom.glTF2Loader.prototype._USEorDEF = function ( node, value )
@@ -1289,50 +1301,155 @@ x3dom.glTF2Loader.prototype._toAxisAngle = function ( quat )
  */
 x3dom.glTF2Loader.prototype._getGLTF = function ( input, binary )
 {
-    if ( !binary )
+    return new Promise( ( resolve, reject ) =>
     {
-        return ( typeof input == "string" ) ? JSON.parse( input ) : input;
-    }
-
-    var byteOffset = 0;
-
-    var header = new Uint32Array( input, byteOffset, 3 );
-
-    if ( header[ 0 ] == 1179937895 || header[ 1 ] == 2 )
-    {
-        byteOffset += 12;
-
-        var jsonHeader = new Uint32Array( input, byteOffset, 2 );
-
-        if ( jsonHeader[ 1 ] == 1313821514 )
+        if ( !binary )
         {
-            byteOffset += 8;
+            var gltf = ( typeof input == "string" ) ? JSON.parse( input ) : input;
+            //var hasBinaryImages = gltf.images && gltf.images.some( ( image ) => image.bufferView && gltf.bufferViews[ image.bufferView ] ); //avoid double downloads
+            if ( gltf.buffers ) // && gltf.buffers[ 0 ] ) // && hasBinaryImages )
+            {
+                resolve( this._decodeAndCombineBuffers( gltf ).then( ( combinedBuffer ) =>
+                {
+                    URL.revokeObjectURL( gltf.buffers[ 0 ].uri );
+                    gltf.buffers[ 0 ].uri = x3dom.Utils.arrayBufferToObjectURL( combinedBuffer, "application/octet-stream" );
+                    return gltf;
+                } ) );
+                return null;
+            }
+            resolve( gltf );
+            return null;
+        }
 
-            var jsonData = new Uint8Array( input, byteOffset, jsonHeader[ 0 ] );
+        var byteOffset = 0;
 
-            byteOffset += jsonHeader[ 0 ];
+        var header = new Uint32Array( input, byteOffset, 3 );
 
-            var binaryHeader = new Uint32Array( input, byteOffset, 2 );
+        if ( header[ 0 ] == 1179937895 || header[ 1 ] == 2 )
+        {
+            byteOffset += 12;
 
-            if ( binaryHeader[ 1 ] == 5130562 )
+            var jsonHeader = new Uint32Array( input, byteOffset, 2 );
+
+            if ( jsonHeader[ 1 ] == 1313821514 )
             {
                 byteOffset += 8;
 
-                var binaryData = new Uint8Array( input, byteOffset, binaryHeader[ 0 ] );
+                var jsonData = new Uint8Array( input, byteOffset, jsonHeader[ 0 ] );
 
-                var gltf = x3dom.Utils.arrayBufferToJSON( jsonData );
+                byteOffset += jsonHeader[ 0 ];
 
-                gltf.buffers[ 0 ].uri = x3dom.Utils.arrayBufferToObjectURL( binaryData, "application/octet-stream" );
+                var binaryHeader = new Uint32Array( input, byteOffset, 2 );
 
-                this._convertBinaryImages( gltf, input, byteOffset );
+                if ( binaryHeader[ 1 ] == 5130562 )
+                {
+                    byteOffset += 8;
 
-                return gltf;
+                    var binaryData = new Uint8Array( input, byteOffset, binaryHeader[ 0 ] );
+
+                    var gltf = x3dom.Utils.arrayBufferToJSON( jsonData );
+
+                    gltf.buffers[ 0 ].uri = x3dom.Utils.arrayBufferToObjectURL( binaryData, "application/octet-stream" );
+
+                    //this._convertBinaryImages( gltf, input, byteOffset, 0 );
+                    resolve( this._decodeAndCombineBuffers( gltf ).then( ( combinedBuffer ) =>
+                    {
+                        URL.revokeObjectURL( gltf.buffers[ 0 ].uri );
+                        gltf.buffers[ 0 ].uri = x3dom.Utils.arrayBufferToObjectURL( combinedBuffer, "application/octet-stream" );
+                        return gltf;
+                    } ) );
+
+                    //resolve( gltf );
+                    return null;
+                }
             }
         }
-    }
+        reject( new Error( "cannot get glTF" ) );
+    } );
 };
 
-x3dom.glTF2Loader.prototype._convertBinaryImages = function ( gltf, buffer, byteOffset )
+x3dom.glTF2Loader.prototype._constructOrFetchBuffers = function ( gltf )
+{
+    return gltf.buffers.map( ( buffer ) =>
+    {
+        return buffer.uri == undefined ?
+            new ArrayBuffer( buffer.byteLength ) :
+            fetch( this._nameSpace.getURL( buffer.uri ) )
+                .then( ( response ) => response.arrayBuffer() );
+    } );
+};
+
+x3dom.glTF2Loader.prototype._decodeAndCombineBuffers = function ( gltf )
+{
+    var arrayBuffers = this._constructOrFetchBuffers( gltf );
+    var totalLength = 0;
+    var bufferPromise = Promise.all( arrayBuffers ).then( ( buffers ) =>
+    {
+        buffers.forEach( ( buffer, i ) =>
+        {
+            totalLength += buffer.byteLength;
+            this._convertBinaryImages( gltf, buffer, 0, i );
+            gltf.buffers[ i ].uri_orig = gltf.buffers[ i ].uri;
+            gltf.buffers[ i ].uri = x3dom.Utils.arrayBufferToObjectURL( buffer, "application/octet-stream" );
+        } );
+        var buffersAsync = this._meshopt_decodeBuffers( gltf, buffers );
+        //combine all buffers since BufferGeometry only takes one buffer
+        var superBuffer = new Uint8Array( totalLength );
+        totalLength = 0;
+        return Promise.all( buffersAsync ).then( ( buffers ) =>
+        {
+            buffers.forEach( ( buffer ) =>
+            {
+                superBuffer.set( new Uint8Array( buffer ), totalLength );
+                totalLength += buffer.byteLength;
+            } );
+            return superBuffer.buffer;
+        } );
+    } );
+    return bufferPromise;
+};
+
+x3dom.glTF2Loader.prototype._meshopt_decodeBuffers = function ( gltf, buffers )
+{
+    buffers.forEach( ( buffer, i ) =>
+    {
+        if ( gltf.buffers[ i ].uri_orig == undefined )
+        {
+            var views = gltf.bufferViews.filter( ( view ) => view.buffer == i );
+            var decodedViews = views.map( ( view ) => this._meshopt_decodeViewAsync( view, buffers ) );
+            var typedArray = new Uint8Array( buffer );
+            buffers[ i ] = Promise.all( decodedViews ).then( ( decodedArrays ) =>
+            {
+                decodedArrays.forEach( ( decodedArray, i ) =>
+                {
+                    typedArray.set( decodedArray, views[ i ].byteOffset );
+                } );
+                return typedArray.buffer;
+            } );
+        }
+    } );
+    return buffers;
+};
+
+x3dom.glTF2Loader.prototype._meshopt_decodeViewAsync = function ( view, buffers )
+{
+    if ( view.extensions && view.extensions.EXT_meshopt_compression )
+    {
+        var meshopt = view.extensions.EXT_meshopt_compression;
+        var source = new Uint8Array( buffers[  meshopt.buffer ] )
+            .slice( meshopt.byteOffset, meshopt.byteOffset + meshopt.byteLength );
+        if ( !x3dom.MeshoptDecoder.created )
+        {
+            x3dom.MeshoptDecoder.useWorkers( this.meshoptDecoderWorkers );
+            x3dom.MeshoptDecoder.created = true;
+        }
+        return x3dom.MeshoptDecoder.ready.then( () => x3dom.MeshoptDecoder.decodeGltfBufferAsync(
+            meshopt.count, meshopt.byteStride, source, meshopt.mode, meshopt.filter || "NONE" ) );
+    }
+    return new Uint8Array( buffers[ view.buffer ] ).slice( view.byteOffset, view.byteOffset + view.byteLength );
+};
+
+x3dom.glTF2Loader.prototype._convertBinaryImages = function ( gltf, buffer, byteOffset, bufferIndex )
 {
     if ( gltf.images != undefined )
     {
@@ -1340,12 +1457,13 @@ x3dom.glTF2Loader.prototype._convertBinaryImages = function ( gltf, buffer, byte
         {
             var image = gltf.images[ i ];
 
-            if ( image.bufferView != undefined )
+            if ( image.bufferView && gltf.bufferViews[ image.bufferView ].buffer == bufferIndex )
             {
                 var bufferView = gltf.bufferViews[ image.bufferView ];
                 bufferView.byteOffset = bufferView.byteOffset || 0;
 
-                var imageData = new Uint8Array( buffer, byteOffset + bufferView.byteOffset, bufferView.byteLength );
+                var imageStart = byteOffset + bufferView.byteOffset;
+                var imageData = buffer.slice( imageStart, imageStart + bufferView.byteLength );
 
                 image.uri = x3dom.Utils.arrayBufferToObjectURL( imageData, image.mimeType );
             }

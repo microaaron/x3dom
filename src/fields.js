@@ -1609,8 +1609,11 @@ x3dom.fields.SFMatrix4f.prototype.det3 = function ( a1, a2, a3,
     b1, b2, b3,
     c1, c2, c3 )
 {
-    return ( ( a1 * b2 * c3 ) + ( a2 * b3 * c1 ) + ( a3 * b1 * c2 ) -
-        ( a1 * b3 * c2 ) - ( a2 * b1 * c3 ) - ( a3 * b2 * c1 ) );
+    // return ( ( a1 * b2 * c3 ) + ( a2 * b3 * c1 ) + ( a3 * b1 * c2 ) -
+    //     ( a1 * b3 * c2 ) - ( a2 * b1 * c3 ) - ( a3 * b2 * c1 ) );
+    return  a1 * ( b2 * c3 - b3 * c2 ) +
+            a2 * ( b3 * c1 - b1 * c3 ) +
+            a3 * ( b1 * c2 - b2 * c1 );
 };
 
 /**
@@ -5510,6 +5513,28 @@ x3dom.fields.MFInt32.prototype.toGL = function ()
 };
 
 /**
+ * Returns the maximum value in this integer
+ * array as a number.
+ *
+ * @returns {Number} maximum value in array allowing for large arrays
+ */
+x3dom.fields.MFInt32.prototype.max = function ()
+{
+    return this.reduce( ( a, b ) => Math.max( a, b ), -Infinity );
+};
+
+/**
+ * Returns the minimum value in this integer
+ * array as a number.
+ *
+ * @returns {Number} minimum value in array allowing for large arrays
+ */
+x3dom.fields.MFInt32.prototype.min = function ()
+{
+    return this.reduce( ( a, b ) => Math.min( a, b ), Infinity );
+};
+
+/**
  * MFFloat constructor.
  *
  * An ``MFFloat'' object stores an arbitrary number of
@@ -5604,6 +5629,28 @@ x3dom.fields.MFFloat.prototype.toGL = function ()
     } );
 
     return a;
+};
+
+/**
+ * Returns the maximum value in this float
+ * array as a number.
+ *
+ * @returns {Number} maximum value in array allowing for large arrays
+ */
+x3dom.fields.MFFloat.prototype.max = function ()
+{
+    return this.reduce( ( a, b ) => Math.max( a, b ), -Infinity );
+};
+
+/**
+ * Returns the minimum value in this float
+ * array as a number.
+ *
+ * @returns {Number} minimum value in array allowing for large arrays
+ */
+x3dom.fields.MFFloat.prototype.min = function ()
+{
+    return this.reduce( ( a, b ) => Math.min( a, b ), Infinity );
 };
 
 /**
