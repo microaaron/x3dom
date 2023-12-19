@@ -21,7 +21,7 @@ x3dom.userAgentFeature = {
 {
     "use strict";
 
-    var onload =async function ()
+    var onload = async function ()
     {
         var i,
             j;  // counters

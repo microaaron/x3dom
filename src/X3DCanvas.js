@@ -18,170 +18,171 @@
 x3dom.X3DCanvas = function ( x3dElem, canvasIdx )
 {
     //async constructor
-    return (async () => {
-    var that = this;
+    return ( async () =>
+    {
+        var that = this;
 
-    /**
+        /**
      * The index of the HTML canvas
      * @member {String} _canvasIdx
      */
-    this._canvasIdx = canvasIdx;
+        this._canvasIdx = canvasIdx;
 
-    /**
+        /**
      * The X3D Element
      * @member {X3DElement} x3dElem
      */
-    this.x3dElem = x3dElem;
+        this.x3dElem = x3dElem;
 
-    /**
+        /**
      * The current canvas dimensions
      * @member {Array} _current_dim
      */
-    this._current_dim = [ 0, 0 ];
+        this._current_dim = [ 0, 0 ];
 
-    // for FPS measurements
-    this.fps_t0 = Date.now();
-    this.lastTimeFPSWasTaken = 0;
-    this.framesSinceLastTime = 0;
+        // for FPS measurements
+        this.fps_t0 = Date.now();
+        this.lastTimeFPSWasTaken = 0;
+        this.framesSinceLastTime = 0;
 
-    this._totalTime = 0;
-    this._elapsedTime = 0;
+        this._totalTime = 0;
+        this._elapsedTime = 0;
 
-    this.doc = null;
+        this.doc = null;
 
-    this.isSessionSupportedPromise = null;
-    this.xrSession = null;
-    this.xrReferenceSpace = null;
-    this.supportsPassiveEvents = false;
+        this.isSessionSupportedPromise = null;
+        this.xrSession = null;
+        this.xrReferenceSpace = null;
+        this.supportsPassiveEvents = false;
 
-    this.devicePixelRatio = window.devicePixelRatio || 1;
+        this.devicePixelRatio = window.devicePixelRatio || 1;
 
-    this.lastMousePos = { x: 0, y: 0 };
-    //try to determine behavior of certain DOMNodeInsertedEvent:
-    //IE11 dispatches one event for each node in an inserted subtree, other browsers use a single event per subtree
-    x3dom.caps.DOMNodeInsertedEvent_perSubtree = !( navigator.userAgent.indexOf( "MSIE" )    != -1 ||
+        this.lastMousePos = { x: 0, y: 0 };
+        //try to determine behavior of certain DOMNodeInsertedEvent:
+        //IE11 dispatches one event for each node in an inserted subtree, other browsers use a single event per subtree
+        x3dom.caps.DOMNodeInsertedEvent_perSubtree = !( navigator.userAgent.indexOf( "MSIE" )    != -1 ||
                                                    navigator.userAgent.indexOf( "Trident" ) != -1 );
 
-    // allow listening for (size) changes
-    x3dElem.__setAttribute = x3dElem.setAttribute;
+        // allow listening for (size) changes
+        x3dElem.__setAttribute = x3dElem.setAttribute;
 
-    //adds setAttribute function for width and height to the X3D element
-    x3dElem.setAttribute = function ( attrName, newVal )
-    {
-        this.__setAttribute( attrName, newVal );
-
-        // scale resolution so device pixel are used rather then css pixels
-        newVal = parseInt( newVal );
-
-        switch ( attrName )
+        //adds setAttribute function for width and height to the X3D element
+        x3dElem.setAttribute = function ( attrName, newVal )
         {
-            case "width":
-                that.canvas.setAttribute( "width", newVal * that.devicePixelRatio );
-                if ( that.doc && that.doc._viewarea )
-                {
-                    that.doc._viewarea._width = parseInt( that.canvas.getAttribute( "width" ), 0 );
-                    that.doc.needRender = true;
-                }
-                break;
+            this.__setAttribute( attrName, newVal );
 
-            case "height":
-                that.canvas.setAttribute( "height", newVal * that.devicePixelRatio );
-                if ( that.doc && that.doc._viewarea )
-                {
-                    that.doc._viewarea._height = parseInt( that.canvas.getAttribute( "height" ), 0 );
-                    that.doc.needRender = true;
-                }
-                break;
+            // scale resolution so device pixel are used rather then css pixels
+            newVal = parseInt( newVal );
 
-            default:
-                break;
+            switch ( attrName )
+            {
+                case "width":
+                    that.canvas.setAttribute( "width", newVal * that.devicePixelRatio );
+                    if ( that.doc && that.doc._viewarea )
+                    {
+                        that.doc._viewarea._width = parseInt( that.canvas.getAttribute( "width" ), 0 );
+                        that.doc.needRender = true;
+                    }
+                    break;
+
+                case "height":
+                    that.canvas.setAttribute( "height", newVal * that.devicePixelRatio );
+                    if ( that.doc && that.doc._viewarea )
+                    {
+                        that.doc._viewarea._height = parseInt( that.canvas.getAttribute( "height" ), 0 );
+                        that.doc.needRender = true;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        this.backend = this.x3dElem.getAttribute( "backend" );
+
+        this.backend = ( this.backend ) ? this.backend.toLowerCase() : "none";
+
+        this.canvas = this._createHTMLCanvas( x3dElem );
+
+        x3dom.debug.appendElement( x3dElem );
+
+        this.canvas.parent = this;
+
+        this.context = await this._initContext( this.canvas );
+
+        this.backend = "webgpu";
+
+        if ( this.context == null )
+        {
+            this.hasRuntime = false;
+            this._createInitFailedDiv( x3dElem );
+            return;
         }
-    };
 
-    this.backend = this.x3dElem.getAttribute( "backend" );
+        x3dom.caps.BACKEND = this.backend;
 
-    this.backend = ( this.backend ) ? this.backend.toLowerCase() : "none";
+        var runtimeEnabled = x3dElem.getAttribute( "runtimeEnabled" );
 
-    this.canvas = this._createHTMLCanvas( x3dElem );
+        if ( runtimeEnabled !== null )
+        {
+            this.hasRuntime = ( runtimeEnabled.toLowerCase() == "true" );
+        }
+        else
+        {
+            this.hasRuntime = x3dElem.hasRuntime;
+        }
 
-    x3dom.debug.appendElement( x3dElem );
-
-    this.canvas.parent = this;
-
-    this.context = await this._initContext( this.canvas );
-
-    this.backend = "webgpu";
-
-    if ( this.context == null )
-    {
-        this.hasRuntime = false;
-        this._createInitFailedDiv( x3dElem );
-        return;
-    }
-
-    x3dom.caps.BACKEND = this.backend;
-
-    var runtimeEnabled = x3dElem.getAttribute( "runtimeEnabled" );
-
-    if ( runtimeEnabled !== null )
-    {
-        this.hasRuntime = ( runtimeEnabled.toLowerCase() == "true" );
-    }
-    else
-    {
-        this.hasRuntime = x3dElem.hasRuntime;
-    }
-
-    /**
+        /**
      * STATS VIEWER STUFF
      * TODO MOVE IT TO MAIN.JS
      */
-    this.showStat = x3dElem.getAttribute( "showStat" );
-    this.stateViewer = new x3dom.States( x3dElem );
+        this.showStat = x3dElem.getAttribute( "showStat" );
+        this.stateViewer = new x3dom.States( x3dElem );
 
-    if ( this.showStat !== null && this.showStat == "true" )
-    {
-        this.stateViewer.display( true );
-    }
+        if ( this.showStat !== null && this.showStat == "true" )
+        {
+            this.stateViewer.display( true );
+        }
 
-    this.x3dElem.appendChild( this.stateViewer.viewer );
+        this.x3dElem.appendChild( this.stateViewer.viewer );
 
-    // progress bar
-    this.showProgress = x3dElem.getAttribute( "showProgress" );
-    this.progressDiv = this._createProgressDiv();
-    this.progressDiv.style.display = ( this.showProgress !== null && this.showProgress == "true" ) ? "flex" : "none";
-    this.x3dElem.appendChild( this.progressDiv );
+        // progress bar
+        this.showProgress = x3dElem.getAttribute( "showProgress" );
+        this.progressDiv = this._createProgressDiv();
+        this.progressDiv.style.display = ( this.showProgress !== null && this.showProgress == "true" ) ? "flex" : "none";
+        this.x3dElem.appendChild( this.progressDiv );
 
-    // vr button
-    this.vrDiv = this._createVRDiv();
-    this.x3dElem.appendChild( this.vrDiv );
+        // vr button
+        this.vrDiv = this._createVRDiv();
+        this.x3dElem.appendChild( this.vrDiv );
 
-    // touch visualization
-    this.showTouchpoints = x3dElem.getAttribute( "showTouchpoints" );
-    this.showTouchpoints = this.showTouchpoints ? this.showTouchpoints : false;
+        // touch visualization
+        this.showTouchpoints = x3dElem.getAttribute( "showTouchpoints" );
+        this.showTouchpoints = this.showTouchpoints ? this.showTouchpoints : false;
 
-    // disable touch events
-    this.disableTouch = x3dElem.getAttribute( "disableTouch" );
-    this.disableTouch = this.disableTouch ? ( this.disableTouch.toLowerCase() == "true" ) : false;
+        // disable touch events
+        this.disableTouch = x3dElem.getAttribute( "disableTouch" );
+        this.disableTouch = this.disableTouch ? ( this.disableTouch.toLowerCase() == "true" ) : false;
 
-    this.disableKeys = x3dElem.getAttribute( "disableKeys" );
-    this.disableKeys = this.disableKeys ? ( this.disableKeys.toLowerCase() == "true" ) : false;
+        this.disableKeys = x3dElem.getAttribute( "disableKeys" );
+        this.disableKeys = this.disableKeys ? ( this.disableKeys.toLowerCase() == "true" ) : false;
 
-    this.disableRightDrag = x3dElem.getAttribute( "disableRightDrag" );
-    this.disableRightDrag = this.disableRightDrag ? ( this.disableRightDrag.toLowerCase() == "true" ) : false;
+        this.disableRightDrag = x3dElem.getAttribute( "disableRightDrag" );
+        this.disableRightDrag = this.disableRightDrag ? ( this.disableRightDrag.toLowerCase() == "true" ) : false;
 
-    this.disableLeftDrag = x3dElem.getAttribute( "disableLeftDrag" );
-    this.disableLeftDrag = this.disableLeftDrag ? ( this.disableLeftDrag.toLowerCase() == "true" ) : false;
+        this.disableLeftDrag = x3dElem.getAttribute( "disableLeftDrag" );
+        this.disableLeftDrag = this.disableLeftDrag ? ( this.disableLeftDrag.toLowerCase() == "true" ) : false;
 
-    this.disableMiddleDrag = x3dElem.getAttribute( "disableMiddleDrag" );
-    this.disableMiddleDrag = this.disableMiddleDrag ? ( this.disableMiddleDrag.toLowerCase() == "true" ) : false;
+        this.disableMiddleDrag = x3dElem.getAttribute( "disableMiddleDrag" );
+        this.disableMiddleDrag = this.disableMiddleDrag ? ( this.disableMiddleDrag.toLowerCase() == "true" ) : false;
 
-    this.detectPassiveEvents();
+        this.detectPassiveEvents();
 
-    this.bindEventListeners();
-    
-    return this;
-    })();
+        this.bindEventListeners();
+
+        return this;
+    } )();
 };
 
 x3dom.X3DCanvas.prototype.detectPassiveEvents = function ()

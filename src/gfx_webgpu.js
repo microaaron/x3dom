@@ -104,44 +104,48 @@ x3dom.gfx_webgpu = ( function ()
         try
         {
             x3dom.caps.RENDERMODE = "HARDWARE (webgpu)";
-            
-            if (!navigator.gpu) {
-              throw Error("WebGPU not supported.");
-            }
-            x3dom.debug.logInfo("wgslLanguageFeatures: "+Array.from(navigator.gpu.wgslLanguageFeatures.values()).join());
-            
-            var adapter = await navigator.gpu.requestAdapter({powerPreference: 'high-performance'});
-            if (!adapter) {
-              throw Error("Couldn't request WebGPU adapter.");
-            }
-            
-            var adapterInfo = await adapter.requestAdapterInfo();
-            x3dom.debug.logInfo("adapter found\n"+
-                                (adapterInfo.vendor==""?"":"vendor: "+adapterInfo.vendor+", ")+
-                                (adapterInfo.architecture==""?"":"architecture: "+adapterInfo.architecture+", ")+
-                                (adapterInfo.device==""?"":"device: "+adapterInfo.device+", ")+
-                                (adapterInfo.description==""?"":"description: "+adapterInfo.description+", "));
-            
-            var device = await adapter.requestDevice({requiredFeatures:Array.from(adapter.features.values())});
-            device.lost.then((info) => {
-              x3dom.debug.logWarning(`WebGPU device was lost: ${info.message}`);
-              device = null;
 
-              if (info.reason !== "destroyed") {
+            if ( !navigator.gpu )
+            {
+                throw Error( "WebGPU not supported." );
+            }
+            x3dom.debug.logInfo( "wgslLanguageFeatures: " + Array.from( navigator.gpu.wgslLanguageFeatures.values() ).join() );
+
+            var adapter = await navigator.gpu.requestAdapter( {powerPreference: "high-performance"} );
+            if ( !adapter )
+            {
+                throw Error( "Couldn't request WebGPU adapter." );
+            }
+
+            var adapterInfo = await adapter.requestAdapterInfo();
+            x3dom.debug.logInfo( "adapter found\n" +
+                                ( adapterInfo.vendor == "" ? "" : "vendor: " + adapterInfo.vendor + ", " ) +
+                                ( adapterInfo.architecture == "" ? "" : "architecture: " + adapterInfo.architecture + ", " ) +
+                                ( adapterInfo.device == "" ? "" : "device: " + adapterInfo.device + ", " ) +
+                                ( adapterInfo.description == "" ? "" : "description: " + adapterInfo.description + ", " ) );
+
+            var device = await adapter.requestDevice( {requiredFeatures: Array.from( adapter.features.values() )} );
+            device.lost.then( ( info ) =>
+            {
+                x3dom.debug.logWarning( `WebGPU device was lost: ${info.message}` );
+                device = null;
+
+                if ( info.reason !== "destroyed" )
+                {
                 //init();
-              }
-            });
-            
+                }
+            } );
+
             ctx = canvas.getContext( "webgpu" );
-            
-            ctx.configure({
-                      device,
-                      format: navigator.gpu.getPreferredCanvasFormat(),
-                      alphaMode: 'premultiplied',
-                    });
+
+            ctx.configure( {
+                device,
+                format    : navigator.gpu.getPreferredCanvasFormat(),
+                alphaMode : "premultiplied"
+            } );
 
             var newCtx = new Context( ctx, canvas, "webgpu", x3dElem, adapter, device );
-                
+
             return newCtx;
         }
         catch ( e )
