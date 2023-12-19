@@ -21,7 +21,7 @@ x3dom.userAgentFeature = {
 {
     "use strict";
 
-    var onload = function ()
+    var onload =async function ()
     {
         var i,
             j;  // counters
@@ -127,7 +127,7 @@ x3dom.userAgentFeature = {
             x3dcanvas,
             altDiv,
             altP,
-            aLnk,
+            //aLnk,
             altImg,
             t0,
             t1;
@@ -136,11 +136,11 @@ x3dom.userAgentFeature = {
         {
             x3d_element = x3ds[ i ];
 
-            x3dcanvas = new x3dom.X3DCanvas( x3d_element, x3dom.canvases.length );
+            x3dcanvas = await new x3dom.X3DCanvas( x3d_element, x3dom.canvases.length );
 
             x3dom.canvases.push( x3dcanvas );
 
-            if ( x3dcanvas.gl === null )
+            if ( x3dcanvas.context === null )
             {
                 altDiv = document.createElement( "div" );
                 altDiv.setAttribute( "class", "x3dom-nox3d" );
@@ -148,12 +148,12 @@ x3dom.userAgentFeature = {
 
                 altP = document.createElement( "p" );
                 altP.appendChild( document.createTextNode( "WebGL is not yet supported in your browser. " ) );
-                aLnk = document.createElement( "a" );
+                /*aLnk = document.createElement( "a" );
                 aLnk.setAttribute( "href", "http://www.x3dom.org/?page_id=9" );
-                aLnk.appendChild( document.createTextNode( "Follow link for a list of supported browsers... " ) );
+                aLnk.appendChild( document.createTextNode( "Follow link for a list of supported browsers... " ) );*/
 
                 altDiv.appendChild( altP );
-                altDiv.appendChild( aLnk );
+                //altDiv.appendChild( aLnk );
 
                 x3dcanvas.x3dElem.appendChild( altDiv );
 

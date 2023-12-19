@@ -17,6 +17,8 @@
  */
 x3dom.X3DCanvas = function ( x3dElem, canvasIdx )
 {
+    //async constructor
+    return (async () => {
     var that = this;
 
     /**
@@ -106,11 +108,11 @@ x3dom.X3DCanvas = function ( x3dElem, canvasIdx )
 
     this.canvas.parent = this;
 
-    this.gl = this._initContext( this.canvas );
+    this.context = await this._initContext( this.canvas );
 
-    this.backend = "webgl";
+    this.backend = "webgpu";
 
-    if ( this.gl == null )
+    if ( this.context == null )
     {
         this.hasRuntime = false;
         this._createInitFailedDiv( x3dElem );
@@ -177,6 +179,9 @@ x3dom.X3DCanvas = function ( x3dElem, canvasIdx )
     this.detectPassiveEvents();
 
     this.bindEventListeners();
+    
+    return this;
+    })();
 };
 
 x3dom.X3DCanvas.prototype.detectPassiveEvents = function ()
@@ -851,32 +856,23 @@ x3dom.X3DCanvas.prototype.bindEventListeners = function ()
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
- * Creates the WebGL context and returns it
- * @returns {WebGLContext} gl
+ * Creates the WebGPU context and returns it
+ * @returns {WebGPUContext} context
  * @param {HTMLCanvas} canvas
  */
-x3dom.X3DCanvas.prototype._initContext = function ( canvas )
+x3dom.X3DCanvas.prototype._initContext = async function ( canvas )
 {
     x3dom.debug.logInfo( "Initializing X3DCanvas for [" + canvas.id + "]" );
-    var gl = x3dom.gfx_webgl( canvas, this.x3dElem );
+    var context = await x3dom.gfx_webgpu( canvas, this.x3dElem );
 
-    if ( !gl )
+    if ( !context )
     {
         x3dom.debug.logError( "No 3D context found..." );
         this.x3dElem.removeChild( canvas );
         return null;
     }
-    else
-    {
-        var webglVersion = parseFloat( x3dom.caps.VERSION.match( /\d+\.\d+/ )[ 0 ] );
-        if ( webglVersion < 1.0 )
-        {
-            x3dom.debug.logError( "WebGL version " + x3dom.caps.VERSION +
-                " lacks important WebGL/GLSL features needed for shadows, special vertex attribute types, etc.!" );
-        }
-    }
 
-    return gl;
+    return context;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1418,11 +1414,11 @@ x3dom.X3DCanvas.prototype.load = function ( uri, sceneElemPos, settings )
         }
         else
         {
-            this.doc.render( x3dCanvas.gl );
+            this.doc.render( x3dCanvas.context );
         }
     };
 
-    this.x3dElem.context = this.gl.ctx3d;
+    this.x3dElem.context = this.context.ctx3d;
 
     this.doc.onerror = function ()
     {

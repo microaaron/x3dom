@@ -11,7 +11,7 @@
             "Bindable.js",
             "NodeNameSpace.js",
             "NodeNameSpaceProtos.js",
-            "gfx_webgl.js",
+            "gfx_webgpu.js",
             "SSAO.js",
             "Runtime.js",
             "Main.js",
