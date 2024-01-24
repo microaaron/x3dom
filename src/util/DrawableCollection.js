@@ -30,7 +30,7 @@ x3dom.DrawableCollection = function ( drawableCollectionConfig )
     this.pixelHeightAtDistOne = viewpoint.getImgPlaneHeightAtDistOne() / this.viewarea._height;
 
     this.context = drawableCollectionConfig.context;
-    this.gl = drawableCollectionConfig.gl;
+    this.ctx3d = drawableCollectionConfig.ctx3d;
 
     this.viewFrustum = this.viewarea.getViewfrustum( this.sceneMatrix );
     this.worldVol = new x3dom.fields.BoxVolume();     // helper
@@ -212,9 +212,9 @@ x3dom.DrawableCollection.prototype.addShape = function ( shape, transform, graph
     this.length++;
 
     //Finally setup shape directly here to avoid another loop of O(n)
-    if ( this.context && this.gl )
+    if ( this.context && this.ctx3d )
     {
-        this.context.setupShape( this.gl, drawable, this.viewarea );
+        this.context.setupShape( this.ctx3d, drawable, this.viewarea );
     }
     //TODO: what about Flash? Shall we also setup structures here?
 };
@@ -265,9 +265,9 @@ x3dom.DrawableCollection.prototype.addDrawable = function ( drawable )
     this.length++;
 
     //Finally setup shape directly here to avoid another loop of O(n)
-    if ( this.context && this.gl )
+    if ( this.context && this.ctx3d )
     {
-        this.context.setupShape( this.gl, drawable, this.viewarea );
+        this.context.setupShape( this.ctx3d, drawable, this.viewarea );
     }
 };
 

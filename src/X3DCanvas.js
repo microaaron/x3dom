@@ -1295,7 +1295,7 @@ x3dom.X3DCanvas.prototype.tick = function ( timestamp, xrFrame )
             this.doc.needRender = false;
         }
 
-        this.doc.render( this.gl, this.getVRFrameData( xrFrame ) );
+        this.doc.render( this.context, this.getVRFrameData( xrFrame ) );
 
         if ( !this.doc._scene._vf.doPickPass )
         {

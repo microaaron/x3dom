@@ -12,28 +12,40 @@
 /**
  * Generate the final Shader program
  */
-x3dom.shader.DynamicShader = function ( gl, properties )
+x3dom.shader.DynamicShader = function ( ctx3d, properties )
 {
-    this.program = gl.createProgram();
+    this.program = ctx3d.createProgram();
 
-    var vertexShader     = this.generateVertexShader( gl, properties, x3dom.caps.WEBGL_VERSION );
-    var fragmentShader   = this.generateFragmentShader( gl, properties, x3dom.caps.WEBGL_VERSION );
+    var vertexShader     = this.generateVertexShader( ctx3d, properties, x3dom.caps.WEBGL_VERSION );
+    var fragmentShader   = this.generateFragmentShader( ctx3d, properties, x3dom.caps.WEBGL_VERSION );
 
-    gl.attachShader( this.program, vertexShader );
-    gl.attachShader( this.program, fragmentShader );
+    ctx3d.attachShader( this.program, vertexShader );
+    ctx3d.attachShader( this.program, fragmentShader );
 
     // optional, but position should be at location 0 for performance reasons
-    gl.bindAttribLocation( this.program, 0, "position" );
+    ctx3d.bindAttribLocation( this.program, 0, "position" );
 
-    gl.linkProgram( this.program );
+    ctx3d.linkProgram( this.program );
 
     return this.program;
 };
 
+var group = 0;
+var binding = 0;
+var uniformCode = ``;
+shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelMatrix : mat4x4<f32>;\n`;
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewMatrix : mat4x4<f32>;\n`;
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewProjectionMatrix : mat4x4<f32>;\n`;
+
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewMatrix2 : mat4x4<f32>;\n`;
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewProjectionMatrix2 : mat4x4<f32>;\n`;
+
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> isVR : bool;\n`;
+
 /**
  * Generate the vertex shader
  */
-x3dom.shader.DynamicShader.prototype.generateVertexShader = function ( gl, properties, version )
+x3dom.shader.DynamicShader.prototype.generateVertexShader = function ( ctx3d, properties, version )
 {
     var shader = "";
 
@@ -553,14 +565,14 @@ x3dom.shader.DynamicShader.prototype.generateVertexShader = function ( gl, prope
         shader = x3dom.shader.convertVertexShader( shader );
     }
 
-    var vertexShader = gl.createShader( gl.VERTEX_SHADER );
-    gl.shaderSource( vertexShader, shader );
-    gl.compileShader( vertexShader );
+    var vertexShader = ctx3d.createShader( ctx3d.VERTEX_SHADER );
+    ctx3d.shaderSource( vertexShader, shader );
+    ctx3d.compileShader( vertexShader );
 
-    if ( !gl.getShaderParameter( vertexShader, gl.COMPILE_STATUS ) )
+    if ( !ctx3d.getShaderParameter( vertexShader, ctx3d.COMPILE_STATUS ) )
     {
         x3dom.debug.logInfo( "VERTEX:\n" + shader );
-        x3dom.debug.logError( "VertexShader " + gl.getShaderInfoLog( vertexShader ) );
+        x3dom.debug.logError( "VertexShader " + ctx3d.getShaderInfoLog( vertexShader ) );
     }
 
     return vertexShader;
