@@ -166,6 +166,11 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer = class GPURenderPipelin
         this.stepMode = stepMode;
     }
 
+    newAttribute ( shaderLocation, offset, format )
+    {
+        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute( shaderLocation, offset, format );
+    }
+
     getAvailableStepModes ()
     {
         return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes();
