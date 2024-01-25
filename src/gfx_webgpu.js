@@ -109,7 +109,7 @@ x3dom.gfx_webgpu = ( function ()
             {
                 throw Error( "WebGPU not supported." );
             }
-            x3dom.debug.logInfo( "wgslLanguageFeatures: " + Array.from( navigator.gpu.wgslLanguageFeatures.values() ).join() );
+            x3dom.debug.logInfo( "wgslLanguageFeatures: " + Array.from( navigator.gpu.wgslLanguageFeatures ) );
 
             var adapter = await navigator.gpu.requestAdapter( {powerPreference: "high-performance"} );
             if ( !adapter )
@@ -124,7 +124,7 @@ x3dom.gfx_webgpu = ( function ()
                                 ( adapterInfo.device == "" ? "" : "device: " + adapterInfo.device + ", " ) +
                                 ( adapterInfo.description == "" ? "" : "description: " + adapterInfo.description + ", " ) );
 
-            var device = await adapter.requestDevice( {requiredFeatures: Array.from( adapter.features.values() )} );
+            var device = await adapter.requestDevice( {requiredFeatures: adapter.features } );
             device.lost.then( ( info ) =>
             {
                 x3dom.debug.logWarning( `WebGPU device was lost: ${info.message}` );
