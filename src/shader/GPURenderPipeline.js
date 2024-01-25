@@ -5,7 +5,7 @@
  */
 x3dom.webgpu.GPURenderPipeline = class
 {
-    constructor ( device, descriptor = newDescriptor() )
+    constructor ( device, descriptor = this.newDescriptor() )
     {
         this.device = device;
         this.descriptor = descriptor;
@@ -21,7 +21,7 @@ x3dom.webgpu.GPURenderPipeline = class
         this.descriptor = descriptor;
     }
 
-    newDescriptor ( layout = "auto", vertex = this.newVrtex(), fragment = this.newFragment(), primitive, depthStencil, multisample, label = "" )
+    newDescriptor ( layout, vertex, fragment, primitive, depthStencil, multisample, label )
     {
         return new x3dom.webgpu.GPURenderPipeline.Descriptor( layout, vertex, fragment, primitive, depthStencil, multisample, label );
     }
@@ -88,7 +88,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor = class GPURenderPipeline_Descriptor
         this.label = label;
     }
 
-    newVrtex ( module, entryPoint, buffers = [], constants = {} )
+    newVrtex ( module, entryPoint, buffers, constants )
     {
         return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex( module, entryPoint, buffers, constants );
     }
@@ -102,7 +102,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor = class GPURenderPipeline_Descriptor
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#vertex_object_structure
 x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex = class GPURenderPipeline_Descriptor_Vertex
 {
-    constructor ( module, entryPoint, buffers = [], constants = newConstants() )
+    constructor ( module, entryPoint, buffers = [], constants = this.newConstants() )
     {
         this.module = module;
         this.entryPoint = entryPoint;
@@ -130,9 +130,9 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex = class GPURenderPipeline_Descr
         this.constants = constants;
     }
 
-    newBuffer ( arrayStride, attributes = [], stepMode )
+    newBuffer ( arrayStride, attributes, stepMode )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer( arrayStride, attributes = [], stepMode );
+        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer( arrayStride, attributes, stepMode );
     }
 
     newConstants ( constants )
@@ -304,7 +304,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Constants = class GPURenderPipe
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#fragment_object_structure
 x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment = class GPURenderPipeline_Descriptor_Fragment
 {
-    constructor ( module, entryPoint, targets = [], constants = newConstants() )
+    constructor ( module, entryPoint, targets = [], constants = this.newConstants() )
     {
         this.module = module;
         this.entryPoint = entryPoint;
