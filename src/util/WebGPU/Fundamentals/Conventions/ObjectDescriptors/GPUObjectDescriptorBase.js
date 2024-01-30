@@ -5,7 +5,7 @@
  */
 x3dom.WebGPU.GPUObjectDescriptorBase = class GPUObjectDescriptorBase
 {
-    constructor ( label = "" )
+    constructor ( label )
     {
         this.label = label; //Optional
     }

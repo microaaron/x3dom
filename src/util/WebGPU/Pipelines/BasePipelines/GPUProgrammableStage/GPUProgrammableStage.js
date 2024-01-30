@@ -5,7 +5,7 @@
  */
 x3dom.WebGPU.GPUProgrammableStage = class GPUProgrammableStage
 {
-    constructor ( module, entryPoint, constants = this.newConstants() )
+    constructor ( module, entryPoint, constants )
     {
         this.module = module;
         this.entryPoint = entryPoint;
