@@ -5,7 +5,7 @@
  */
 x3dom.WebGPU.GPURenderPipelineDescriptor = class GPURenderPipelineDescriptor extends x3dom.WebGPU.GPUPipelineDescriptorBase
 {
-    constructor ( layout, vertex = this.newVrtex(), fragment = this.newFragment(), primitive, depthStencil, multisample, label )
+    constructor ( layout, vertex = this.newVrtex(), fragment, primitive, depthStencil, multisample, label )
     {
         super( layout, label );
         this.vertex = vertex;
@@ -45,9 +45,14 @@ x3dom.WebGPU.GPURenderPipelineDescriptor = class GPURenderPipelineDescriptor ext
         return new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
     }
 
-    newFragment ( module, entryPoint, targets, constants )
+    newFragment ( module, entryPoint, constants, targets )
     {
-        return x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment( module, entryPoint, targets, constants );
+        return x3dom.WebGPU.WebGPU.Fragment( module, entryPoint, constants, targets );
+    }
+
+    newPrimitive ( topology, stripIndexFormat, frontFace, cullMode, unclippedDepth )
+    {
+        return x3dom.WebGPU.GPUPrimitiveState( topology, stripIndexFormat, frontFace, cullMode, unclippedDepth );
     }
 
     get [ Symbol.toStringTag ] ()
