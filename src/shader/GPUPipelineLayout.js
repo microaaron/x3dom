@@ -1,9 +1,9 @@
-x3dom.webgpu.createPipelineLayout = function ( device, GPUPipelineLayoutDescriptor )
+x3dom.WebGPU.createPipelineLayout = function ( device, GPUPipelineLayoutDescriptor )
 {
     device.createPipelineLayout( GPUPipelineLayoutDescriptor );
 };
 
-x3dom.webgpu.GPUPipelineLayoutDescriptor = class
+x3dom.WebGPU.GPUPipelineLayoutDescriptor = class
 {
     constructor ( bindGroupLayouts = [], label = "" )
     {

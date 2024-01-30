@@ -1,9 +1,9 @@
 /**
- * @file GPURenderPipeline.js
+ * @file GPUTextureFormat.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.01
  */
-x3dom.WebGPU.GPUTexture.GPUTextureFormats = class GPUTexture_GPUTextureFormats
+x3dom.WebGPU.GPUTextureFormat = class GPUTextureFormat
 {
     // 8-bit formats
     r8unorm = "r8unorm";
@@ -171,5 +171,10 @@ x3dom.WebGPU.GPUTexture.GPUTextureFormats = class GPUTexture_GPUTextureFormats
             this.astc_12x12_unorm_srgb = "astc-12x12-unorm-srgb";
         }
         Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUTextureFormat";
     }
 };

@@ -1,9 +1,9 @@
-x3dom.webgpu.createBindGroupLayout = function ( device, GPUBindGroupLayoutDescriptor )
+x3dom.WebGPU.createBindGroupLayout = function ( device, GPUBindGroupLayoutDescriptor )
 {
     device.createBindGroupLayout( GPUBindGroupLayoutDescriptor );
 };
 
-x3dom.webgpu.GPUBindGroupLayoutDescriptor = class
+x3dom.WebGPU.GPUBindGroupLayoutDescriptor = class
 {
     constructor ( entries = [], label = "" )
     {

@@ -3,7 +3,7 @@
  * @author microaaron(github.com/microaaron)
  * @date 2024.01
  */
-x3dom.webgpu.GPURenderPipeline = class
+x3dom.WebGPU.GPURenderPipeline = class
 {
     constructor ( device, descriptor = this.newDescriptor() )
     {
@@ -23,7 +23,7 @@ x3dom.webgpu.GPURenderPipeline = class
 
     newDescriptor ( layout, vertex, fragment, primitive, depthStencil, multisample, label )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor( layout, vertex, fragment, primitive, depthStencil, multisample, label );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor( layout, vertex, fragment, primitive, depthStencil, multisample, label );
     }
 
     create ()
@@ -40,17 +40,17 @@ x3dom.webgpu.GPURenderPipeline = class
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#descriptor
-x3dom.webgpu.GPURenderPipeline.Descriptor = class GPURenderPipeline_Descriptor
+x3dom.WebGPU.GPURenderPipeline.Descriptor = class GPURenderPipelineDescriptor
 {
     constructor ( layout = "auto", vertex = this.newVrtex(), fragment = this.newFragment(), primitive, depthStencil, multisample, label = "" )
     {
         this.layout = layout;
         this.vertex = vertex;
-        this.fragment = fragment;
-        this.primitive = primitive;
-        this.depthStencil = depthStencil;
-        this.multisample = multisample;
-        this.label = label;
+        this.fragment = fragment; //Optional
+        this.primitive = primitive; //Optional
+        this.depthStencil = depthStencil; //Optional
+        this.multisample = multisample; //Optional
+        this.label = label; //Optional
     }
 
     setLayout ( layout )
@@ -90,24 +90,24 @@ x3dom.webgpu.GPURenderPipeline.Descriptor = class GPURenderPipeline_Descriptor
 
     newVrtex ( module, entryPoint, buffers, constants )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex( module, entryPoint, buffers, constants );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex( module, entryPoint, buffers, constants );
     }
 
-    newFragment ()
+    newFragment ( module, entryPoint, targets, constants )
     {
-        return;
+        return x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment( module, entryPoint, targets, constants );
     }
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#vertex_object_structure
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex = class GPURenderPipeline_Descriptor_Vertex
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex = class GPURenderPipeline_Descriptor_Vertex
 {
     constructor ( module, entryPoint, buffers = [], constants = this.newConstants() )
     {
         this.module = module;
         this.entryPoint = entryPoint;
-        this.buffers = buffers;
-        this.constants = constants;
+        this.buffers = buffers; //Optional
+        this.constants = constants; //Optional
     }
 
     setModule ( module )
@@ -132,23 +132,23 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex = class GPURenderPipeline_Descr
 
     newBuffer ( arrayStride, attributes, stepMode )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer( arrayStride, attributes, stepMode );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer( arrayStride, attributes, stepMode );
     }
 
     newConstants ( constants )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Constants( constants );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Constants( constants );
     }
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#buffers
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer = class GPURenderPipeline_Descriptor_Vertex_Buffer
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer = class GPURenderPipeline_Descriptor_Vertex_Buffer
 {
     constructor ( arrayStride, attributes = [], stepMode )
     {
         this.arrayStride = arrayStride;
         this.attributes = attributes;
-        this.stepMode = stepMode;
+        this.stepMode = stepMode; //Optional
     }
 
     setArrayStride ( arrayStride )
@@ -168,17 +168,17 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer = class GPURenderPipelin
 
     newAttribute ( shaderLocation, offset, format )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute( shaderLocation, offset, format );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute( shaderLocation, offset, format );
     }
 
     getAvailableStepModes ()
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes();
-    };
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes();
+    }
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#attributes
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute = class GPURenderPipeline_Descriptor_Vertex_Buffer_Attribute
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute = class GPURenderPipeline_Descriptor_Vertex_Buffer_Attribute
 {
     constructor ( shaderLocation, offset, format )
     {
@@ -204,12 +204,12 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute = class GPURen
 
     getAvailableFormats ()
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute.GPUVertexFormats();
-    };
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute.Formats();
+    }
 };
 
 //refer: https://gpuweb.github.io/gpuweb/#enumdef-gpuvertexformat
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute.GPUVertexFormats = class GPURenderPipeline_Descriptor_Vertex_Buffer_Attribute_GPUVertexFormats
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute.Formats = class GPUVertexFormats
 {
     uint8x2 = "uint8x2";
 
@@ -280,7 +280,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.Attribute.GPUVertexForma
 };
 
 //refer: https://gpuweb.github.io/gpuweb/#enumdef-gpuvertexstepmode
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes = class GPURenderPipeline_Descriptor_Vertex_Buffer_StepModes
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes = class GPURenderPipeline_Descriptor_Vertex_Buffer_StepModes
 {
     vertex = "vertex";
 
@@ -293,7 +293,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Buffer.StepModes = class GPURen
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#constants_2
-x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Constants = class GPURenderPipeline_Descriptor_VertexFragment_Constants
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Constants = class GPURenderPipeline_Descriptor_VertexFragment_Constants
 {
     constructor ( constants )
     {
@@ -307,14 +307,14 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Constants = class GPURenderPipe
 };
 
 //refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#fragment_object_structure
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment = class GPURenderPipeline_Descriptor_Fragment
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment = class GPUFragmentState
 {
     constructor ( module, entryPoint, targets = [], constants = this.newConstants() )
     {
         this.module = module;
         this.entryPoint = entryPoint;
         this.targets = targets;
-        this.constants = constants;
+        this.constants = constants; //Optional
     }
 
     setModule ( module )
@@ -327,7 +327,7 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment = class GPURenderPipeline_Des
         this.entryPoint = entryPoint;
     }
 
-    setBuffers ( targets )
+    setTargets ( targets )
     {
         this.targets = targets;
     }
@@ -339,37 +339,48 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment = class GPURenderPipeline_Des
 
     newConstants ( constants )
     {
-        return new x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Constants( constants );
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Constants( constants );
     }
 };
 
-//refer: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/createRenderPipeline#targets
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target = class GPURenderPipeline_Descriptor_Fragment_Target
+//refer: https://gpuweb.github.io/gpuweb/#dictdef-gpucolortargetstate
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target = class GPUColorTargetState
 {
     constructor ( format, blend, writeMask )
     {
         this.format = format;
-        this.blend = blend;
-        this.writeMask = writeMask;
+        this.blend = blend; //Optional
+        this.writeMask = writeMask; //Optional
     }
 
-    setModule ( format )
+    setFormat ( format )
     {
         this.format = format;
     }
 
-    setEntryPoint ( blend )
+    setBlend ( blend )
     {
         this.blend = blend;
     }
 
-    setBuffers ( writeMask )
+    setWriteMask ( writeMask )
     {
         this.writeMask = writeMask;
     }
-};
 
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend = class GPURenderPipeline_Descriptor_Fragment_Target_Blend
+    newBlend ( color, alpha )
+    {
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend( color, alpha );
+    }
+
+    getAvailableFormats ()
+    {
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Formats();
+    }
+};
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Formats = x3dom.WebGPU.GPUTexture.GPUTextureFormats();
+
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend = class GPUBlendState
 {
     constructor ( color, alpha )
     {
@@ -377,47 +388,106 @@ x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend = class GPURende
         this.alpha = alpha;
     }
 
-    setModule ( color )
+    setColor ( color )
     {
         this.color = color;
     }
 
-    setEntryPoint ( alpha )
+    setAlpha ( alpha )
     {
         this.alpha = alpha;
     }
+
+    newColor ( srcFactor, dstFactor, operation )
+    {
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color( color );
+    }
+
+    newAlpha ( srcFactor, dstFactor, operation )
+    {
+        return new x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Alpha( alpha );
+    }
 };
 
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color = class GPURenderPipeline_Descriptor_Fragment_Target_Blend_ColorAlpha
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color = class GPUBlendComponent
 {
     constructor ( srcFactor, dstFactor, operation )
     {
-        this.srcFactor = srcFactor;
-        this.dstFactor = dstFactor;
-        this.operation = operation;
+        this.srcFactor = srcFactor; //Optional
+        this.dstFactor = dstFactor; //Optional
+        this.operation = operation; //Optional
     }
 
-    setModule ( srcFactor )
+    setSrcFactor ( srcFactor )
     {
         this.srcFactor = srcFactor;
     }
 
-    setEntryPoint ( dstFactor )
+    setDstFactor ( dstFactor )
     {
         this.dstFactor = dstFactor;
     }
 
-    setEntryPoint ( operation )
+    setOperation ( operation )
     {
         this.operation = operation;
+    }
+
+    getAvailableSrcFactors ()
+    {
+        return new x3dom.WebGPU.GPUTexture.GPUTextureFormats();
+    }
+
+    getAvailableDstFactors ()
+    {
+        return new x3dom.WebGPU.GPUTexture.GPUTextureFormats();
+    }
+
+    getAvailableOperations ()
+    {
+        return new x3dom.WebGPU.GPUTexture.GPUTextureFormats();
     }
 };
 
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Alpha = x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color;
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color.SrcFactors = class GPUBlendFactor
+{
+    zero = "zero";
 
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color.dstFactor = x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color.srcFactor = {
+    one = "one";
+
+    src = "src";
+
+    one_minus_src = "one-minus-src";
+
+    src_alpha = "src-alpha";
+
+    one_minus_src_alpha = "one-minus-src-alpha";
+
+    dst = "dst";
+
+    one_minus_dst = "one-minus-dst";
+
+    dst_alpha = "dst-alpha";
+
+    one_minus_dst_alpha = "one-minus-dst-alpha";
+
+    src_alpha_saturated = "src-alpha-saturated";
+
+    constant = "constant";
+
+    one_minus_constant = "one-minus-constant";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+};
+
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Alpha = x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color;
+
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color.dstFactor = x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Target.Blend.Color.srcFactor = {
     constant : "constant"
 
 };
 
-x3dom.webgpu.GPURenderPipeline.Descriptor.Fragment.Constants = x3dom.webgpu.GPURenderPipeline.Descriptor.Vertex.Constants;
+x3dom.WebGPU.GPURenderPipeline.Descriptor.Fragment.Constants = x3dom.WebGPU.GPURenderPipeline.Descriptor.Vertex.Constants;
