@@ -45,6 +45,37 @@
             "json/PrototypeExpander.js",
             "protos/ProtoDeclaration.js"
         ],
+        "src/util/WebGPU/":
+        [
+            "WebGPU.js",
+            "GPUAutoLayoutMode.js",
+            "GPUBlendComponent.js",
+            "GPUBlendFactor.js",
+            "GPUBlendOperation.js",
+            "GPUBlendState.js",
+            "GPUColorTargetState.js",
+            "GPUColorWrite.js",
+            "GPUCompareFunction.js",
+            "GPUCullMode.js",
+            "GPUDepthStencilState.js",
+            "GPUFrontFace.js",
+            "GPUIndexFormat.js",
+            "GPUMultisampleState.js",
+            "GPUObjectDescriptorBase.js",
+            "GPUPipelineDescriptorBase.js",
+            "GPUPrimitiveState.js",
+            "GPUPrimitiveTopology.js",
+            "GPUProgrammableStage.js",
+            "GPURenderPipelineDescriptor.js",
+            "GPUStencilFaceState.js",
+            "GPUStencilOperation.js",
+            "GPUTextureFormat.js",
+            "GPUVertexAttribute.js",
+            "GPUVertexBufferLayout.js",
+            "GPUVertexFormat.js",
+            "GPUVertexState.js",
+            "GPUVertexStepMode.js"
+        ],
         "src/shader/" :
         [
             "Shader.js",

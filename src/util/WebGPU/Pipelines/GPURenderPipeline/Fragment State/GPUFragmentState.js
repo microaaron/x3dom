@@ -16,9 +16,9 @@ x3dom.WebGPU.GPUFragmentState = class GPUFragmentState extends x3dom.WebGPU.GPUP
         this.targets = targets;
     }
 
-    newTarget ( arrayStride, stepMode, attributes )
+    newTarget ( format, blend, writeMask )
     {
-        //return new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode, attributes );
+        return new x3dom.WebGPU.GPUColorTargetState( format, blend, writeMask );
     }
 
     get [ Symbol.toStringTag ] ()
