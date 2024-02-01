@@ -1,1 +1,1 @@
-x3dom.WebGPU={};
+x3dom.WebGPU = {};

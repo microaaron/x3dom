@@ -23,12 +23,12 @@ x3dom.WebGPU.GPUBlendState = class GPUBlendState
 
     newColor ( operation, srcFactor, dstFactor )
     {
-        return x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
+        return new x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
     }
 
     newAlpha ( operation, srcFactor, dstFactor )
     {
-        return x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
+        return new x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
     }
 
     get [ Symbol.toStringTag ] ()
