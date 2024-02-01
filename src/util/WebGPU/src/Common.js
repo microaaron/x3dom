@@ -87,30 +87,44 @@ for ( var i = 0; i < array.length; i++ )
 dst = array.join( "\n" );
 prompt( dst, dst );
 
-r = new x3dom.WebGPU.GPURenderPipelineDescriptor()
-r.depthStencil=r.newDepthStencil()
-r.depthStencil.getAvailableFormats()
-r.depthStencil.getAvailableDepthCompares()
-r.depthStencil.setStencilFront(r.depthStencil.newStencilFront())
-r.depthStencil.setStencilBack(r.depthStencil.newStencilBack())
-r.depthStencil.stencilFront.getAvailableCompares()
-r.depthStencil.stencilFront.getAvailableFailOps()
-r.depthStencil.stencilFront.getAvailableDepthFailOps()
-r.depthStencil.stencilFront.getAvailablePassOps()
+r = new x3dom.WebGPU.GPURenderPipelineDescriptor();
+r.depthStencil = r.newDepthStencil();
+r.depthStencil.getAvailableFormats();
+r.depthStencil.getAvailableDepthCompares();
+r.depthStencil.setStencilFront( r.depthStencil.newStencilFront() );
+r.depthStencil.setStencilBack( r.depthStencil.newStencilBack() );
+r.depthStencil.stencilFront.getAvailableCompares();
+r.depthStencil.stencilFront.getAvailableFailOps();
+r.depthStencil.stencilFront.getAvailableDepthFailOps();
+r.depthStencil.stencilFront.getAvailablePassOps();
 
+r.fragment = r.newFragment();
+r.fragment.targets.push( r.fragment.newTarget() );
+r.fragment.targets[ 0 ].blend = r.fragment.targets[ 0 ].newBlend();
+r.fragment.targets[ 0 ].blend.alpha.getAvailableOperations();
+r.fragment.targets[ 0 ].blend.alpha.getAvailableSrcFactors();
+r.fragment.targets[ 0 ].blend.alpha.getAvailableDstFactors();
+r.fragment.targets[ 0 ].blend.color.getAvailableOperations();
+r.fragment.targets[ 0 ].blend.color.getAvailableSrcFactors();
+r.fragment.targets[ 0 ].blend.color.getAvailableDstFactors();
 
-r.fragment = r.newFragment()
-r.fragment.targets.push(r.fragment.newTarget())
-r.fragment.targets[0].blend=r.fragment.targets[0].newBlend()
-r.fragment.targets[0].blend.alpha.getAvailableOperations()
-r.fragment.targets[0].blend.alpha.getAvailableSrcFactors()
-r.fragment.targets[0].blend.alpha.getAvailableDstFactors()
-r.fragment.targets[0].blend.color.getAvailableOperations()
-r.fragment.targets[0].blend.color.getAvailableSrcFactors()
-r.fragment.targets[0].blend.color.getAvailableDstFactors()
+r.fragment.targets[ 0 ].getAvailableFormats();
+r.fragment.targets[ 0 ].getAvailableWriteMasks();
 
-r.fragment.targets[0].getAvailableFormats()
-r.fragment.targets[0].getAvailableWriteMasks()
+r.fragment.constants = r.fragment.newConstants();
 
-r.fragment.constants=r.fragment.newConstants()
+r.setMultisample( r.newMultisample() );
 
+r.setPrimitive( r.newPrimitive() );
+r.primitive.getAvailableTopologys();
+r.primitive.getAvailableStripIndexFormats();
+r.primitive.getAvailableFrontFaces();
+r.primitive.getAvailableCullModes();
+
+r.vertex.setBuffers( [ r.vertex.newBuffer() ] );
+r.vertex.buffers[ 0 ].setAttributes( [ r.vertex.buffers[ 0 ].newAttribute() ] );
+r.vertex.buffers[ 0 ].attributes[ 0 ].getAvailableFormats();
+
+r.vertex.buffers[ 0 ].getAvailableStepModes();
+
+r.vertex.constants = r.vertex.newConstants();

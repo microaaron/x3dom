@@ -5,7 +5,7 @@
  */
 x3dom.WebGPU.GPUFrontFace = class GPUFrontFace
 {
-    cw = "ccw";
+    ccw = "ccw";
 
     cw = "cw";
 
