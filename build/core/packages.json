@@ -58,6 +58,7 @@
             "GPUCompareFunction.js",
             "GPUCullMode.js",
             "GPUDepthStencilState.js",
+            "GPUFragmentState.js",
             "GPUFrontFace.js",
             "GPUIndexFormat.js",
             "GPUMultisampleState.js",
