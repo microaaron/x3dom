@@ -5,7 +5,7 @@
  */
 x3dom.WebGPU.GPUBlendState = class GPUBlendState
 {
-    constructor ( color, alpha )
+    constructor ( color = this.newColor(), alpha = this.newColor() )
     {
         this.color = color;
         this.alpha = alpha;
