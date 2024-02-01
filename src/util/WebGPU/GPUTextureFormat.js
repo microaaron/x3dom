@@ -103,7 +103,7 @@ x3dom.WebGPU.GPUTextureFormat = class GPUTextureFormat
             // "depth32float-stencil8" feature
             this.depth32float_stencil8 = "depth32float-stencil8";
         }
-        if ( device.features.has( "texture-compression-bc" ) )
+        if ( !device || device.features.has( "texture-compression-bc" ) )
         {
             // BC compressed formats usable if "texture-compression-bc" is both
             // supported by the device/user agent and enabled in requestDevice.
