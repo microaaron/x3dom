@@ -66,8 +66,8 @@
             "GPUExternalTextureBindingLayout.js",
             "GPUPipelineLayoutDescriptor.js",
             "GPUAutoLayoutMode.js",
-            "GPUProgrammableStage.js",
             "GPUPipelineDescriptorBase.js",
+            "GPUProgrammableStage.js",
             "GPURenderPipelineDescriptor.js",
             "GPUPrimitiveState.js",
             "GPUPrimitiveTopology.js",
@@ -76,10 +76,10 @@
             "GPUMultisampleState.js",
             "GPUFragmentState.js",
             "GPUColorTargetState.js",
-            "GPUBlendComponent.js",
             "GPUBlendState.js",
-            "GPUBlendFactor.js",
             "GPUColorWrite.js",
+            "GPUBlendComponent.js",
+            "GPUBlendFactor.js",
             "GPUBlendOperation.js",
             "GPUDepthStencilState.js",
             "GPUStencilFaceState.js",
@@ -89,7 +89,7 @@
             "GPUVertexStepMode.js",
             "GPUVertexState.js",
             "GPUVertexBufferLayout.js",
-            "GPUVertexAttribute.js",
+            "GPUVertexAttribute.js"
         ],
         "src/shader/" :
         [

@@ -81,6 +81,10 @@ array.sort( function ( a, b )
             return a0[ i ] - b0[ i ];
         }
     }
+    if ( a0.length != b0.length )
+    {
+        return a0.length - b0.length;
+    }
     var a1  = a.split( "-" )[ 1 ].split( " " );
     var b1 = b.split( "-" )[ 1 ].split( " " );
     if ( a1[ 0 ] != b1[ 0 ] )
