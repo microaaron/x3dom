@@ -63,7 +63,7 @@
             "GPUTextureBindingLayout.js",
             "GPUStorageTextureAccess.js",
             "GPUStorageTextureBindingLayout.js",
-            "GPUExternalTextureBindingLayout",
+            "GPUExternalTextureBindingLayout.js",
             "GPUPipelineLayoutDescriptor.js",
             "GPUAutoLayoutMode.js",
             "GPUProgrammableStage.js",
