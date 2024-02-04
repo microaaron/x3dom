@@ -72,12 +72,20 @@ prompt( dst, dst );
 array = [];
 array.sort( function ( a, b )
 {
-    var a = a.split( "-" )[ 0 ].split( "." );
-    var b = b.split( "-" )[ 0 ].split( "." );
-    for ( var i = 0; i < a.length && i < b.length; i++ )
+    var a0 = a.split( "-" )[ 0 ].split( "." );
+    var b0 = b.split( "-" )[ 0 ].split( "." );
+    for ( var i = 0; i < a0.length && i < b0.length; i++ )
     {
-        if ( a[ i ] != b[ i ] )
-        {return a[ i ] - b[ i ];}
+        if ( a0[ i ] != b0[ i ] )
+        {
+            return a0[ i ] - b0[ i ];
+        }
+    }
+    var a1  = a.split( "-" )[ 1 ].split( " " );
+    var b1 = b.split( "-" )[ 1 ].split( " " );
+    if ( a1[ 0 ] != b1[ 0 ] )
+    {
+        return a1[ 0 ] - b1[ 0 ];
     }
 } );
 for ( var i = 0; i < array.length; i++ )
