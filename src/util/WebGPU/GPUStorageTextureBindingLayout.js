@@ -27,9 +27,9 @@ x3dom.WebGPU.GPUStorageTextureBindingLayout = class GPUStorageTextureBindingLayo
         this.viewDimension = viewDimension;
     }
 
-    getAvailableFormats ()
+    getAvailableFormats ( device )
     {
-        return new x3dom.WebGPU.GPUTextureFormat();
+        return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
     getAvailableViewDimensions ()

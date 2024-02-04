@@ -79,9 +79,9 @@ x3dom.WebGPU.GPUDepthStencilState = class GPUDepthStencilState
         return new x3dom.WebGPU.GPUStencilFaceState();
     }
 
-    getAvailableFormats ()
+    getAvailableFormats ( device )
     {
-        return new x3dom.WebGPU.GPUTextureFormat();
+        return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
     getAvailableDepthCompares ()

@@ -32,9 +32,9 @@ x3dom.WebGPU.GPUColorTargetState  = class GPUColorTargetState
         return new x3dom.WebGPU.GPUBlendState( color, alpha );
     }
 
-    getAvailableFormats ()
+    getAvailableFormats ( device )
     {
-        return new x3dom.WebGPU.GPUTextureFormat();
+        return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
     getAvailableWriteMasks ()
