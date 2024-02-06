@@ -8,34 +8,34 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
     constructor ( binding, visibility, resourceLayoutObject )
     {
         this.binding = binding; //Required; GPUIndex32
-        this.visibility = visibility; //Required; GPUShaderStageFlags
+        this.visibility = visibility; //Required; GPUShaderStageFlag
         //An object that defines the required binding resource type and structure of the GPUBindGroup entry corresponding to this entry. This property can be one of buffer, externalTexture, sampler, storageTexture, or texture.
-        if ( resourceLayoutObject instanceof GPUBufferBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUBufferBindingLayout )
         {
             this.buffer = resourceLayoutObject;
             return this;
         }
-        if ( resourceLayoutObject instanceof GPUSamplerBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUSamplerBindingLayout )
         {
             this.sampler = resourceLayoutObject;
             return this;
         }
-        if ( resourceLayoutObject instanceof GPUTextureBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUTextureBindingLayout )
         {
             this.texture = resourceLayoutObject;
             return this;
         }
-        if ( resourceLayoutObject instanceof GPUStorageTextureBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUStorageTextureBindingLayout )
         {
             this.storageTexture = resourceLayoutObject;
             return this;
         }
-        if ( resourceLayoutObject instanceof GPUExternalTextureBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
         {
             this.externalTexture = resourceLayoutObject;
             return this;
         }
-        if ( resourceLayoutObject instanceof GPUExternalTextureBindingLayout )
+        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
         {
             this.externalTexture = resourceLayoutObject;
             return this;
@@ -73,43 +73,43 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
 
     setBinding ( binding )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.binding = binding;
     }
 
     setVisibility ( visibility )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.visibility = visibility;
     }
 
     setBuffer ( buffer )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.buffer = buffer;
     }
 
     setSampler ( sampler )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.sampler = sampler;
     }
 
     setTexture ( texture )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.texture = texture;
     }
 
     setStorageTexture ( storageTexture )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.storageTexture = storageTexture;
     }
 
     setExternalTexture ( externalTexture )
     {
-        deleteResourceLayoutObject();
+        this.deleteResourceLayoutObject();
         this.externalTexture = externalTexture;
     }
 
@@ -145,6 +145,11 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
     newExternalTexture ()
     {
         return new x3dom.WebGPU.GPUExternalTextureBindingLayout();
+    }
+
+    getAvailableVisibilities ()
+    {
+        return new x3dom.WebGPU.GPUShaderStage();
     }
 
     get [ Symbol.toStringTag ] ()
