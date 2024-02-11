@@ -99,7 +99,7 @@
             "GPURenderPassLayout.js",
             "GPUQuerySetDescriptor.js",
             "GPUQueryType.js",
-            "GPUColorDict.js",
+            "GPUColorDict.js"
         ],
         "src/shader/" :
         [
