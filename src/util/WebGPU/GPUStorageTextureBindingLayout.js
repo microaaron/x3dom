@@ -8,7 +8,7 @@ x3dom.WebGPU.GPUStorageTextureBindingLayout = class GPUStorageTextureBindingLayo
     constructor ( access, format, viewDimension )
     {
         this.access = access; //Optional; GPUStorageTextureAccess; undefined = "write-only""
-        this.format = format; //Required; GPUTextureFormat;
+        this.format = format; //Required GPUTextureFormat;
         this.viewDimension = viewDimension; //Optional; GPUTextureViewDimension; undefined = "2d"
     }
 

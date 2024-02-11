@@ -8,7 +8,7 @@ x3dom.WebGPU.GPUBindGroupLayoutDescriptor = class GPUBindGroupLayoutDescriptor e
     constructor ( entries = [], label )
     {
         super( label );
-        this.entries = entries; //Required; sequence<GPUBindGroupLayoutEntry>
+        this.entries = entries; //Required sequence<GPUBindGroupLayoutEntry>
     }
 
     setEntries ( entries )

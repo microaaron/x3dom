@@ -8,8 +8,8 @@ x3dom.WebGPU.GPUBufferBindingLayout = class GPUBufferBindingLayout
     constructor ( type, hasDynamicOffset, minBindingSize )
     {
         this.type = type; //Optional; GPUBufferBindingType; undefined = "uniform"
-        this.hasDynamicOffset = hasDynamicOffset; //Optional; boolean undefined = false
-        this.minBindingSize = minBindingSize; //Optional; GPUSize64 undefined = 0
+        this.hasDynamicOffset = hasDynamicOffset; //Optional; boolean; undefined = false
+        this.minBindingSize = minBindingSize; //Optional; GPUSize64; undefined = 0
     }
 
     setType ( type )

@@ -7,8 +7,8 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
 {
     constructor ( binding, visibility, resourceLayoutObject )
     {
-        this.binding = binding; //Required; GPUIndex32
-        this.visibility = visibility; //Required; GPUShaderStageFlag
+        this.binding = binding; //Required GPUIndex32
+        this.visibility = visibility; //Required GPUShaderStageFlag(s)
         //An object that defines the required binding resource type and structure of the GPUBindGroup entry corresponding to this entry. This property can be one of buffer, externalTexture, sampler, storageTexture, or texture.
         if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUBufferBindingLayout )
         {

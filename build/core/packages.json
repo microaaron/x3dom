@@ -89,7 +89,17 @@
             "GPUVertexStepMode.js",
             "GPUVertexState.js",
             "GPUVertexBufferLayout.js",
-            "GPUVertexAttribute.js"
+            "GPUVertexAttribute.js",
+            "GPURenderPassTimestampWrites.js",
+            "GPURenderPassDescriptor.js",
+            "GPURenderPassColorAttachment.js",
+            "GPURenderPassDepthStencilAttachment.js",
+            "GPULoadOp.js",
+            "GPUStoreOp.js",
+            "GPURenderPassLayout.js",
+            "GPUQuerySetDescriptor.js",
+            "GPUQueryType.js",
+            "GPUColorDict.js",
         ],
         "src/shader/" :
         [

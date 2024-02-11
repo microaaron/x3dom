@@ -8,7 +8,7 @@ x3dom.WebGPU.GPUPipelineLayoutDescriptor = class GPUPipelineLayoutDescriptor ext
     constructor ( bindGroupLayouts = [], label )
     {
         super( label );
-        this.bindGroupLayouts = bindGroupLayouts; //Required; sequence<GPUBindGroupLayout>
+        this.bindGroupLayouts = bindGroupLayouts; //Required sequence<GPUBindGroupLayout>
     }
 
     setBindGroupLayouts ( bindGroupLayouts )
