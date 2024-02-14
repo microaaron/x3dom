@@ -45,9 +45,9 @@ x3dom.WebGPU.GPURenderPassColorAttachment = class GPURenderPassColorAttachment
         this.storeOp = storeOp;
     }
 
-    newClearValue ()
+    newClearValue (r, g, b, a )
     {
-        return new x3dom.WebGPU.GPUColorDict();
+        return new x3dom.WebGPU.GPUColorDict(r, g, b, a );
     }
 
     getAvailableLoadOps ()
