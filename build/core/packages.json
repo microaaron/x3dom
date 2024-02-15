@@ -49,7 +49,12 @@
         [
             "WebGPU.js",
             "GPUObjectDescriptorBase.js",
+            "GPUTextureDescriptor.js",
+            "GPUTextureDimension.js",
+            "GPUTextureUsage.js",
+            "GPUTextureViewDescriptor.js",
             "GPUTextureViewDimension.js",
+            "GPUTextureAspect.js",
             "GPUTextureFormat.js",
             "GPUCompareFunction.js",
             "GPUBindGroupLayoutDescriptor.js",
@@ -99,7 +104,8 @@
             "GPURenderPassLayout.js",
             "GPUQuerySetDescriptor.js",
             "GPUQueryType.js",
-            "GPUColorDict.js"
+            "GPUColorDict.js",
+            "GPUExtent3DDict.js"
         ],
         "src/shader/" :
         [
