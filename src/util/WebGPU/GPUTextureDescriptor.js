@@ -52,9 +52,9 @@ x3dom.WebGPU.GPUTextureDescriptor = class GPUTextureDescriptor extends x3dom.Web
         this.viewFormats = viewFormats;
     }
 
-    newSize ()
+    newSize ( width, height, depthOrArrayLayers )
     {
-        return new x3dom.WebGPU.GPUExtent3DDict();
+        return new x3dom.WebGPU.GPUExtent3DDict( width, height, depthOrArrayLayers );
     }
 
     getAvailableDimensions ()

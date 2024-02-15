@@ -1,6 +1,6 @@
-const args = process.argv.slice(2); // 去除前两个默认参数（node和脚本路径）
+const args = process.argv.slice( 2 ); // 去除前两个默认参数（node和脚本路径）
 //console.log(args[0]); // 第一个参数
-var array = args[0].split(",");
+var array = args[ 0 ].split( "," );
 array.pop();
 //console.log(array[0]);
 //var dst = array.join( "\n" );
@@ -32,5 +32,5 @@ for ( var i = 0; i < array.length; i++ )
     array[ i ] = "            \"" + array[ i ].split( " " )[ 1 ] + "\",";
 }
 dst = array.join( "\n" );
-dst = dst.substr(0, dst.length - 1);  
-console.log(dst);
+dst = dst.substr( 0, dst.length - 1 );
+console.log( dst );

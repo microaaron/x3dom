@@ -122,24 +122,24 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
         delete this.externalTexture;
     }
 
-    newBuffer ()
+    newBuffer ( type, hasDynamicOffset, minBindingSize )
     {
-        return new x3dom.WebGPU.GPUBufferBindingLayout();
+        return new x3dom.WebGPU.GPUBufferBindingLayout( type, hasDynamicOffset, minBindingSize );
     }
 
-    newSampler ()
+    newSampler ( type )
     {
-        return new x3dom.WebGPU.GPUSamplerBindingLayout();
+        return new x3dom.WebGPU.GPUSamplerBindingLayout( type );
     }
 
-    newTexture ()
+    newTexture ( sampleType, viewDimension, multisampled )
     {
-        return new x3dom.WebGPU.GPUTextureBindingLayout();
+        return new x3dom.WebGPU.GPUTextureBindingLayout( sampleType, viewDimension, multisampled );
     }
 
-    newStorageTexture ()
+    newStorageTexture ( access, format, viewDimension )
     {
-        return new x3dom.WebGPU.GPUStorageTextureBindingLayout();
+        return new x3dom.WebGPU.GPUStorageTextureBindingLayout( access, format, viewDimension );
     }
 
     newExternalTexture ()
