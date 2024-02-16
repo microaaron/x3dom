@@ -51,7 +51,7 @@ for ( var str of array )
 {
     str = str.trim();
     var str2 = str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
-    dst += ( "new" + str2 + "\(\)\{return new x3dom.WebGPU.XXX\(\)\;\}\n" );
+    dst += ( "new" + str2 + "\(XXX\)\{return new x3dom.WebGPU.XXX\(XXX\)\;\}\n" );
 }
 console.log( dst );
 prompt( dst, dst );

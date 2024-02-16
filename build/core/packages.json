@@ -49,6 +49,8 @@
         [
             "WebGPU.js",
             "GPUObjectDescriptorBase.js",
+            "GPUBufferDescriptor.js",
+            "GPUBufferUsage.js",
             "GPUTextureDescriptor.js",
             "GPUTextureDimension.js",
             "GPUTextureUsage.js",
