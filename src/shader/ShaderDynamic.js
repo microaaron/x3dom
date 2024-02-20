@@ -33,6 +33,7 @@ x3dom.shader.DynamicShader = function ( ctx3d, properties )
 var group = 0;
 var binding = 0;
 var uniformCode = ``;
+var shader = ``;
 shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelMatrix : mat4x4<f32>;\n`;
 binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewMatrix : mat4x4<f32>;\n`;
 binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewProjectionMatrix : mat4x4<f32>;\n`;
