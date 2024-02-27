@@ -30,6 +30,181 @@ x3dom.shader.DynamicShader = function ( ctx3d, properties )
     return this.program;
 };
 
+var BindingParamsList = class
+{
+    constructor ()
+    {
+        var list = [];
+        list.push = function ( name, type, visibility, resourceLayoutObject )
+        {
+            var params = {
+                name                 : name,
+                type                 : type,
+                visibility           : visibility,
+                resourceLayoutObject : resourceLayoutObject
+            };
+            this.__proto__.push.call( this, params );
+        };
+
+        list.createBindingList = function ()
+        {
+            var bindingList = [];
+            var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
+
+            for ( var bindingParams of this )
+            {
+                var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
+                bindGroupLayoutDescriptor.entries.push( entry );
+                //entry.setBinding(bindGroupLayoutDescriptor.entries.indexOf(entry));
+                bindingList.push( {
+                    name  : bindingParams.name,
+                    type  : bindingParams.type,
+                    entry : entry
+                } );
+            }
+
+            bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
+            return bindingList;
+        };
+        return list;
+    }
+};
+
+var bindingListArray = [];
+
+var bindingParamsList = new BindingParamsList();
+bindingParamsList.push( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList.push( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList.push( `modelMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+
+var bindingList = bindingParamsList.createBindingList();
+
+bindingListArray.push( bindingList );
+
+var createShaderModuleBindingCodes = function ( bindingListArray )
+{
+    var vertexBindingCode = ``;
+    var fragmentBindingCode = ``;
+    var computeBindingCode = ``;
+    for ( var bindingList of bindingListArray )
+    {
+        var groupId = bindingListArray.indexOf( bindingList );
+        for ( var binding of bindingList )
+        {
+            var bindingId = binding.entry.binding;
+            var declaration = `var`;
+            if ( binding.entry.buffer )
+            {
+                var bufferType = binding.entry.buffer.type;
+                var addressSpace = bufferType ? bufferType : `uniform`;
+                var accessMode = undefined;
+                switch ( addressSpace )
+                {
+                    case `storage`:
+                        accessMode = `read_write`;
+                        break;
+                    case `read-only-storage`:
+                        accessMode = `read`;
+                        break;
+                }
+                declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
+            }
+            var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${binding.name} : ${binding.type};\n`;
+            var visibility = binding.entry.visibility;
+            if ( visibility & GPUShaderStage.VERTEX ){vertexBindingCode += code;}
+            if ( visibility & GPUShaderStage.FRAGMENT ){fragmentBindingCode += code;}
+            if ( visibility & GPUShaderStage.COMPUTE ){computeBindingCode += code;}
+        }
+    }
+    return {
+        vertexBindingCode   : vertexBindingCode,
+        fragmentBindingCode : fragmentBindingCode,
+        computeBindingCode  : computeBindingCode
+    };
+};
+
+var VertexParamsList = class
+{
+    constructor ()
+    {
+        var list = [];
+        list.push = function ( name, format, offset )
+        {
+            var params = {
+                name   : name,
+                format : format,
+                offset : offset
+            };
+            this.__proto__.push.call( this, params );
+        };
+
+        list.createVertexList = function ( arrayStride, stepMode )
+        {
+            var vertexList = [];
+            var vertexBufferLayout = new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode );
+
+            var autoArrayStride = 0;
+            var vertexFormats = new x3dom.WebGPU.GPUVertexFormat();
+            for ( var vertexParams of this )
+            {
+                if ( Number.isInteger( vertexParams.offset ) )
+                {
+                    var format = vertexParams.format;
+                    var offset = vertexParams.offset;
+                    var byteSize = vertexFormats.byteSizeOf( format );
+                    var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
+                    vertexBufferLayout.attributes.push( vertexAttribute );
+                    vertexList.push( {
+                        name            : vertexParams.name,
+                        vertexAttribute : vertexAttribute
+                    } );
+                    autoArrayStride = ( autoArrayStride > offset ? autoArrayStride : offset ) + byteSize;
+                }
+            }
+            for ( var vertexParams of this )
+            {
+                if ( !Number.isInteger( vertexParams.offset ) )
+                {
+                    var format = vertexParams.format;
+                    var offset = autoArrayStride;
+                    var byteSize = vertexFormats.byteSizeOf( format );
+                    var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
+                    vertexBufferLayout.attributes.push( vertexAttribute );
+                    vertexList.push( {
+                        name            : vertexParams.name,
+                        vertexAttribute : vertexAttribute
+                    } );
+                    autoArrayStride += byteSize;
+                }
+            }
+
+            vertexBufferLayout.setArrayStride( arrayStride ? arrayStride : autoArrayStride );
+
+            vertexList.vertexBufferLayout = vertexBufferLayout;
+            return vertexList;
+        };
+
+        return list;
+    }
+};
+
+var vertexListArray = [];
+
+var vertexParamsList = new VertexParamsList();
+if ( properties.POSCOMPONENTS == 3 )
+{
+    vertexParamsList.push( `position`, `float32x3` );
+}
+if ( properties.POSCOMPONENTS == 4 )
+{
+    vertexParamsList.push( `position`, `float32x4` );
+}
+var vertexList = vertexParamsList.createVertexList();
+
+vertexListArray.push( vertexList );
+
 var group = 0;
 var binding = 0;
 var uniformCode = ``;
@@ -41,7 +216,7 @@ binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<unifor
 binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewMatrix2 : mat4x4<f32>;\n`;
 binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> modelViewProjectionMatrix2 : mat4x4<f32>;\n`;
 
-binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> isVR : bool;\n`;
+binding++, shader += `@group(` + group + `) @binding(` + binding + `) var<uniform> isVR : i32;\n`;
 
 /**
  * Generate the vertex shader
