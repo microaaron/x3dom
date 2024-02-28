@@ -30,22 +30,22 @@ x3dom.shader.DynamicShader = function ( ctx3d, properties )
     return this.program;
 };
 
+/*
 var BindingParamsList = class
 {
     constructor ()
     {
         var list = [];
-        list.push = function ( name, type, visibility, resourceLayoutObject )
+        list.push = function ( name, wgslType, visibility, resourceLayoutObject )
         {
             var params = {
                 name                 : name,
-                type                 : type,
+                wgslType             : wgslType,
                 visibility           : visibility,
                 resourceLayoutObject : resourceLayoutObject
             };
             this.__proto__.push.call( this, params );
         };
-
         list.createBindingList = function ()
         {
             var bindingList = [];
@@ -58,7 +58,7 @@ var BindingParamsList = class
                 //entry.setBinding(bindGroupLayoutDescriptor.entries.indexOf(entry));
                 bindingList.push( {
                     name  : bindingParams.name,
-                    type  : bindingParams.type,
+                    wgslType: bindingParams.wgslType,
                     entry : entry
                 } );
             }
@@ -69,20 +69,120 @@ var BindingParamsList = class
         return list;
     }
 };
+*/
 
-var bindingListArray = [];
+var BindingListArray = class
+{
+    constructor ()
+    {
+        var bindingListArray = [];
+        bindingListArray.newBindingParamsList = BindingListArray.newBindingParamsList;
+        bindingListArray.createShaderModuleBindingCodes = function ()
+        {
+            var vertexBindingCode = ``;
+            var fragmentBindingCode = ``;
+            var computeBindingCode = ``;
+            for ( var bindingList of this )
+            {
+                var groupId = this.indexOf( bindingList );
+                for ( var binding of bindingList )
+                {
+                    var bindingId = binding.entry.binding;
+                    var declaration = `var`;
+                    if ( binding.entry.buffer )
+                    {
+                        var bufferType = binding.entry.buffer.type;
+                        var addressSpace = bufferType ? bufferType : `uniform`;
+                        var accessMode = undefined;
+                        switch ( addressSpace )
+                        {
+                            case `storage`:
+                                accessMode = `read_write`;
+                                break;
+                            case `read-only-storage`:
+                                accessMode = `read`;
+                                break;
+                        }
+                        declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
+                    }
+                    var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${binding.name} : ${binding.wgslType};\n`;
+                    var visibility = binding.entry.visibility;
+                    if ( visibility & GPUShaderStage.VERTEX ){vertexBindingCode += code;}
+                    if ( visibility & GPUShaderStage.FRAGMENT ){fragmentBindingCode += code;}
+                    if ( visibility & GPUShaderStage.COMPUTE ){computeBindingCode += code;}
+                }
+            }
+            return {
+                vertexBindingCode   : vertexBindingCode,
+                fragmentBindingCode : fragmentBindingCode,
+                computeBindingCode  : computeBindingCode
+            };
+        };
+        return bindingListArray;
+    }
 
-var bindingParamsList = new BindingParamsList();
-bindingParamsList.push( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
-bindingParamsList.push( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
-bindingParamsList.push( `modelMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
-bindingParamsList.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
-bindingParamsList.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+    static newBindingParamsList ()
+    {
+        return new BindingListArray.BindingParamsList();
+    }
 
-var bindingList = bindingParamsList.createBindingList();
+    static BindingParamsList = class
+    {
+        constructor ()
+        {
+            var bindingParamsList = [];
+            bindingParamsList.push = function ( name, wgslType, visibility, resourceLayoutObject )
+            {
+                var params = {
+                    name                 : name,
+                    wgslType             : wgslType,
+                    visibility           : visibility,
+                    resourceLayoutObject : resourceLayoutObject
+                };
+                this.__proto__.push.call( this, params );
+            };
+            bindingParamsList.createBindingList = function ()
+            {
+                var bindingList = [];
+                var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
 
-bindingListArray.push( bindingList );
+                for ( var bindingParams of this )
+                {
+                    var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
+                    bindGroupLayoutDescriptor.entries.push( entry );
+                    bindingList.push( {
+                        name     : bindingParams.name,
+                        wgslType : bindingParams.wgslType,
+                        entry    : entry
+                    } );
+                }
 
+                bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
+                return bindingList;
+            };
+            return bindingParamsList;
+        }
+    };
+};
+
+var bindingListArray = new BindingListArray();
+
+var bindingParamsList0 = bindingListArray.newBindingParamsList();
+bindingParamsList0.push( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList0.push( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList0.push( `modelMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList0.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList0.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+
+var bindingParamsList1 = bindingListArray.newBindingParamsList();
+bindingParamsList1.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+bindingParamsList1.push( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( "uniform" ) );
+//var bindingList = bindingParamsList.createBindingList();
+
+bindingListArray.push( bindingParamsList0.createBindingList() );
+bindingListArray.push( bindingParamsList1.createBindingList() );
+
+/*
 var createShaderModuleBindingCodes = function ( bindingListArray )
 {
     var vertexBindingCode = ``;
@@ -111,7 +211,7 @@ var createShaderModuleBindingCodes = function ( bindingListArray )
                 }
                 declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
             }
-            var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${binding.name} : ${binding.type};\n`;
+            var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${binding.name} : ${binding.wgslType};\n`;
             var visibility = binding.entry.visibility;
             if ( visibility & GPUShaderStage.VERTEX ){vertexBindingCode += code;}
             if ( visibility & GPUShaderStage.FRAGMENT ){fragmentBindingCode += code;}
@@ -124,16 +224,19 @@ var createShaderModuleBindingCodes = function ( bindingListArray )
         computeBindingCode  : computeBindingCode
     };
 };
+*/
 
+/*
 var VertexParamsList = class
 {
     constructor ()
     {
         var list = [];
-        list.push = function ( name, format, offset )
+        list.push = function ( name,wgslType, format, offset )
         {
             var params = {
                 name   : name,
+                wgslType:wgslType,
                 format : format,
                 offset : offset
             };
@@ -158,6 +261,7 @@ var VertexParamsList = class
                     vertexBufferLayout.attributes.push( vertexAttribute );
                     vertexList.push( {
                         name            : vertexParams.name,
+                        wgslType        : vertexParams.wgslType,
                         vertexAttribute : vertexAttribute
                     } );
                     autoArrayStride = ( autoArrayStride > offset ? autoArrayStride : offset ) + byteSize;
@@ -174,13 +278,14 @@ var VertexParamsList = class
                     vertexBufferLayout.attributes.push( vertexAttribute );
                     vertexList.push( {
                         name            : vertexParams.name,
+                        wgslType        : vertexParams.wgslType,
                         vertexAttribute : vertexAttribute
                     } );
                     autoArrayStride += byteSize;
                 }
             }
 
-            vertexBufferLayout.setArrayStride( arrayStride ? arrayStride : autoArrayStride );
+            vertexBufferLayout.setArrayStride( Number.isInteger( arrayStride ) ? arrayStride : autoArrayStride );
 
             vertexList.vertexBufferLayout = vertexBufferLayout;
             return vertexList;
@@ -189,9 +294,129 @@ var VertexParamsList = class
         return list;
     }
 };
+*/
 
-var vertexListArray = [];
+var VertexListArray = class
+{
+    constructor ()
+    {
+        var vertexListArray = [];
+        vertexListArray.newVertexParamsList = VertexListArray.newVertexParamsList;
+        vertexListArray.createVertexBufferLayouts = function ()
+        {
+            this.vertexBufferLayouts = [];
+            var shaderLocation = 0;
+            for ( var vertexList of this )
+            {
+                for ( var attribute of vertexList.vertexBufferLayout.attributes )
+                {
+                    attribute.shaderLocation = shaderLocation;
+                    shaderLocation++;
+                }
+                this.vertexBufferLayouts.push( vertexList.vertexBufferLayout );
+            }
+            return this.vertexBufferLayouts;
+        };
+        vertexListArray.createShaderModuleVertexInputCode = function ()
+        {
+            if ( !this.vertexBufferLayouts )
+            {
+                this.createVertexBufferLayouts();
+            }
+            var vertexInputCodes = [];
+            for ( var vertexList of this )
+            {
+                for ( var vertex of vertexList )
+                {
+                    vertexInputCodes.push( `@location(${vertex.vertexAttribute.shaderLocation}) ${vertex.name} : ${vertex.wgslType}` );
+                }
+            }
+            return vertexInputCodes.join( `,\n` );
+        };
+        return vertexListArray;
+    }
 
+    static newVertexParamsList ()
+    {
+        return new VertexListArray.VertexParamsList();
+    }
+
+    static VertexParamsList = class
+    {
+        constructor ()
+        {
+            var vertexParamsList = [];
+            vertexParamsList.push = function ( name, wgslType, format, offset/*Optional*/ )
+            {
+                var params = {
+                    name     : name,
+                    wgslType : wgslType,
+                    format   : format,
+                    offset   : offset
+                };
+                this.__proto__.push.call( this, params );
+            };
+            vertexParamsList.createVertexList = function ( arrayStride/*Optional*/, stepMode/*Optional*/ )
+            {
+                var vertexList = [];
+                var vertexBufferLayout = new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode );
+                var autoArrayStride = 0;
+                var vertexFormats = new x3dom.WebGPU.GPUVertexFormat();
+                for ( var vertexParams of this )
+                {
+                    if ( Number.isInteger( vertexParams.offset ) )
+                    {
+                        var format = vertexParams.format;
+                        var offset = vertexParams.offset;
+                        var byteSize = vertexFormats.byteSizeOf( format );
+                        var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
+                        vertexBufferLayout.attributes.push( vertexAttribute );
+                        vertexList.push( {
+                            name            : vertexParams.name,
+                            wgslType        : vertexParams.wgslType,
+                            vertexAttribute : vertexAttribute
+                        } );
+                        autoArrayStride = ( autoArrayStride > offset ? autoArrayStride : offset ) + byteSize;
+                    }
+                }
+                for ( var vertexParams of this )
+                {
+                    if ( !Number.isInteger( vertexParams.offset ) )
+                    {
+                        var format = vertexParams.format;
+                        var offset = autoArrayStride;
+                        var byteSize = vertexFormats.byteSizeOf( format );
+                        var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
+                        vertexBufferLayout.attributes.push( vertexAttribute );
+                        vertexList.push( {
+                            name            : vertexParams.name,
+                            wgslType        : vertexParams.wgslType,
+                            vertexAttribute : vertexAttribute
+                        } );
+                        autoArrayStride += byteSize;
+                    }
+                }
+                vertexBufferLayout.setArrayStride( Number.isInteger( arrayStride ) ? arrayStride : autoArrayStride );
+                vertexList.vertexBufferLayout = vertexBufferLayout;
+                return vertexList;
+            };
+            return vertexParamsList;
+        }
+    };
+};
+
+var vertexListArray = new VertexListArray();
+
+var vertexParamsList0 = vertexListArray.newVertexParamsList();
+vertexParamsList0.push( "position", "vec4<f32>", "float32x4", 1 );
+vertexParamsList0.push( "normal", "vec3<f32>", "float32x3" );
+vertexListArray.push( vertexParamsList0.createVertexList() );
+
+var vertexParamsList1 = vertexListArray.newVertexParamsList();
+vertexParamsList1.push( "normal", "vec3<f32>", "float32x3" );
+vertexListArray.push( vertexParamsList1.createVertexList( 16 ) );
+
+/*
 var vertexParamsList = new VertexParamsList();
 if ( properties.POSCOMPONENTS == 3 )
 {
@@ -203,7 +428,7 @@ if ( properties.POSCOMPONENTS == 4 )
 }
 var vertexList = vertexParamsList.createVertexList();
 
-vertexListArray.push( vertexList );
+vertexListArray.push( vertexList );*/
 
 var group = 0;
 var binding = 0;
