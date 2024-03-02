@@ -13,61 +13,60 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
         if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUBufferBindingLayout )
         {
             this.buffer = resourceLayoutObject;
-            return this;
         }
-        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUSamplerBindingLayout )
+        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUSamplerBindingLayout )
         {
             this.sampler = resourceLayoutObject;
-            return this;
         }
-        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUTextureBindingLayout )
+        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUTextureBindingLayout )
         {
             this.texture = resourceLayoutObject;
-            return this;
         }
-        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUStorageTextureBindingLayout )
+        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUStorageTextureBindingLayout )
         {
             this.storageTexture = resourceLayoutObject;
-            return this;
         }
-        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
+        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
         {
             this.externalTexture = resourceLayoutObject;
-            return this;
         }
-        if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
+        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
         {
             this.externalTexture = resourceLayoutObject;
-            return this;
         }
         //e.g. {buffer:{...}}
-        if ( resourceLayoutObject instanceof Object )
+        else if ( resourceLayoutObject instanceof Object )
         {
             if ( resourceLayoutObject.buffer instanceof Object )
             {
                 this.buffer = resourceLayoutObject.buffer;
-                return this;
             }
-            if ( resourceLayoutObject.sampler instanceof Object )
+            else if ( resourceLayoutObject.sampler instanceof Object )
             {
                 this.sampler = resourceLayoutObject.sampler;
-                return this;
             }
-            if ( resourceLayoutObject.texture instanceof Object )
+            else if ( resourceLayoutObject.texture instanceof Object )
             {
                 this.texture = resourceLayoutObject.texture;
-                return this;
             }
-            if ( resourceLayoutObject.storageTexture instanceof Object )
+            else if ( resourceLayoutObject.storageTexture instanceof Object )
             {
                 this.storageTexture = resourceLayoutObject.storageTexture;
-                return this;
             }
-            if ( resourceLayoutObject.externalTexture instanceof Object )
+            else if ( resourceLayoutObject.externalTexture instanceof Object )
             {
                 this.externalTexture = resourceLayoutObject.externalTexture;
-                return this;
             }
+            else
+            {
+                //x3dom.debug.logWarning('unknown resourceLayoutObject')
+                console.warn( "unknown resourceLayoutObject" );
+            }
+        }
+        else
+        {
+            //x3dom.debug.logWarning('unknown resourceLayoutObject')
+            console.warn( "unknown resourceLayoutObject" );
         }
     }
 
