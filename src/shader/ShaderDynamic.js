@@ -315,7 +315,18 @@ var bindingParamsList0 = bindingListArray.newBindingParamsList()
     .addBindingParams( `modelViewProjectionMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
     .addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
     .addBindingParams( `modelViewProjectionMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-    .addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+    .addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX|GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+    .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    
+    .addBindingParams( `diffuseColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `specularColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+
 
 //Positions
 //var vertexParamsList0 = vertexListArray.newVertexParamsList();
@@ -377,7 +388,8 @@ if ( properties.VERTEXCOLOR )
 //Lights & Fog
 if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
 {
-    bindingParamsList0.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+    bindingParamsList0.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `isOrthoView`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
     vertexOutputList.add( `fragPosition`, `vec4<f32>` );
     vertexOutputList.add( `fragPositionWS`, `vec4<f32>` );
     if ( properties.FOG )
@@ -410,7 +422,109 @@ vertexListArray.push( vertexParamsList1.createVertexList( 16 ) );
 vertexListArray.createShaderModuleVertexInputCode();
 */
 
-vertexShaderModuleCode = `
+var vs_mainFunctionBodyCode = ``;
+//Positions
+vs_mainFunctionBodyCode += `var mat_mvp: mat4x4<f32> = modelViewProjectionMatrix;
+var mat_mv: mat4x4<f32> = modelViewMatrix;`;
+if ( properties.CUBEMAP || properties.PBR_MATERIAL )
+{
+    vs_mainFunctionBodyCode += `var mat_v: mat4x4<f32> = viewMatrix;`;
+}
+if ( properties.LIGHTS || properties.PBR_MATERIAL )
+{
+    if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
+    {
+        //do nothing
+    }
+    else
+    {
+        vs_mainFunctionBodyCode += `var mat_n: mat4x4<f32> = normalMatrix;`;
+    }
+}
+//Positions
+vs_mainFunctionBodyCode += `var vertPosition:vec3<f32> = position.xyz;`;
+
+//Normals
+if ( properties.LIGHTS )
+{
+    if ( properties.NORCOMPONENTS == 2 )
+    {
+        if ( properties.POSCOMPONENTS == 4 )
+        {
+        // (theta, phi) encoded in low/high byte of position.w
+            vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = vec3(position.w / 256.0); \n";
+            vs_mainFunctionBodyCode += "vertNormal.x = floor(vertNormal.x) / 255.0; \n";
+            vs_mainFunctionBodyCode += "vertNormal.y = fract(vertNormal.y) * 1.00392156862745; \n"; //256.0 / 255.0
+        }
+        else if ( properties.REQUIREBBOXNOR )
+        {
+        //vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = vec3(normal.xy, 0.0) / bgPrecisionNorMax;\n";
+        }
+
+        vs_mainFunctionBodyCode += "var thetaPhi:vec2<f32> = 3.14159265358979 * vec2(vertNormal.x, vertNormal.y*2.0-1.0); \n";
+        vs_mainFunctionBodyCode += "var sinCosThetaPhi:vec4<f32> = sin( vec4(thetaPhi, thetaPhi + 1.5707963267949) ); \n";
+
+        vs_mainFunctionBodyCode += "vertNormal.x = sinCosThetaPhi.x * sinCosThetaPhi.w; \n";
+        vs_mainFunctionBodyCode += "vertNormal.y = sinCosThetaPhi.x * sinCosThetaPhi.y; \n";
+        vs_mainFunctionBodyCode += "vertNormal.z = sinCosThetaPhi.z; \n";
+    }
+    else
+    {
+        if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
+        {
+        //Nothing to do
+        }
+        else
+        {
+            vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = normal;\n";
+            if ( properties.REQUIREBBOXNOR )
+            {
+            //vs_mainFunctionBodyCode += "vertNormal = vertNormal / bgPrecisionNorMax;\n";
+            }
+            if ( properties.POPGEOMETRY )
+            {
+                vs_mainFunctionBodyCode += "vertNormal = 2.0*vertNormal - 1.0;\n";
+            }
+        }
+    }
+}
+
+//Colors
+if ( properties.VERTEXCOLOR )
+{
+    var vs_mainFunctionBodyCode = `fragColor = color;\n`;
+
+    /*if ( properties.REQUIREBBOXCOL )
+      {
+        vs_mainFunctionBodyCode += `fragColor = fragColor / bgPrecisionColMax;\n`;
+      }*/
+}
+/*******************************************************************************
+* End of special Geometry switch
+********************************************************************************/
+//Normals
+if ( properties.LIGHTS )
+{
+    vs_mainFunctionBodyCode += `fragNormal = (mat_n * vec4(vertNormal, 0.0)).xyz;`;
+}
+//Textures
+//Lights & Fog
+if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
+{
+    vs_mainFunctionBodyCode += `fragPosition = (mat_mv * vec4(vertPosition, 1.0));
+fragPositionWS = (modelMatrix * vec4(vertPosition, 1.0));\n`;
+    if ( properties.FOG )
+    {
+        vs_mainFunctionBodyCode += `fragEyePosition = eyePosition - fragPosition.xyz;`;
+    }
+}
+//Displacement
+//Positions
+vs_mainFunctionBodyCode += `builtinPosition = mat_mvp * vec4(vertPosition, 1.0);`;
+//Set point size
+//END OF SHADER
+
+var vertexShaderModuleCode = `
 ${bindingCodes.vertexBindingCode}
 struct VertexOutput {
   @builtin(position) builtinPosition: vec4<f32>
@@ -420,132 +534,15 @@ struct VertexOutput {
 fn ${vertexShaderModuleEntryPoint}(
   //@builtin(vertex_index) my_index: u32,
   //@builtin(instance_index) my_inst_index: u32,
-  vertexInputCode
+  ${vertexInputCode}
 ) -> VertexOutput {
-  //Positions
-  var mat_mvp: mat4x4<f32> = modelViewProjectionMatrix;
-  var mat_mv: mat4x4<f32> = modelViewMatrix;
-  ${( ()=>
-    {
-        if ( properties.CUBEMAP || properties.PBR_MATERIAL )
-        {
-            return `var mat_v: mat4x4<f32> = viewMatrix;`;
-        }
-    } )()}
-  ${( ()=>
-    {
-        if ( properties.LIGHTS || properties.PBR_MATERIAL )
-        {
-            if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
-            {
-            //do nothing
-            }
-            else
-            {
-                return `var mat_n: mat4x4<f32> = normalMatrix;`;
-            }
-        }
-    } )()}
-  
-  //Positions
-  var vertPosition:vec3<f32> = position.xyz;
-  
-  //Normals
-  ${( ()=>
-    {
-        if ( properties.LIGHTS )
-        {
-            var code = ``;
-            if ( properties.NORCOMPONENTS == 2 )
-            {
-                if ( properties.POSCOMPONENTS == 4 )
-                {
-                // (theta, phi) encoded in low/high byte of position.w
-                    code += "var vertNormal:vec3<f32> = vec3(position.w / 256.0); \n";
-                    code += "vertNormal.x = floor(vertNormal.x) / 255.0; \n";
-                    code += "vertNormal.y = fract(vertNormal.y) * 1.00392156862745; \n"; //256.0 / 255.0
-                }
-                else if ( properties.REQUIREBBOXNOR )
-                {
-                //code += "var vertNormal:vec3<f32> = vec3(normal.xy, 0.0) / bgPrecisionNorMax;\n";
-                }
-
-                code += "var thetaPhi:vec2<f32> = 3.14159265358979 * vec2(vertNormal.x, vertNormal.y*2.0-1.0); \n";
-                code += "var sinCosThetaPhi:vec4<f32> = sin( vec4(thetaPhi, thetaPhi + 1.5707963267949) ); \n";
-
-                code += "vertNormal.x = sinCosThetaPhi.x * sinCosThetaPhi.w; \n";
-                code += "vertNormal.y = sinCosThetaPhi.x * sinCosThetaPhi.y; \n";
-                code += "vertNormal.z = sinCosThetaPhi.z; \n";
-            }
-            else
-            {
-                if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
-                {
-                //Nothing to do
-                }
-                else
-                {
-                    code += "var vertNormal:vec3<f32> = normal;\n";
-                    if ( properties.REQUIREBBOXNOR )
-                    {
-                    //code += "vertNormal = vertNormal / bgPrecisionNorMax;\n";
-                    }
-                    if ( properties.POPGEOMETRY )
-                    {
-                        code += "vertNormal = 2.0*vertNormal - 1.0;\n";
-                    }
-                }
-            }
-            return code;
-        }
-    } )()}
-  
-  //Colors
-  ${( ()=>
-    {
-        if ( properties.VERTEXCOLOR )
-        {
-            var code = `fragColor = color;\n`;
-
-            /*if ( properties.REQUIREBBOXCOL )
-        {
-            code += `fragColor = fragColor / bgPrecisionColMax;\n`;
-        }*/
-            return code;
-        }
-    } )()}
-  /*******************************************************************************
-  * End of special Geometry switch
-  ********************************************************************************/
-  //Normals
-  ${( ()=>
-    {
-        if ( properties.LIGHTS )
-        {
-            return `fragNormal = (mat_n * vec4(vertNormal, 0.0)).xyz;`;
-        }
-    } )()}
-  //Textures
-  //Lights & Fog
-  ${( ()=>
-    {
-        if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
-        {
-            var code = `fragPosition = (mat_mv * vec4(vertPosition, 1.0));
-        fragPositionWS = (modelMatrix * vec4(vertPosition, 1.0));\n`;
-            if ( properties.FOG )
-            {
-                code += `fragEyePosition = eyePosition - fragPosition.xyz;`;
-            }
-        }
-    } )()}
-  //Displacement
-  //Positions
-  builtinPosition = mat_mvp * vec4(vertPosition, 1.0);
-  //Set point size
-  //END OF SHADER
+  ${vs_mainFunctionBodyCode}
 }
 `;
+
+
+
+
 
 /**
  * Generate the vertex shader
