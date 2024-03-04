@@ -400,27 +400,27 @@ if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.
 
 //Bounding Boxes
 
-
+fragmentShaderModuleDeclarationCode=``;
 //Lights
 if ( properties.LIGHTS )
 {  
   for ( var l = 0; l < properties.LIGHTS; l++ )
   {
-      bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Location`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Direction`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Color`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Attenuation`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Radius`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_Intensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_AmbientIntensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-      .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+      bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Location`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Direction`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Color`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Attenuation`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Radius`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Intensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_AmbientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
   }
-  var fnLighting=`
+  var lighting=`
 fn lighting(lType: f32,
 lLocation: vec3<f32>,
 lDirection: vec3<f32>,
@@ -471,9 +471,86 @@ specular: ptr<function, vec3<f32>>){
   *ambient  += lColor * ambientFactor * attentuation * spot;
   *diffuse  += lColor * diffuseFactor * attentuation * spot;
   *specular += lColor * specularFactor * attentuation * spot;
-}`;
 }
-      
+`;
+fragmentShaderModuleDeclarationCode+=lighting;
+}
+
+
+if ( properties.GAMMACORRECTION === "none" )
+{
+    // do not emit any declaration. 1.0 shall behave 'as without gamma'.
+}
+else if ( properties.GAMMACORRECTION === "fastlinear" )
+{
+    // This is a slightly optimized gamma correction
+    // which uses a gamma of 2.0 instead of 2.2. Gamma 2.0 is less costly
+    // to encode in terms of cycles as sqrt() is usually optimized
+    // in hardware.
+    fragmentShaderModuleDeclarationCode+=
+`fn gammaEncode(color: vec4<f32>)->vec4<f32>{
+  var tmp: vec4<f32> = sqrt(color);
+  return vec4<f32>(tmp.rgb, color.a);
+};
+fn gammaDecode(color: vec4<f32>)->vec4<f32>{
+  var tmp: vec4<f32> = color * color;
+  return vec4<f32>(tmp.rgb, color.a);
+};
+fn gammaEncode(color: vec3<f32>)->vec3<f32>{
+  return sqrt(color);
+};
+fn gammaDecode(color: vec3<f32>)->vec3<f32>{
+  return (color * color);
+};
+`;
+}
+else
+{
+    // The preferred implementation compensating for a gamma of 2.2, which closely
+    // follows sRGB; alpha remains linear
+    // minor opt: 1.0 / 2.2 = 0.4545454545454545
+    fragmentShaderModuleDeclarationCode+=
+`var<private> gammaEncode4Vector: vec4<f32> = vec4<f32>(0.4545454545454545, 0.4545454545454545, 0.4545454545454545, 1.0);
+var<private> gammaDecode4Vector: vec4<f32> = vec4<f32>(2.2, 2.2, 2.2, 1.0);
+fn gammaEncodeVec4(color: vec4<f32>)->vec4<f32>{
+  return pow(abs(color), gammaEncode4Vector);
+};
+fn gammaDecodeVec4(color: vec4<f32>)->vec4<f32>{
+  return pow(abs(color), gammaDecode4Vector);
+};
+var<private> gammaEncode3Vector: vec3<f32> = vec3<f32>(0.4545454545454545, 0.4545454545454545, 0.4545454545454545);
+var<private> gammaDecode3Vector: vec3<f32> = vec3<f32>(2.2, 2.2, 2.2);
+fn gammaEncode(color: vec3<f32>)->vec3<f32>{
+  return pow(abs(color), gammaEncode3Vector);
+};
+fn gammaDecode(color: vec3<f32>)->vec3<f32>{
+  return pow(abs(color), gammaDecode3Vector);
+};
+`;
+    shaderPart += "const vec4 gammaEncode4Vector = vec4(0.4545454545454545, 0.4545454545454545, 0.4545454545454545, 1.0);\n";
+    shaderPart += "const vec4 gammaDecode4Vector = vec4(2.2, 2.2, 2.2, 1.0);\n";
+
+    shaderPart += "vec4 gammaEncode(vec4 color){\n" +
+                  "    return pow(abs(color), gammaEncode4Vector);\n" +
+                  "}\n";
+
+    shaderPart += "vec4 gammaDecode(vec4 color){\n" +
+                  "    return pow(abs(color), gammaDecode4Vector);\n" +
+                  "}\n";
+
+    // RGB; minor opt: 1.0 / 2.2 = 0.4545454545454545
+    shaderPart += "const vec3 gammaEncode3Vector = vec3(0.4545454545454545, 0.4545454545454545, 0.4545454545454545);\n";
+    shaderPart += "const vec3 gammaDecode3Vector = vec3(2.2, 2.2, 2.2);\n";
+
+    shaderPart += "vec3 gammaEncode(vec3 color){\n" +
+                  "    return pow(abs(color), gammaEncode3Vector);\n" +
+                  "}\n";
+
+    shaderPart += "vec3 gammaDecode(vec3 color){\n" +
+                  "    return pow(abs(color), gammaDecode3Vector);\n" +
+                  "}\n";
+}
+
 
 
 
