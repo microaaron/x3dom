@@ -488,18 +488,18 @@ else if ( properties.GAMMACORRECTION === "fastlinear" )
     // to encode in terms of cycles as sqrt() is usually optimized
     // in hardware.
     fragmentShaderModuleDeclarationCode+=
-`fn gammaEncode(color: vec4<f32>)->vec4<f32>{
+`fn gammaEncodeVec4(color: vec4<f32>)->vec4<f32>{
   var tmp: vec4<f32> = sqrt(color);
   return vec4<f32>(tmp.rgb, color.a);
 };
-fn gammaDecode(color: vec4<f32>)->vec4<f32>{
+fn gammaDecodeVec4(color: vec4<f32>)->vec4<f32>{
   var tmp: vec4<f32> = color * color;
   return vec4<f32>(tmp.rgb, color.a);
 };
-fn gammaEncode(color: vec3<f32>)->vec3<f32>{
+fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
   return sqrt(color);
 };
-fn gammaDecode(color: vec3<f32>)->vec3<f32>{
+fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
   return (color * color);
 };
 `;
@@ -520,10 +520,10 @@ fn gammaDecodeVec4(color: vec4<f32>)->vec4<f32>{
 };
 var<private> gammaEncode3Vector: vec3<f32> = vec3<f32>(0.4545454545454545, 0.4545454545454545, 0.4545454545454545);
 var<private> gammaDecode3Vector: vec3<f32> = vec3<f32>(2.2, 2.2, 2.2);
-fn gammaEncode(color: vec3<f32>)->vec3<f32>{
+fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
   return pow(abs(color), gammaEncode3Vector);
 };
-fn gammaDecode(color: vec3<f32>)->vec3<f32>{
+fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
   return pow(abs(color), gammaDecode3Vector);
 };
 `;
