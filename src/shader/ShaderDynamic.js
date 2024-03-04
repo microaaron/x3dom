@@ -400,6 +400,83 @@ if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.
 
 //Bounding Boxes
 
+
+//Lights
+if ( properties.LIGHTS )
+{  
+  for ( var l = 0; l < properties.LIGHTS; l++ )
+  {
+      bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Location`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Direction`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Color`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Attenuation`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Radius`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_Intensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_AmbientIntensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+      .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+  }
+  var fnLighting=`
+fn lighting(lType: f32,
+lLocation: vec3<f32>,
+lDirection: vec3<f32>,
+lColor: vec3<f32>,
+lAttenuation: vec3<f32>,
+lRadius: f32,
+lIntensity f32,
+lAmbientIntensity f32,
+lBeamWidth f32,
+lCutOffAngle f32,
+positionVS vec3<f32>,
+N vec3<f32>,
+V vec3<f32>,
+shin f32,
+ambIntensity f32,
+reflectivity vec3<f32>,
+ambient: ptr<function, vec3<f32>>,
+diffuse: ptr<function, vec3<f32>>,
+specular: ptr<function, vec3<f32>>){
+  var L: vec3<f32>;
+  var spot: f32 = 1.0;
+  var attentuation: f32 = 0.0;
+  if(lType == 0.0) {
+    L = -normalize(lDirection);
+    V = normalize(V);
+    attentuation = 1.0;
+  }else{
+    L = (lLocation - (-V));
+    var d: f32 = length(L);
+    L = normalize(L);
+    V = normalize(V);
+    if(lRadius == 0.0 || d <= lRadius){
+      attentuation = 1.0 / max(lAttenuation.x + lAttenuation.y * d + lAttenuation.z * (d * d), 1.0);
+    }
+    if(lType == 2.0){
+      var spotAngle: f32 = acos(max(0.0, dot(-L, normalize(lDirection))));
+      if(spotAngle >= lCutOffAngle){spot = 0.0;}
+      else if(spotAngle <= lBeamWidth){spot = 1.0;}
+      else {spot = (spotAngle - lCutOffAngle ) / (lBeamWidth - lCutOffAngle);}
+    }
+  }
+  var H: vec3<f32> = normalize( L + V );
+  var NdotL: f32 = clamp(dot(L, N), 0.0, 1.0);
+  var NdotH: f32 = clamp(dot(H, N), 0.0, 1.0);
+  var ambientFactor: f32 = lAmbientIntensity * ambIntensity;
+  var diffuseFactor: f32 = lIntensity * NdotL;
+  var specularFactor: f32 = lIntensity * pow(NdotH, shin*128.0);
+  *ambient  += lColor * ambientFactor * attentuation * spot;
+  *diffuse  += lColor * diffuseFactor * attentuation * spot;
+  *specular += lColor * specularFactor * attentuation * spot;
+}`;
+}
+      
+
+
+
 bindingListArray.addBindingList( bindingParamsList0.createBindingList() );
 var bindingCodes = bindingListArray.createShaderModuleBindingCodes();
 var vertexInputCode = vertexListArray.createShaderModuleVertexInputCode();
