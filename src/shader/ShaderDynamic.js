@@ -308,6 +308,7 @@ var bindingListArray = new BindingListArray();
 var vertexListArray = new VertexListArray();
 
 var vertexOutputList = new shaderModuleInputOutputList();
+var fragmentOutputList = new shaderModuleInputOutputList();
 
 var bindingParamsList0 = bindingListArray.newBindingParamsList()
     .addBindingParams( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
@@ -400,7 +401,68 @@ if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.
 
 //Bounding Boxes
 
+
+
+
+
+
 fragmentShaderModuleDeclarationCode=``;
+
+//Material
+bindingParamsList0.addBindingParams( `tonemappingOperator`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+fragmentShaderModuleDeclarationCode+=
+`fn tonemapReinhard(color: vec3<f32>)->vec3<f32>{
+  return color / (color + vec3(1.0));
+}
+fn uncharted2Tonemap(color: vec3<f32>)->vec3<f32>{
+  var A: f32 = 0.15;
+  var B: f32 = 0.50;
+  var C: f32 = 0.10;
+  var D: f32 = 0.20;
+  var E: f32 = 0.02;
+  var F: f32 = 0.30;
+  return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+}
+fn tonemapUncharted2(color: vec3<f32>)->vec3<f32>{
+  var W: f32 = 11.2;
+  var exposureBias: f32 = 2.0;
+  var curr: vec3<f32> = uncharted2Tonemap(exposureBias * color);
+  var whiteScale: vec3<f32> = 1.0 / uncharted2Tonemap(vec3<f32>(W));
+  return curr * whiteScale;
+}
+fn tonemapeFilmic(color: vec3<f32>)->vec3<f32>{
+  var a: f32 = 2.51;
+  var b: f32 = 0.03;
+  var c: f32 = 2.43;
+  var d: f32 = 0.59;
+  var e: f32 = 0.14;
+  return clamp((color * (a * color + b)) / (color * (c * color + d ) + e), 0.0, 1.0);
+}
+fn tonemap(color: vec3<f32>)->vec3<f32>{
+  if(tonemappingOperator == 0.0) {
+    return color;
+  }
+  if(tonemappingOperator == 1.0) {
+    return tonemapReinhard(color);
+  }
+  if(tonemappingOperator == 2.0) {
+    return tonemapUncharted2(color);
+  }
+  if(tonemappingOperator == 3.0) {
+    return tonemapeFilmic(color);
+  }
+}`;
+//Colors
+//VertexID
+//Textures
+
+// same as vertex shader but with fragPositionWS for fogNoise (w/ or w/out lights)
+if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES )
+{
+    bindingParamsList0.addBindingParams( `isOrthoView`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+}
+
+
 //Lights
 if ( properties.LIGHTS )
 {  
@@ -420,8 +482,8 @@ if ( properties.LIGHTS )
       .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
       .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
   }
-  var lighting=`
-fn lighting(lType: f32,
+  var lighting=
+`fn lighting(lType: f32,
 lLocation: vec3<f32>,
 lDirection: vec3<f32>,
 lColor: vec3<f32>,
@@ -471,8 +533,7 @@ specular: ptr<function, vec3<f32>>){
   *ambient  += lColor * ambientFactor * attentuation * spot;
   *diffuse  += lColor * diffuseFactor * attentuation * spot;
   *specular += lColor * specularFactor * attentuation * spot;
-}
-`;
+}`;
 fragmentShaderModuleDeclarationCode+=lighting;
 }
 
@@ -501,8 +562,7 @@ fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
 };
 fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
   return (color * color);
-};
-`;
+};`;
 }
 else
 {
@@ -525,30 +585,7 @@ fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
 };
 fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
   return pow(abs(color), gammaDecode3Vector);
-};
-`;
-    shaderPart += "const vec4 gammaEncode4Vector = vec4(0.4545454545454545, 0.4545454545454545, 0.4545454545454545, 1.0);\n";
-    shaderPart += "const vec4 gammaDecode4Vector = vec4(2.2, 2.2, 2.2, 1.0);\n";
-
-    shaderPart += "vec4 gammaEncode(vec4 color){\n" +
-                  "    return pow(abs(color), gammaEncode4Vector);\n" +
-                  "}\n";
-
-    shaderPart += "vec4 gammaDecode(vec4 color){\n" +
-                  "    return pow(abs(color), gammaDecode4Vector);\n" +
-                  "}\n";
-
-    // RGB; minor opt: 1.0 / 2.2 = 0.4545454545454545
-    shaderPart += "const vec3 gammaEncode3Vector = vec3(0.4545454545454545, 0.4545454545454545, 0.4545454545454545);\n";
-    shaderPart += "const vec3 gammaDecode3Vector = vec3(2.2, 2.2, 2.2);\n";
-
-    shaderPart += "vec3 gammaEncode(vec3 color){\n" +
-                  "    return pow(abs(color), gammaEncode3Vector);\n" +
-                  "}\n";
-
-    shaderPart += "vec3 gammaDecode(vec3 color){\n" +
-                  "    return pow(abs(color), gammaDecode3Vector);\n" +
-                  "}\n";
+};`;
 }
 
 
@@ -557,28 +594,18 @@ fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
 bindingListArray.addBindingList( bindingParamsList0.createBindingList() );
 var bindingCodes = bindingListArray.createShaderModuleBindingCodes();
 var vertexInputCode = vertexListArray.createShaderModuleVertexInputCode();
-var vertexOutCode = vertexOutputList.createCode();
+var vertexOutputCode = vertexOutputList.createCode();
 
 var vertexShaderModuleEntryPoint = `vs_main`;
 
-/*
-vertexParamsList0.addVertexParams( `position`, `vec4<f32>`, `float32x4`);
-vertexParamsList0.addVertexParams( `normal`, `vec3<f32>`, `float32x3` );
 
-var vertexParamsList1 = vertexListArray.newVertexParamsList();
-vertexParamsList1.addVertexParams( `normal`, `vec3<f32>`, `float32x3` );
 
-bindingListArray.push( bindingParamsList0.createBindingList() );
-bindingListArray.createShaderModuleBindingCodes();
 
-vertexListArray.push( vertexParamsList0.createVertexList() );
-vertexListArray.push( vertexParamsList1.createVertexList( 16 ) );
-vertexListArray.createShaderModuleVertexInputCode();
-*/
 
 var vs_mainFunctionBodyCode = ``;
 //Positions
-vs_mainFunctionBodyCode += `var mat_mvp: mat4x4<f32> = modelViewProjectionMatrix;
+vs_mainFunctionBodyCode += `var vertexOutput: VertexOutput ;
+var mat_mvp: mat4x4<f32> = modelViewProjectionMatrix;
 var mat_mv: mat4x4<f32> = modelViewMatrix;`;
 if ( properties.CUBEMAP || properties.PBR_MATERIAL )
 {
@@ -592,11 +619,11 @@ if ( properties.LIGHTS || properties.PBR_MATERIAL )
     }
     else
     {
-        vs_mainFunctionBodyCode += `var mat_n: mat4x4<f32> = normalMatrix;`;
+        vs_mainFunctionBodyCode += `var mat_n: mat4x4<f32> = normalMatrix;\n`;
     }
 }
 //Positions
-vs_mainFunctionBodyCode += `var vertPosition:vec3<f32> = position.xyz;`;
+vs_mainFunctionBodyCode += `var vertPosition:vec3<f32> = position.xyz;\n`;
 
 //Normals
 if ( properties.LIGHTS )
@@ -606,7 +633,7 @@ if ( properties.LIGHTS )
         if ( properties.POSCOMPONENTS == 4 )
         {
         // (theta, phi) encoded in low/high byte of position.w
-            vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = vec3(position.w / 256.0); \n";
+            vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = vec3<f32>(position.w / 256.0); \n";
             vs_mainFunctionBodyCode += "vertNormal.x = floor(vertNormal.x) / 255.0; \n";
             vs_mainFunctionBodyCode += "vertNormal.y = fract(vertNormal.y) * 1.00392156862745; \n"; //256.0 / 255.0
         }
@@ -615,8 +642,8 @@ if ( properties.LIGHTS )
         //vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = vec3(normal.xy, 0.0) / bgPrecisionNorMax;\n";
         }
 
-        vs_mainFunctionBodyCode += "var thetaPhi:vec2<f32> = 3.14159265358979 * vec2(vertNormal.x, vertNormal.y*2.0-1.0); \n";
-        vs_mainFunctionBodyCode += "var sinCosThetaPhi:vec4<f32> = sin( vec4(thetaPhi, thetaPhi + 1.5707963267949) ); \n";
+        vs_mainFunctionBodyCode += "var thetaPhi:vec2<f32> = 3.14159265358979 * vec2<f32>(vertNormal.x, vertNormal.y*2.0-1.0); \n";
+        vs_mainFunctionBodyCode += "var sinCosThetaPhi:vec4<f32> = sin( vec4<f32>(thetaPhi, thetaPhi + 1.5707963267949) ); \n";
 
         vs_mainFunctionBodyCode += "vertNormal.x = sinCosThetaPhi.x * sinCosThetaPhi.w; \n";
         vs_mainFunctionBodyCode += "vertNormal.y = sinCosThetaPhi.x * sinCosThetaPhi.y; \n";
@@ -646,7 +673,7 @@ if ( properties.LIGHTS )
 //Colors
 if ( properties.VERTEXCOLOR )
 {
-    var vs_mainFunctionBodyCode = `fragColor = color;\n`;
+    var vs_mainFunctionBodyCode = `vertexOutput.fragColor = color;\n`;
 
     /*if ( properties.REQUIREBBOXCOL )
       {
@@ -659,30 +686,145 @@ if ( properties.VERTEXCOLOR )
 //Normals
 if ( properties.LIGHTS )
 {
-    vs_mainFunctionBodyCode += `fragNormal = (mat_n * vec4(vertNormal, 0.0)).xyz;`;
+    vs_mainFunctionBodyCode += `vertexOutput.fragNormal = (mat_n * vec4(vertNormal, 0.0)).xyz;\n`;
 }
 //Textures
 //Lights & Fog
 if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
 {
-    vs_mainFunctionBodyCode += `fragPosition = (mat_mv * vec4(vertPosition, 1.0));
-fragPositionWS = (modelMatrix * vec4(vertPosition, 1.0));\n`;
+    vs_mainFunctionBodyCode += `vertexOutput.fragPosition = (mat_mv * vec4(vertPosition, 1.0));
+vertexOutput.fragPositionWS = (modelMatrix * vec4(vertPosition, 1.0));\n`;
     if ( properties.FOG )
     {
-        vs_mainFunctionBodyCode += `fragEyePosition = eyePosition - fragPosition.xyz;`;
+        vs_mainFunctionBodyCode += `vertexOutput.fragEyePosition = eyePosition - fragPosition.xyz;\n`;
     }
 }
 //Displacement
 //Positions
-vs_mainFunctionBodyCode += `builtinPosition = mat_mvp * vec4(vertPosition, 1.0);`;
+vs_mainFunctionBodyCode += `builtinPosition = mat_mvp * vec4(vertPosition, 1.0);\n`;
 //Set point size
+vs_mainFunctionBodyCode += `return vertexOutput;\n`;
 //END OF SHADER
 
-var vertexShaderModuleCode = `
-${bindingCodes.vertexBindingCode}
-struct VertexOutput {
-  @builtin(position) builtinPosition: vec4<f32>
-  ${vertexOutCode}
+
+
+
+var fragmentInputCode = vertexOutputCode;
+fragmentOutputList.add( `fragColor0`, `vec4<f32>` );
+var fragmentOutputCode = fragmentOutputList.createCode();
+
+var fragmentShaderModuleEntryPoint = `fs_main`;
+
+
+
+
+
+var fs_mainFunctionBodyCode = `var fragmentOutput: FragmentOutput ;`;
+
+if ( properties.NORMALSPACE == "OBJECT" )
+{
+    fs_mainFunctionBodyCode += `mat4 mat_n = normalMatrix;\n`;
+}
+fs_mainFunctionBodyCode +=
+`var color: vec4<f32>;
+var texColor: vec4<f32>;
+color.rgb = diffuseColor;
+color.a = 1.0 - transparency;
+var _emissiveColor: vec3<f32> = emissiveColor;
+var _shininess: f32 = shininess;
+var _specularColor: vec3<f32> = specularColor;
+var _ambientIntensity: f32 = ambientIntensity;
+var _transparency: f32 = transparency;
+var _occlusion: f32 = 1.0;`;
+
+if ( properties.ALPHAMODE == "OPAQUE" )
+{
+    fs_mainFunctionBodyCode += "color.a = 1.0;\n";
+}
+
+if ( properties.LIGHTS )
+{
+  fs_mainFunctionBodyCode +=
+`var ambient: vec3<f32> = vec3(0.0, 0.0, 0.0);
+var diffuse: vec3<f32> = vec3(0.0, 0.0, 0.0);
+var specular: vec3<f32> = vec3(0.0, 0.0, 0.0);
+var eye: vec3<f32>;
+var positionVS: vec3<f32> = fragPosition.rgb;
+if ( isOrthoView > 0 ) {
+  eye = vec3<f32>(0.0, 0.0, 1.0);
+}else{
+  eye = -fragPosition.xyz;
+}
+`;
+  if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
+  {
+      fs_mainFunctionBodyCode += "var normal: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);\n";
+  }
+  else
+  {
+      fs_mainFunctionBodyCode += "var normal: vec3<f32> = normalize(fragNormal);\n";
+  }
+  if ( !properties.SOLID || properties.TWOSIDEDMAT )
+  {
+      fs_mainFunctionBodyCode +=
+`if (dot(normalize(fragNormal), eye) < 0.0) {
+  normal *= -1.0;
+}`;
+  }
+  
+  //Calculate lights
+  if ( properties.LIGHTS ){
+    for ( var l = 0; l < properties.LIGHTS; l++ ){
+      fs_mainFunctionBodyCode+=
+`lighting(light${l}_Type,
+light${l}_Location,
+light${l}_Direction,
+light${l}_Color,
+light${l}_Attenuation,
+light${l}_Radius,
+light${l}_Intensity,
+light${l}_AmbientIntensity,
+light${l}_BeamWidth,
+light${l}_CutOffAngle,
+positionVS, normal, eye, _shininess, _ambientIntensity, _specularColor, &ambient, &diffuse, &specular);
+ambient = max(ambient, 0.0);
+diffuse = max(diffuse, 0.0);
+specular = max(specular, 0.0);
+`;
+    }
+  }
+  
+  fs_mainFunctionBodyCode += "color.rgb = _emissiveColor + ((ambient + diffuse) * color.rgb + specular * _specularColor) * _occlusion;\n";
+}
+
+//Output the gamma encoded result.
+fs_mainFunctionBodyCode +=
+`if(tonemappingOperator == 1.0) {
+  color.rgb = tonemapReinhard(color.rgb);
+}
+if(tonemappingOperator == 2.0) {
+  color.rgb = tonemapUncharted2(color.rgb);
+}
+if(tonemappingOperator == 3.0) {
+  color.rgb = tonemapeFilmic(color.rgb);
+}
+`;
+if ( properties.GAMMACORRECTION !== "none" ){
+  fs_mainFunctionBodyCode+=`color = gammaEncodeVec4(color)`;
+}
+fs_mainFunctionBodyCode +=`fragmentOutput.fragColor0 = color;\n`;
+fs_mainFunctionBodyCode += `return fragmentOutput;\n`;
+//End Of Shader
+
+
+
+
+
+var vertexShaderModuleCode =
+`${bindingCodes.vertexBindingCode}
+struct vertexOutput {
+  //@builtin(position) builtinPosition: vec4<f32>
+  ${vertexOutputCode}
 }
 @vertex
 fn ${vertexShaderModuleEntryPoint}(
@@ -691,11 +833,28 @@ fn ${vertexShaderModuleEntryPoint}(
   ${vertexInputCode}
 ) -> VertexOutput {
   ${vs_mainFunctionBodyCode}
+}`;
+
+
+var fragmentShaderModuleCode =
+`${bindingCodes.fragmentBindingCode}
+${fragmentShaderModuleDeclarationCode}
+struct FragmentOutput {
+  //@builtin(frag_depth) depth: f32,
+  //@builtin(sample_mask) mask_out: u32,
+  ${fragmentOutputCode}
+}
+@fragment
+fn ${fragmentShaderModuleEntryPoint}(
+  //@builtin(front_facing) is_front: bool,
+  //@builtin(position) coord: vec4<f32>,
+  //@builtin(sample_index) my_sample_index: u32,
+  //@builtin(sample_mask) mask_in: u32,
+  ${fragmentInputCode}
+) -> FragmentOutput {
+  ${fs_mainFunctionBodyCode}
 }
 `;
-
-
-
 
 
 /**
