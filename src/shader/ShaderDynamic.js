@@ -129,24 +129,9 @@ var BindingListArray = class
     };
 };
 
-/*var bindingListArray = new BindingListArray();
 
-var bindingParamsList0 = bindingListArray.newBindingParamsList();
-bindingParamsList0.addBindingParams( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-bindingParamsList0.addBindingParams( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-bindingParamsList0.addBindingParams( `modelMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-bindingParamsList0.addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-bindingParamsList0.addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
 
-var bindingParamsList1 = bindingListArray.newBindingParamsList();
-bindingParamsList1.addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-bindingParamsList1.addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
 
-bindingListArray.push( bindingParamsList0.createBindingList() );
-bindingListArray.push( bindingParamsList1.createBindingList() );
-
-bindingListArray.createShaderModuleBindingCodes();
-*/
 
 var VertexListArray = class
 {
@@ -262,19 +247,8 @@ var VertexListArray = class
     };
 };
 
-/*var vertexListArray = new VertexListArray();
 
-var vertexParamsList0 = vertexListArray.newVertexParamsList();
-vertexParamsList0.addVertexParams( `position`, `vec4<f32>`, `float32x4`, 1 );
-vertexParamsList0.addVertexParams( `normal`, `vec3<f32>`, `float32x3` );
-vertexListArray.push( vertexParamsList0.createVertexList() );
 
-var vertexParamsList1 = vertexListArray.newVertexParamsList();
-vertexParamsList1.addVertexParams( `normal`, `vec3<f32>`, `float32x3` );
-vertexListArray.push( vertexParamsList1.createVertexList( 16 ) );
-
-vertexListArray.createShaderModuleVertexInputCode();
-*/
 
 var shaderModuleInputOutputList = class
 {
@@ -326,7 +300,7 @@ var bindingParamsList0 = bindingListArray.newBindingParamsList()
     .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
     .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
     .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-    .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+    .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
 
 
 //Positions
