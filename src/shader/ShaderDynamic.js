@@ -30,18 +30,19 @@
     return this.program;
 };*/
 
-var BindingListArray = class
+var BindingListArray = class BindingListArray extends Array
 {
     constructor ()
     {
-        var bindingListArray = [];
-        bindingListArray.newBindingParamsList = BindingListArray.newBindingParamsList;
-        bindingListArray.addBindingList = function ( bindingList )
+        //var bindingListArray = [];
+        super();
+        this.newBindingParamsList = BindingListArray.newBindingParamsList;
+        this.addBindingList = function ( bindingList )
         {
             this.push( bindingList );
             return this;
         };
-        bindingListArray.createShaderModuleBindingCodes = function ()
+        this.createShaderModuleBindingCodes = function ()
         {
             var vertexBindingCode = ``;
             var fragmentBindingCode = ``;
@@ -82,17 +83,17 @@ var BindingListArray = class
                 computeBindingCode  : computeBindingCode
             };
         };
-        bindingListArray.getBindGroupLayouts=function(device){
+        this.getBindGroupLayouts=function(device){
           var bindGroupLayouts = [];
           for(var bindingList of this){
             if(!bindingList.bindGroupLayout){
-              bindingList.bindGroupLayout = device.createBindGroupLayout(bindingList.bindGroupLayoutDescriptor);
+              bindingList.createBindGroupLayout(device);
             }
             bindGroupLayouts.push(bindingList.bindGroupLayout);
           }
           return bindGroupLayouts;
         }
-        return bindingListArray;
+        //return bindingListArray;
     }
 
     static newBindingParamsList ()
@@ -100,12 +101,13 @@ var BindingListArray = class
         return new BindingListArray.BindingParamsList();
     }
 
-    static BindingParamsList = class
+    static BindingParamsList = class BindingParamsList extends Array
     {
         constructor ()
         {
-            var bindingParamsList = [];
-            bindingParamsList.addBindingParams = function ( name, wgslType, visibility, resourceLayoutObject )
+            //var bindingParamsList = [];
+            super();
+            this.addBindingParams = function ( name, wgslType, visibility, resourceLayoutObject )
             {
                 this.push( {
                     name                 : name,
@@ -115,9 +117,14 @@ var BindingListArray = class
                 } );
                 return this;
             };
-            bindingParamsList.createBindingList = function ()
+            this.createBindingList = function ()
             {
-                var bindingList = [];
+                var bindingList = new class BindingList extends Array{
+                  createBindGroupLayout(device){
+                    this.bindGroupLayout = device.createBindGroupLayout(this.bindGroupLayoutDescriptor);
+                    return this.bindGroupLayout;
+                  }
+                };
                 var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
 
                 for ( var bindingParams of this )
@@ -134,25 +141,26 @@ var BindingListArray = class
                 bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
                 return bindingList;
             };
-            return bindingParamsList;
+            //return bindingParamsList;
         }
     };
 };
 
-var VertexListArray = class
+var VertexListArray = class VertexListArray extends Array
 {
     constructor ()
     {
-        var vertexListArray = [];
-        vertexListArray.newVertexParamsList = VertexListArray.newVertexParamsList;
-        vertexListArray.addVertexList = function ( vertexList )
+        //var vertexListArray = [];
+        super();
+        this.newVertexParamsList = VertexListArray.newVertexParamsList;
+        this.addVertexList = function ( vertexList )
         {
             this.push( vertexList );
             return this;
         };
-        vertexListArray.createVertexBufferLayouts = function ()
+        this.createVertexBufferLayouts = function ()
         {
-            this.vertexBufferLayouts = [];
+            this.vertexBufferLayouts = new class VertexBufferLayouts extends Array{};
             var shaderLocation = 0;
             for ( var vertexList of this )
             {
@@ -165,7 +173,7 @@ var VertexListArray = class
             }
             return this.vertexBufferLayouts;
         };
-        vertexListArray.createShaderModuleVertexInputCode = function ()
+        this.createShaderModuleVertexInputCode = function ()
         {
             if ( !this.vertexBufferLayouts )
             {
@@ -181,7 +189,7 @@ var VertexListArray = class
             }
             return vertexInputCodes.join();
         };
-        return vertexListArray;
+        //return vertexListArray;
     }
 
     static newVertexParamsList ()
@@ -189,12 +197,13 @@ var VertexListArray = class
         return new VertexListArray.VertexParamsList();
     }
 
-    static VertexParamsList = class
+    static VertexParamsList = class extends Array
     {
         constructor ()
         {
-            var vertexParamsList = [];
-            vertexParamsList.addVertexParams = function ( name, wgslType, format, offset/*(Optional)*/ )
+            //var vertexParamsList = [];
+            super();
+            this.addVertexParams = function ( name, wgslType, format, offset/*(Optional)*/ )
             {
                 this.push( {
                     name     : name,
@@ -204,9 +213,9 @@ var VertexListArray = class
                 } );
                 return this;
             };
-            vertexParamsList.createVertexList = function ( arrayStride/*(Optional)*/, stepMode/*(Optional)*/ )
+            this.createVertexList = function ( arrayStride/*(Optional)*/, stepMode/*(Optional)*/ )
             {
-                var vertexList = [];
+                var vertexList = new class VertexList extends Array{};
                 var vertexBufferLayout = new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode );
                 var autoArrayStride = 0;
                 var vertexFormats = new x3dom.WebGPU.GPUVertexFormat();
@@ -248,17 +257,18 @@ var VertexListArray = class
                 vertexList.vertexBufferLayout = vertexBufferLayout;
                 return vertexList;
             };
-            return vertexParamsList;
+            //return vertexParamsList;
         }
     };
 };
 
-var shaderModuleInputOutputList = class
+var shaderModuleInputOutputList = class ShaderModuleInputOutputList extends Array
 {
     constructor ()
     {
-        var inputOutputList = [];
-        inputOutputList.add = function ( name, wgslType )
+        //var inputOutputList = [];
+        super();
+        this.add = function ( name, wgslType )
         {
             this.push( {
                 name     : name,
@@ -266,7 +276,7 @@ var shaderModuleInputOutputList = class
             } );
             return this;
         };
-        inputOutputList.createShaderModuleCode = function ()
+        this.createShaderModuleCode = function ()
         {
             var location = 0;
             var inputOutputCodes = [];
@@ -277,7 +287,7 @@ var shaderModuleInputOutputList = class
             }
             return inputOutputCodes.join();
         };
-        return inputOutputList;
+        //return inputOutputList;
     }
 };
 
@@ -822,6 +832,15 @@ fn ${fragmentShaderModuleEntryPoint}(
 };
 
 function setRenderPipeline(){
-  var BindGroupLayout= device.createBindGroupLayout
-  var renderPipelineDescriptor=new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample, label );
+  //pipelineLayout
+  var bindGroupLayouts= bindingListArray.getBindGroupLayouts(device);
+  var pipelineLayout = device.createPipelineLayout(new x3dom.WebGPU.GPUPipelineLayoutDescriptor(bindGroupLayouts));
+  
+  //vertexState
+  var shaderModule = device.createShaderModule();
+  
+  
+  new vertexState = new x3dom.WebGPU.GPUVertexState(module, entryPoint, constants, buffers);
+  
+  var renderPipelineDescriptor=new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertex, fragment, primitive, depthStencil, multisample, label );
 }
