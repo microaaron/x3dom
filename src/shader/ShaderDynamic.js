@@ -281,7 +281,7 @@ var shaderModuleInputOutputList = class ShaderModuleInputOutputList extends Arra
             } );
             return this;
         };
-        this.createShaderModuleCode = function ()
+        this.createShaderModuleInputOutputCode = function ()
         {
             var location = 0;
             var inputOutputCodes = [];
@@ -577,7 +577,7 @@ fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
     bindingListArray.addBindingList( bindingParamsList0.createBindingList() );
     var bindingCodes = bindingListArray.createShaderModuleBindingCodes();
     var vertexInputCode = vertexListArray.createShaderModuleVertexInputCode();
-    var vertexOutputCode = vertexOutputList.createCode();
+    var vertexOutputCode = vertexOutputList.createShaderModuleInputOutputCode();
 
     var vertexShaderModuleEntryPoint = `vs_main`;
 
@@ -687,7 +687,7 @@ vertexOutput.fragPositionWS = (modelMatrix * vec4(vertPosition, 1.0));\n`;
 
     var fragmentInputCode = vertexOutputCode;
     fragmentOutputList.add( `fragColor0`, `vec4<f32>` );
-    var fragmentOutputCode = fragmentOutputList.createCode();
+    var fragmentOutputCode = fragmentOutputList.createShaderModuleInputOutputCode();
 
     var fragmentShaderModuleEntryPoint = `fs_main`;
 
@@ -825,6 +825,48 @@ fn ${fragmentShaderModuleEntryPoint}(
   ${fs_mainFunctionBodyCode}
 }`;
 
+    //pipelineLayout
+    {
+        const layouts = bindingListArray.getBindGroupLayouts( device );
+        var pipelineLayout = device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( layouts ) );
+    }
+    //vertexState
+    {
+        const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
+        const entryPoint = vertexShaderModuleEntryPoint;
+        const constants = undefined;
+        const buffers = vertexListArray.vertexBufferLayouts;
+        var vertexState = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+    }
+    //fragmentState
+    {
+        const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
+        const entryPoint = fragmentShaderModuleEntryPoint;
+        const constants = undefined;
+        const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( presentationFormat/*, blend, writeMask*/ ) ];
+        var fragmentState = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
+    }
+    //primitive
+    {
+        const stripIndexFormat = "uint32";
+        const frontFace = "ccw";
+        const cullMode = "back";
+        var primitiveState = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode, unclippedDepth );
+    }
+    //depthStencil
+    {
+        const format = "depth24plus-stencil8";
+        const depthWriteEnabled = true;
+        const depthCompare = "less";
+        var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
+    }
+    //multisample
+    {
+        const count = 1;
+        var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
+    }
+    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertexState, fragment, primitive, depthStencil, multisample/*, label*/ );
+
     return {
         bindingListArray               : bindingListArray,
         vertexListArray                : vertexListArray,
@@ -843,7 +885,6 @@ function setRenderPipeline ()
         const layouts = bindingListArray.getBindGroupLayouts( device );
         var pipelineLayout = device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( layouts ) );
     }
-
     //vertexState
     {
         const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
@@ -852,7 +893,6 @@ function setRenderPipeline ()
         const buffers = vertexListArray.vertexBufferLayouts;
         var vertexState = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
     }
-
     //fragmentState
     {
         const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
@@ -861,12 +901,24 @@ function setRenderPipeline ()
         const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( presentationFormat/*, blend, writeMask*/ ) ];
         var fragmentState = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
     }
-
     //primitive
-    var stripIndexFormat = "uint32";
-    var frontFace = "ccw";
-    var cullMode = "back";
-    var primitiveState = x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode, unclippedDepth );
-
-    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertexState, fragment, primitive, depthStencil, multisample, label );
+    {
+        const stripIndexFormat = "uint32";
+        const frontFace = "ccw";
+        const cullMode = "back";
+        var primitiveState = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode, unclippedDepth );
+    }
+    //depthStencil
+    {
+        const format = "depth24plus-stencil8";
+        const depthWriteEnabled = true;
+        const depthCompare = "less";
+        var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
+    }
+    //multisample
+    {
+        const count = 1;
+        var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
+    }
+    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertexState, fragment, primitive, depthStencil, multisample/*, label*/ );
 }
