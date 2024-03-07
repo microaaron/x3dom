@@ -83,16 +83,19 @@ var BindingListArray = class BindingListArray extends Array
                 computeBindingCode  : computeBindingCode
             };
         };
-        this.getBindGroupLayouts=function(device){
-          var bindGroupLayouts = [];
-          for(var bindingList of this){
-            if(!bindingList.bindGroupLayout){
-              bindingList.createBindGroupLayout(device);
+        this.getBindGroupLayouts = function ( device )
+        {
+            var bindGroupLayouts = [];
+            for ( var bindingList of this )
+            {
+                if ( !bindingList.bindGroupLayout )
+                {
+                    bindingList.createBindGroupLayout( device );
+                }
+                bindGroupLayouts.push( bindingList.bindGroupLayout );
             }
-            bindGroupLayouts.push(bindingList.bindGroupLayout);
-          }
-          return bindGroupLayouts;
-        }
+            return bindGroupLayouts;
+        };
         //return bindingListArray;
     }
 
@@ -119,12 +122,14 @@ var BindingListArray = class BindingListArray extends Array
             };
             this.createBindingList = function ()
             {
-                var bindingList = new class BindingList extends Array{
-                  createBindGroupLayout(device){
-                    this.bindGroupLayout = device.createBindGroupLayout(this.bindGroupLayoutDescriptor);
-                    return this.bindGroupLayout;
-                  }
-                };
+                var bindingList = new class BindingList extends Array
+                {
+                    createBindGroupLayout ( device )
+                    {
+                        this.bindGroupLayout = device.createBindGroupLayout( this.bindGroupLayoutDescriptor );
+                        return this.bindGroupLayout;
+                    }
+                }();
                 var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
 
                 for ( var bindingParams of this )
@@ -160,7 +165,7 @@ var VertexListArray = class VertexListArray extends Array
         };
         this.createVertexBufferLayouts = function ()
         {
-            this.vertexBufferLayouts = new class VertexBufferLayouts extends Array{};
+            this.vertexBufferLayouts = new class VertexBufferLayouts extends Array{}();
             var shaderLocation = 0;
             for ( var vertexList of this )
             {
@@ -215,7 +220,7 @@ var VertexListArray = class VertexListArray extends Array
             };
             this.createVertexList = function ( arrayStride/*(Optional)*/, stepMode/*(Optional)*/ )
             {
-                var vertexList = new class VertexList extends Array{};
+                var vertexList = new class VertexList extends Array{}();
                 var vertexBufferLayout = new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode );
                 var autoArrayStride = 0;
                 var vertexFormats = new x3dom.WebGPU.GPUVertexFormat();
@@ -831,16 +836,16 @@ fn ${fragmentShaderModuleEntryPoint}(
     };
 };
 
-function setRenderPipeline(){
-  //pipelineLayout
-  var bindGroupLayouts= bindingListArray.getBindGroupLayouts(device);
-  var pipelineLayout = device.createPipelineLayout(new x3dom.WebGPU.GPUPipelineLayoutDescriptor(bindGroupLayouts));
-  
-  //vertexState
-  var shaderModule = device.createShaderModule();
-  
-  
-  new vertexState = new x3dom.WebGPU.GPUVertexState(module, entryPoint, constants, buffers);
-  
-  var renderPipelineDescriptor=new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertex, fragment, primitive, depthStencil, multisample, label );
+function setRenderPipeline ()
+{
+    //pipelineLayout
+    var bindGroupLayouts = bindingListArray.getBindGroupLayouts( device );
+    var pipelineLayout = device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
+
+    //vertexState
+    var shaderModule = device.createShaderModule();
+
+    var vertexState = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+
+    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertex, fragment, primitive, depthStencil, multisample, label );
 }

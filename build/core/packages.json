@@ -75,6 +75,7 @@
             "GPUBindGroupEntry.js",
             "GPUBufferBinding.js",
             "GPUPipelineLayoutDescriptor.js",
+            "GPUShaderModuleDescriptor.js",
             "GPUAutoLayoutMode.js",
             "GPUPipelineDescriptorBase.js",
             "GPUProgrammableStage.js",
