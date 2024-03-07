@@ -33,22 +33,22 @@ x3dom.WebGPU.GPUStencilFaceState = class GPUStencilFaceState
         this.passOp = passOp;
     }
 
-    getAvailableCompares ()
+    static getAvailableCompares ()
     {
         return new x3dom.WebGPU.GPUCompareFunction();
     }
 
-    getAvailableFailOps ()
+    static getAvailableFailOps ()
     {
         return new x3dom.WebGPU.GPUStencilOperation();
     }
 
-    getAvailableDepthFailOps ()
+    static getAvailableDepthFailOps ()
     {
         return new x3dom.WebGPU.GPUStencilOperation();
     }
 
-    getAvailablePassOps ()
+    static getAvailablePassOps ()
     {
         return new x3dom.WebGPU.GPUStencilOperation();
     }
@@ -58,3 +58,7 @@ x3dom.WebGPU.GPUStencilFaceState = class GPUStencilFaceState
         return "GPUStencilFaceState";
     }
 };
+x3dom.WebGPU.GPUStencilFaceState.prototype.getAvailableCompares = x3dom.WebGPU.GPUStencilFaceState.getAvailableCompares;
+x3dom.WebGPU.GPUStencilFaceState.prototype.getAvailableFailOps = x3dom.WebGPU.GPUStencilFaceState.getAvailableFailOps;
+x3dom.WebGPU.GPUStencilFaceState.prototype.getAvailableDepthFailOps = x3dom.WebGPU.GPUStencilFaceState.getAvailableDepthFailOps;
+x3dom.WebGPU.GPUStencilFaceState.prototype.getAvailablePassOps = x3dom.WebGPU.GPUStencilFaceState.getAvailablePassOps;

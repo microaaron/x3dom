@@ -27,17 +27,17 @@ x3dom.WebGPU.GPUColorTargetState  = class GPUColorTargetState
         this.writeMask = writeMask;
     }
 
-    newBlend ( color, alpha )
+    static newBlend ( color, alpha )
     {
         return new x3dom.WebGPU.GPUBlendState( color, alpha );
     }
 
-    getAvailableFormats ( device )
+    static getAvailableFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
-    getAvailableWriteMasks ()
+    static getAvailableWriteMasks ()
     {
         return new x3dom.WebGPU.GPUColorWrite();
     }
@@ -47,3 +47,6 @@ x3dom.WebGPU.GPUColorTargetState  = class GPUColorTargetState
         return "GPUColorTargetState";
     }
 };
+x3dom.WebGPU.GPUColorTargetState.prototype.newBlend = x3dom.WebGPU.GPUColorTargetState.newBlend;
+x3dom.WebGPU.GPUColorTargetState.prototype.getAvailableFormats = x3dom.WebGPU.GPUColorTargetState.getAvailableFormats;
+x3dom.WebGPU.GPUColorTargetState.prototype.getAvailableWriteMasks = x3dom.WebGPU.GPUColorTargetState.getAvailableWriteMasks;

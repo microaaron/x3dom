@@ -27,7 +27,7 @@ x3dom.WebGPU.GPUBufferBindingLayout = class GPUBufferBindingLayout
         this.minBindingSize = minBindingSize;
     }
 
-    getAvailableTypes ()
+    static getAvailableTypes ()
     {
         return new x3dom.WebGPU.GPUBufferBindingType();
     }
@@ -37,3 +37,4 @@ x3dom.WebGPU.GPUBufferBindingLayout = class GPUBufferBindingLayout
         return "GPUBufferBindingLayout";
     }
 };
+x3dom.WebGPU.GPUBufferBindingLayout.prototype.getAvailableTypes = x3dom.WebGPU.GPUBufferBindingLayout.getAvailableTypes;

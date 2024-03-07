@@ -41,22 +41,22 @@ x3dom.WebGPU.GPUPrimitiveState = class GPUPrimitiveState
         this.unclippedDepth = unclippedDepth;
     }
 
-    getAvailableTopologys ()
+    static getAvailableTopologys ()
     {
         return new x3dom.WebGPU.GPUPrimitiveTopology();
     }
 
-    getAvailableStripIndexFormats ()
+    static getAvailableStripIndexFormats ()
     {
         return new x3dom.WebGPU.GPUIndexFormat();
     }
 
-    getAvailableFrontFaces ()
+    static getAvailableFrontFaces ()
     {
         return new x3dom.WebGPU.GPUFrontFace();
     }
 
-    getAvailableCullModes ()
+    static getAvailableCullModes ()
     {
         return new x3dom.WebGPU.GPUCullMode();
     }
@@ -66,3 +66,7 @@ x3dom.WebGPU.GPUPrimitiveState = class GPUPrimitiveState
         return "GPUPrimitiveState";
     }
 };
+x3dom.WebGPU.GPUPrimitiveState.prototype.getAvailableTopologys = x3dom.WebGPU.GPUPrimitiveState.getAvailableTopologys;
+x3dom.WebGPU.GPUPrimitiveState.prototype.getAvailableStripIndexFormats = x3dom.WebGPU.GPUPrimitiveState.getAvailableStripIndexFormats;
+x3dom.WebGPU.GPUPrimitiveState.prototype.getAvailableFrontFaces = x3dom.WebGPU.GPUPrimitiveState.getAvailableFrontFaces;
+x3dom.WebGPU.GPUPrimitiveState.prototype.getAvailableCullModes = x3dom.WebGPU.GPUPrimitiveState.getAvailableCullModes;

@@ -52,17 +52,17 @@ x3dom.WebGPU.GPUTextureViewDescriptor = class GPUTextureViewDescriptor extends x
         this.arrayLayerCount = arrayLayerCount;
     }
 
-    getAvailableFormats ( device )
+    static getAvailableFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
-    getAvailableDimensions ()
+    static getAvailableDimensions ()
     {
         return new x3dom.WebGPU.GPUTextureViewDimension();
     }
 
-    getAvailableAspects ()
+    static getAvailableAspects ()
     {
         return new x3dom.WebGPU.GPUTextureAspect();
     }
@@ -72,3 +72,6 @@ x3dom.WebGPU.GPUTextureViewDescriptor = class GPUTextureViewDescriptor extends x
         return "GPUTextureViewDescriptor";
     }
 };
+x3dom.WebGPU.GPUTextureViewDescriptor.prototype.getAvailableFormats = x3dom.WebGPU.GPUTextureViewDescriptor.getAvailableFormats;
+x3dom.WebGPU.GPUTextureViewDescriptor.prototype.getAvailableDimensions = x3dom.WebGPU.GPUTextureViewDescriptor.getAvailableDimensions;
+x3dom.WebGPU.GPUTextureViewDescriptor.prototype.getAvailableAspects = x3dom.WebGPU.GPUTextureViewDescriptor.getAvailableAspects;

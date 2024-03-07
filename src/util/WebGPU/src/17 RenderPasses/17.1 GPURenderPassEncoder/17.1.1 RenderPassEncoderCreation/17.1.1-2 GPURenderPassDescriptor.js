@@ -40,17 +40,17 @@ x3dom.WebGPU.GPURenderPassDescriptor = class GPURenderPassDescriptor extends x3d
         this.maxDrawCount = maxDrawCount;
     }
 
-    newColorAttachment ()
+    static newColorAttachment ()
     {
         return new x3dom.WebGPU.GPURenderPassColorAttachment();
     }
 
-    newDepthStencilAttachment ()
+    static newDepthStencilAttachment ()
     {
         return new x3dom.WebGPU.GPURenderPassDepthStencilAttachment();
     }
 
-    newTimestampWrites ()
+    static newTimestampWrites ()
     {
         return new x3dom.WebGPU.GPURenderPassTimestampWrites();
     }
@@ -60,3 +60,6 @@ x3dom.WebGPU.GPURenderPassDescriptor = class GPURenderPassDescriptor extends x3d
         return "GPURenderPassDescriptor";
     }
 };
+x3dom.WebGPU.GPURenderPassDescriptor.prototype.newColorAttachment = x3dom.WebGPU.GPURenderPassDescriptor.newColorAttachment;
+x3dom.WebGPU.GPURenderPassDescriptor.prototype.newDepthStencilAttachment = x3dom.WebGPU.GPURenderPassDescriptor.newDepthStencilAttachment;
+x3dom.WebGPU.GPURenderPassDescriptor.prototype.newTimestampWrites = x3dom.WebGPU.GPURenderPassDescriptor.newTimestampWrites;

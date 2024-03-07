@@ -22,7 +22,7 @@ x3dom.WebGPU.GPUBindGroupDescriptor = class GPUBindGroupDescriptor extends x3dom
         this.entries = entries;
     }
 
-    newEntry ( binding, resource )
+    static newEntry ( binding, resource )
     {
         return new x3dom.WebGPU.GPUBindGroupEntry( binding, resource );
     }
@@ -32,3 +32,4 @@ x3dom.WebGPU.GPUBindGroupDescriptor = class GPUBindGroupDescriptor extends x3dom
         return "GPUBindGroupDescriptor";
     }
 };
+x3dom.WebGPU.GPUBindGroupDescriptor.prototype.newEntry = x3dom.WebGPU.GPUBindGroupDescriptor.newEntry;

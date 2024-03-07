@@ -45,17 +45,17 @@ x3dom.WebGPU.GPURenderPassColorAttachment = class GPURenderPassColorAttachment
         this.storeOp = storeOp;
     }
 
-    newClearValue ( r, g, b, a )
+    static newClearValue ( r, g, b, a )
     {
         return new x3dom.WebGPU.GPUColorDict( r, g, b, a );
     }
 
-    getAvailableLoadOps ()
+    static getAvailableLoadOps ()
     {
         return new x3dom.WebGPU.GPULoadOp();
     }
 
-    getAvailableStoreOps ()
+    static getAvailableStoreOps ()
     {
         return new x3dom.WebGPU.GPUStoreOp();
     }
@@ -65,3 +65,6 @@ x3dom.WebGPU.GPURenderPassColorAttachment = class GPURenderPassColorAttachment
         return "GPURenderPassColorAttachment";
     }
 };
+x3dom.WebGPU.GPURenderPassColorAttachment.prototype.newClearValue = x3dom.WebGPU.GPURenderPassColorAttachment.newClearValue;
+x3dom.WebGPU.GPURenderPassColorAttachment.prototype.getAvailableLoadOps = x3dom.WebGPU.GPURenderPassColorAttachment.getAvailableLoadOps;
+x3dom.WebGPU.GPURenderPassColorAttachment.prototype.getAvailableStoreOps = x3dom.WebGPU.GPURenderPassColorAttachment.getAvailableStoreOps;

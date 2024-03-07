@@ -27,17 +27,17 @@ x3dom.WebGPU.GPUBlendComponent = class GPUBlendComponent
         this.dstFactor = dstFactor;
     }
 
-    getAvailableOperations ()
+    static getAvailableOperations ()
     {
         return new x3dom.WebGPU.GPUBlendOperation();
     }
 
-    getAvailableSrcFactors ()
+    static getAvailableSrcFactors ()
     {
         return new x3dom.WebGPU.GPUBlendFactor();
     }
 
-    getAvailableDstFactors ()
+    static getAvailableDstFactors ()
     {
         return new x3dom.WebGPU.GPUBlendFactor();
     }
@@ -47,3 +47,6 @@ x3dom.WebGPU.GPUBlendComponent = class GPUBlendComponent
         return "GPUBlendComponent";
     }
 };
+x3dom.WebGPU.GPUBlendComponent.prototype.getAvailableOperations = x3dom.WebGPU.GPUBlendComponent.getAvailableOperations;
+x3dom.WebGPU.GPUBlendComponent.prototype.getAvailableSrcFactors = x3dom.WebGPU.GPUBlendComponent.getAvailableSrcFactors;
+x3dom.WebGPU.GPUBlendComponent.prototype.getAvailableDstFactors = x3dom.WebGPU.GPUBlendComponent.getAvailableDstFactors;

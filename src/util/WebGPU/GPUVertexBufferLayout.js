@@ -27,13 +27,15 @@ x3dom.WebGPU.GPUVertexBufferLayout = class GPUVertexBufferLayout
         this.attributes = attributes;
     }
 
-    newAttribute ( format, offset, shaderLocation )
+    static newAttribute ( format, offset, shaderLocation )
     {
         return new x3dom.WebGPU.GPUVertexAttribute( format, offset, shaderLocation );
     }
 
-    getAvailableStepModes ()
+    static getAvailableStepModes ()
     {
         return new x3dom.WebGPU.GPUVertexStepMode();
     }
 };
+x3dom.WebGPU.GPUVertexBufferLayout.prototype.newAttribute = x3dom.WebGPU.GPUVertexBufferLayout.newAttribute;
+x3dom.WebGPU.GPUVertexBufferLayout.prototype.newgetAvailableStepModesAttribute = x3dom.WebGPU.GPUVertexBufferLayout.getAvailableStepModes;

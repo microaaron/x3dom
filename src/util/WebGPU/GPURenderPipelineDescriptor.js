@@ -42,27 +42,27 @@ x3dom.WebGPU.GPURenderPipelineDescriptor = class GPURenderPipelineDescriptor ext
         this.fragment = fragment;
     }
 
-    newVrtex ( module, entryPoint, constants, buffers )
+    static newVrtex ( module, entryPoint, constants, buffers )
     {
         return new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
     }
 
-    newFragment ( module, entryPoint, constants, targets )
+    static newFragment ( module, entryPoint, constants, targets )
     {
         return new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
     }
 
-    newPrimitive ( topology, stripIndexFormat, frontFace, cullMode, unclippedDepth )
+    static newPrimitive ( topology, stripIndexFormat, frontFace, cullMode, unclippedDepth )
     {
         return new x3dom.WebGPU.GPUPrimitiveState( topology, stripIndexFormat, frontFace, cullMode, unclippedDepth );
     }
 
-    newDepthStencil ( format, depthWriteEnabled, depthCompare, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp )
+    static newDepthStencil ( format, depthWriteEnabled, depthCompare, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp )
     {
         return new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp );
     }
 
-    newMultisample ( count, mask, alphaToCoverageEnabled )
+    static newMultisample ( count, mask, alphaToCoverageEnabled )
     {
         return new x3dom.WebGPU.GPUMultisampleState( count, mask, alphaToCoverageEnabled );
     }
@@ -72,3 +72,8 @@ x3dom.WebGPU.GPURenderPipelineDescriptor = class GPURenderPipelineDescriptor ext
         return "GPURenderPipelineDescriptor";
     }
 };
+x3dom.WebGPU.GPURenderPipelineDescriptor.prototype.newVrtex = x3dom.WebGPU.GPURenderPipelineDescriptor.newVrtex;
+x3dom.WebGPU.GPURenderPipelineDescriptor.prototype.newFragment = x3dom.WebGPU.GPURenderPipelineDescriptor.newFragment;
+x3dom.WebGPU.GPURenderPipelineDescriptor.prototype.newPrimitive = x3dom.WebGPU.GPURenderPipelineDescriptor.newPrimitive;
+x3dom.WebGPU.GPURenderPipelineDescriptor.prototype.newDepthStencil = x3dom.WebGPU.GPURenderPipelineDescriptor.newDepthStencil;
+x3dom.WebGPU.GPURenderPipelineDescriptor.prototype.newMultisample = x3dom.WebGPU.GPURenderPipelineDescriptor.newMultisample;

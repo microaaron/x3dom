@@ -69,22 +69,22 @@ x3dom.WebGPU.GPUDepthStencilState = class GPUDepthStencilState
         this.depthBiasClamp = depthBiasClamp;
     }
 
-    newStencilFront ()
+    static newStencilFront ()
     {
         return new x3dom.WebGPU.GPUStencilFaceState();
     }
 
-    newStencilBack ()
+    static newStencilBack ()
     {
         return new x3dom.WebGPU.GPUStencilFaceState();
     }
 
-    getAvailableFormats ( device )
+    static getAvailableFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
-    getAvailableDepthCompares ()
+    static getAvailableDepthCompares ()
     {
         return new x3dom.WebGPU.GPUCompareFunction();
     }
@@ -94,3 +94,7 @@ x3dom.WebGPU.GPUDepthStencilState = class GPUDepthStencilState
         return "GPUDepthStencilState";
     }
 };
+x3dom.WebGPU.GPUDepthStencilState.prototype.newStencilFront = x3dom.WebGPU.GPUDepthStencilState.newStencilFront;
+x3dom.WebGPU.GPUDepthStencilState.prototype.newStencilBack = x3dom.WebGPU.GPUDepthStencilState.newStencilBack;
+x3dom.WebGPU.GPUDepthStencilState.prototype.getAvailableFormats = x3dom.WebGPU.GPUDepthStencilState.getAvailableFormats;
+x3dom.WebGPU.GPUDepthStencilState.prototype.getAvailableDepthCompares = x3dom.WebGPU.GPUDepthStencilState.getAvailableDepthCompares;

@@ -28,7 +28,7 @@ x3dom.WebGPU.GPUBufferDescriptor = class GPUBufferDescriptor extends x3dom.WebGP
         this.mappedAtCreation = mappedAtCreation;
     }
 
-    getAvailableUsages ()
+    static getAvailableUsages ()
     {
         return new x3dom.WebGPU.GPUBufferUsage();
     }
@@ -38,3 +38,4 @@ x3dom.WebGPU.GPUBufferDescriptor = class GPUBufferDescriptor extends x3dom.WebGP
         return "GPUBufferDescriptor";
     }
 };
+x3dom.WebGPU.GPUBufferDescriptor.prototype.getAvailableUsages = x3dom.WebGPU.GPUBufferDescriptor.getAvailableUsages;

@@ -27,12 +27,12 @@ x3dom.WebGPU.GPUTextureBindingLayout = class GPUTextureBindingLayout
         this.multisampled = multisampled;
     }
 
-    getAvailableSampleTypes ()
+    static getAvailableSampleTypes ()
     {
         return new x3dom.WebGPU.GPUTextureSampleType();
     }
 
-    getAvailableViewDimensions ()
+    static getAvailableViewDimensions ()
     {
         return new x3dom.WebGPU.GPUTextureViewDimension();
     }
@@ -42,3 +42,5 @@ x3dom.WebGPU.GPUTextureBindingLayout = class GPUTextureBindingLayout
         return "GPUTextureBindingLayout";
     }
 };
+x3dom.WebGPU.GPUTextureBindingLayout.prototype.getAvailableSampleTypes = x3dom.WebGPU.GPUTextureBindingLayout.getAvailableSampleTypes;
+x3dom.WebGPU.GPUTextureBindingLayout.prototype.getAvailableViewDimensions = x3dom.WebGPU.GPUTextureBindingLayout.getAvailableViewDimensions;

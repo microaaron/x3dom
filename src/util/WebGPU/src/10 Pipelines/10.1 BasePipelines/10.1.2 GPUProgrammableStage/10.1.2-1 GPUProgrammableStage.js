@@ -27,7 +27,7 @@ x3dom.WebGPU.GPUProgrammableStage = class GPUProgrammableStage
         this.constants = constants;
     }
 
-    newConstants ( constants )
+    static newConstants ( constants )
     {
         class Constants
         {
@@ -49,3 +49,4 @@ x3dom.WebGPU.GPUProgrammableStage = class GPUProgrammableStage
         return "GPUProgrammableStage";
     }
 };
+x3dom.WebGPU.GPUProgrammableStage.prototype.newConstants = x3dom.WebGPU.GPUProgrammableStage.newConstants;

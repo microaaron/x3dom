@@ -27,12 +27,12 @@ x3dom.WebGPU.GPUStorageTextureBindingLayout = class GPUStorageTextureBindingLayo
         this.viewDimension = viewDimension;
     }
 
-    getAvailableFormats ( device )
+    static getAvailableFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
-    getAvailableViewDimensions ()
+    static getAvailableViewDimensions ()
     {
         return new x3dom.WebGPU.GPUTextureViewDimension();
     }
@@ -42,3 +42,5 @@ x3dom.WebGPU.GPUStorageTextureBindingLayout = class GPUStorageTextureBindingLayo
         return "GPUStorageTextureBindingLayout";
     }
 };
+x3dom.WebGPU.GPUStorageTextureBindingLayout.prototype.getAvailableFormats = x3dom.WebGPU.GPUStorageTextureBindingLayout.getAvailableFormats;
+x3dom.WebGPU.GPUStorageTextureBindingLayout.prototype.getAvailableViewDimensions = x3dom.WebGPU.GPUStorageTextureBindingLayout.getAvailableViewDimensions;

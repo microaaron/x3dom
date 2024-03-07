@@ -28,12 +28,12 @@ x3dom.WebGPU.GPURenderPassLayout = class GPURenderPassLayout extends x3dom.WebGP
         this.sampleCount = sampleCount;
     }
 
-    getAvailableColorFormats ( device )
+    static getAvailableColorFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
 
-    getAvailableDepthStencilFormats ( device )
+    static getAvailableDepthStencilFormats ( device )
     {
         return new x3dom.WebGPU.GPUTextureFormat( device );
     }
@@ -43,3 +43,5 @@ x3dom.WebGPU.GPURenderPassLayout = class GPURenderPassLayout extends x3dom.WebGP
         return "GPURenderPassLayout";
     }
 };
+x3dom.WebGPU.GPURenderPassLayout.prototype.getAvailableColorFormats = x3dom.WebGPU.GPURenderPassLayout.getAvailableColorFormats;
+x3dom.WebGPU.GPURenderPassLayout.prototype.getAvailableDepthStencilFormats = x3dom.WebGPU.GPURenderPassLayout.getAvailableDepthStencilFormats;

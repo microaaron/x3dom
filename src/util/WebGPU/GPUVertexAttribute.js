@@ -27,7 +27,7 @@ x3dom.WebGPU.GPUVertexAttribute = class GPUVertexAttribute
         this.shaderLocation = shaderLocation;
     }
 
-    getAvailableFormats ()
+    static getAvailableFormats ()
     {
         return new x3dom.WebGPU.GPUVertexFormat();
     }
@@ -37,3 +37,4 @@ x3dom.WebGPU.GPUVertexAttribute = class GPUVertexAttribute
         return "GPUVertexAttribute";
     }
 };
+x3dom.WebGPU.GPUVertexAttribute.prototype.getAvailableFormats = x3dom.WebGPU.GPUVertexAttribute.getAvailableFormats;

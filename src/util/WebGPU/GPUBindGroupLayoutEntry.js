@@ -121,32 +121,32 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
         delete this.externalTexture;
     }
 
-    newBuffer ( type, hasDynamicOffset, minBindingSize )
+    static newBuffer ( type, hasDynamicOffset, minBindingSize )
     {
         return new x3dom.WebGPU.GPUBufferBindingLayout( type, hasDynamicOffset, minBindingSize );
     }
 
-    newSampler ( type )
+    static newSampler ( type )
     {
         return new x3dom.WebGPU.GPUSamplerBindingLayout( type );
     }
 
-    newTexture ( sampleType, viewDimension, multisampled )
+    static newTexture ( sampleType, viewDimension, multisampled )
     {
         return new x3dom.WebGPU.GPUTextureBindingLayout( sampleType, viewDimension, multisampled );
     }
 
-    newStorageTexture ( access, format, viewDimension )
+    static newStorageTexture ( access, format, viewDimension )
     {
         return new x3dom.WebGPU.GPUStorageTextureBindingLayout( access, format, viewDimension );
     }
 
-    newExternalTexture ()
+    static newExternalTexture ()
     {
         return new x3dom.WebGPU.GPUExternalTextureBindingLayout();
     }
 
-    getAvailableVisibilities ()
+    static getAvailableVisibilities ()
     {
         return new x3dom.WebGPU.GPUShaderStage();
     }
@@ -156,3 +156,9 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
         return "GPUBindGroupLayoutEntry";
     }
 };
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.newBuffer = x3dom.WebGPU.GPUBindGroupLayoutEntry.newBuffer;
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.newSampler = x3dom.WebGPU.GPUBindGroupLayoutEntry.newSampler;
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.newTexture = x3dom.WebGPU.GPUBindGroupLayoutEntry.newTexture;
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.newStorageTexture = x3dom.WebGPU.GPUBindGroupLayoutEntry.newStorageTexture;
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.newExternalTexture = x3dom.WebGPU.GPUBindGroupLayoutEntry.newExternalTexture;
+x3dom.WebGPU.GPUBindGroupLayoutEntry.prototype.getAvailableVisibilities = x3dom.WebGPU.GPUBindGroupLayoutEntry.getAvailableVisibilities;

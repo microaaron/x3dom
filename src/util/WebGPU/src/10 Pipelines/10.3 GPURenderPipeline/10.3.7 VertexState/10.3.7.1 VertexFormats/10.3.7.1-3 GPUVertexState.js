@@ -16,7 +16,7 @@ x3dom.WebGPU.GPUVertexState = class GPUVertexState extends x3dom.WebGPU.GPUProgr
         this.buffers = buffers;
     }
 
-    newBuffer ( arrayStride, stepMode, attributes )
+    static newBuffer ( arrayStride, stepMode, attributes )
     {
         return new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode, attributes );
     }
@@ -26,3 +26,4 @@ x3dom.WebGPU.GPUVertexState = class GPUVertexState extends x3dom.WebGPU.GPUProgr
         return "GPUVertexState";
     }
 };
+x3dom.WebGPU.GPUVertexState.prototype.newBuffer = x3dom.WebGPU.GPUVertexState.newBuffer;

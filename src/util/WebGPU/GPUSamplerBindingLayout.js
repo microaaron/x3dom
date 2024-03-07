@@ -15,7 +15,7 @@ x3dom.WebGPU.GPUSamplerBindingLayout = class GPUSamplerBindingLayout
         this.type = type;
     }
 
-    getAvailableTypes ()
+    static getAvailableTypes ()
     {
         return new x3dom.WebGPU.GPUSamplerBindingType();
     }
@@ -25,3 +25,4 @@ x3dom.WebGPU.GPUSamplerBindingLayout = class GPUSamplerBindingLayout
         return "GPUSamplerBindingLayout";
     }
 };
+x3dom.WebGPU.GPUSamplerBindingLayout.prototype.getAvailableTypes = x3dom.WebGPU.GPUSamplerBindingLayout.getAvailableTypes;

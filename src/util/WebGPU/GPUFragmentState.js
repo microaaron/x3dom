@@ -16,7 +16,7 @@ x3dom.WebGPU.GPUFragmentState = class GPUFragmentState extends x3dom.WebGPU.GPUP
         this.targets = targets;
     }
 
-    newTarget ( format, blend, writeMask )
+    static newTarget ( format, blend, writeMask )
     {
         return new x3dom.WebGPU.GPUColorTargetState( format, blend, writeMask );
     }
@@ -26,3 +26,4 @@ x3dom.WebGPU.GPUFragmentState = class GPUFragmentState extends x3dom.WebGPU.GPUP
         return "GPUFragmentState";
     }
 };
+x3dom.WebGPU.GPUFragmentState.prototype.newTarget = x3dom.WebGPU.GPUFragmentState.newTarget;

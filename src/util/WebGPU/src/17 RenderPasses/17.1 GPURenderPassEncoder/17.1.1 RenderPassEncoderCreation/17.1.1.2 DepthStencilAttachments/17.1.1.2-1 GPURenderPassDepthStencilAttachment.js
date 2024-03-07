@@ -63,22 +63,22 @@ x3dom.WebGPU.GPURenderPassDepthStencilAttachment = class GPURenderPassDepthStenc
         this.stencilReadOnly = stencilReadOnly;
     }
 
-    getAvailableDepthLoadOps ()
+    static getAvailableDepthLoadOps ()
     {
         return new x3dom.WebGPU.GPULoadOp();
     }
 
-    getAvailableDepthStoreOps ()
+    static getAvailableDepthStoreOps ()
     {
         return new x3dom.WebGPU.GPUStoreOp();
     }
 
-    getAvailableStencilLoadOps ()
+    static getAvailableStencilLoadOps ()
     {
         return new x3dom.WebGPU.GPULoadOp();
     }
 
-    getAvailableStencilStoreOps ()
+    static getAvailableStencilStoreOps ()
     {
         return new x3dom.WebGPU.GPUStoreOp();
     }
@@ -88,3 +88,7 @@ x3dom.WebGPU.GPURenderPassDepthStencilAttachment = class GPURenderPassDepthStenc
         return "GPURenderPassDepthStencilAttachment";
     }
 };
+x3dom.WebGPU.GPURenderPassDepthStencilAttachment.prototype.getAvailableDepthLoadOps = x3dom.WebGPU.GPURenderPassDepthStencilAttachment.getAvailableDepthLoadOps;
+x3dom.WebGPU.GPURenderPassDepthStencilAttachment.prototype.getAvailableDepthStoreOps = x3dom.WebGPU.GPURenderPassDepthStencilAttachment.getAvailableDepthStoreOps;
+x3dom.WebGPU.GPURenderPassDepthStencilAttachment.prototype.getAvailableStencilLoadOps = x3dom.WebGPU.GPURenderPassDepthStencilAttachment.getAvailableStencilLoadOps;
+x3dom.WebGPU.GPURenderPassDepthStencilAttachment.prototype.getAvailableStencilStoreOps = x3dom.WebGPU.GPURenderPassDepthStencilAttachment.getAvailableStencilStoreOps;

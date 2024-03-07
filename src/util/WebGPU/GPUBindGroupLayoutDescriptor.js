@@ -16,7 +16,7 @@ x3dom.WebGPU.GPUBindGroupLayoutDescriptor = class GPUBindGroupLayoutDescriptor e
         this.entries = entries;
     }
 
-    newEntry ( binding, visibility, resourceLayoutObject )
+    static newEntry ( binding, visibility, resourceLayoutObject )
     {
         return new x3dom.WebGPU.GPUBindGroupLayoutEntry( binding, visibility, resourceLayoutObject );
     }
@@ -26,3 +26,4 @@ x3dom.WebGPU.GPUBindGroupLayoutDescriptor = class GPUBindGroupLayoutDescriptor e
         return "GPUBindGroupLayoutDescriptor";
     }
 };
+x3dom.WebGPU.GPUBindGroupLayoutDescriptor.prototype.newEntry = x3dom.WebGPU.GPUBindGroupLayoutDescriptor.newEntry;

@@ -22,7 +22,7 @@ x3dom.WebGPU.GPUQuerySetDescriptor = class GPUQuerySetDescriptor extends x3dom.W
         this.count = count;
     }
 
-    getAvailableTypes ()
+    static getAvailableTypes ()
     {
         return new x3dom.WebGPU.GPUQueryType();
     }
@@ -32,3 +32,4 @@ x3dom.WebGPU.GPUQuerySetDescriptor = class GPUQuerySetDescriptor extends x3dom.W
         return "GPUQuerySetDescriptor";
     }
 };
+x3dom.WebGPU.GPUQuerySetDescriptor.prototype.getAvailableTypes = x3dom.WebGPU.GPUQuerySetDescriptor.getAvailableTypes;

@@ -829,23 +829,44 @@ fn ${fragmentShaderModuleEntryPoint}(
         bindingListArray               : bindingListArray,
         vertexListArray                : vertexListArray,
         fragmentOutputList             : fragmentOutputList,
-        vertexShaderModuleEntryPoint   : vertexShaderModuleEntryPoint,
         vertexShaderModuleCode         : vertexShaderModuleCode,
-        fragmentShaderModuleEntryPoint : fragmentShaderModuleEntryPoint,
-        fragmentShaderModuleCode       : fragmentShaderModuleCode
+        vertexShaderModuleEntryPoint   : vertexShaderModuleEntryPoint,
+        fragmentShaderModuleCode       : fragmentShaderModuleCode,
+        fragmentShaderModuleEntryPoint : fragmentShaderModuleEntryPoint
     };
 };
 
 function setRenderPipeline ()
 {
     //pipelineLayout
-    var bindGroupLayouts = bindingListArray.getBindGroupLayouts( device );
-    var pipelineLayout = device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
+    {
+        const layouts = bindingListArray.getBindGroupLayouts( device );
+        var pipelineLayout = device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( layouts ) );
+    }
 
     //vertexState
-    var shaderModule = device.createShaderModule();
+    {
+        const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
+        const entryPoint = vertexShaderModuleEntryPoint;
+        const constants = undefined;
+        const buffers = vertexListArray.vertexBufferLayouts;
+        var vertexState = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+    }
 
-    var vertexState = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+    //fragmentState
+    {
+        const module = device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
+        const entryPoint = fragmentShaderModuleEntryPoint;
+        const constants = undefined;
+        const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( presentationFormat/*, blend, writeMask*/ ) ];
+        var fragmentState = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
+    }
 
-    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertex, fragment, primitive, depthStencil, multisample, label );
+    //primitive
+    var stripIndexFormat = "uint32";
+    var frontFace = "ccw";
+    var cullMode = "back";
+    var primitiveState = x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode, unclippedDepth );
+
+    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( pipelineLayout, vertexState, fragment, primitive, depthStencil, multisample, label );
 }

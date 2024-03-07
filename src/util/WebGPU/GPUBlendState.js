@@ -21,12 +21,12 @@ x3dom.WebGPU.GPUBlendState = class GPUBlendState
         this.alpha = alpha;
     }
 
-    newColor ( operation, srcFactor, dstFactor )
+    static newColor ( operation, srcFactor, dstFactor )
     {
         return new x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
     }
 
-    newAlpha ( operation, srcFactor, dstFactor )
+    static newAlpha ( operation, srcFactor, dstFactor )
     {
         return new x3dom.WebGPU.GPUBlendComponent( operation, srcFactor, dstFactor );
     }
@@ -36,3 +36,5 @@ x3dom.WebGPU.GPUBlendState = class GPUBlendState
         return "GPUBlendState";
     }
 };
+x3dom.WebGPU.GPUBlendState.prototype.newColor = x3dom.WebGPU.GPUBlendState.newColor;
+x3dom.WebGPU.GPUBlendState.prototype.newAlpha = x3dom.WebGPU.GPUBlendState.newAlpha;

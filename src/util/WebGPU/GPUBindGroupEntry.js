@@ -21,7 +21,7 @@ x3dom.WebGPU.GPUBindGroupEntry = class GPUBindGroupEntry
         this.resource = resource;
     }
 
-    newResource_GPUBufferBinding ( buffer, offset, size )
+    static newResource_GPUBufferBinding ( buffer, offset, size )
     {
         return new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
     }
@@ -31,3 +31,4 @@ x3dom.WebGPU.GPUBindGroupEntry = class GPUBindGroupEntry
         return "GPUBindGroupEntry";
     }
 };
+x3dom.WebGPU.GPUBindGroupEntry.prototype.newResource_GPUBufferBinding = x3dom.WebGPU.GPUBindGroupEntry.newResource_GPUBufferBinding;
