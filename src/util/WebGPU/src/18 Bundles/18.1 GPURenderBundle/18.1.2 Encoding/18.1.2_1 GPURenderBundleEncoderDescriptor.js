@@ -7,7 +7,7 @@ x3dom.WebGPU.GPURenderBundleEncoderDescriptor = class GPURenderBundleEncoderDesc
 {
     constructor ( colorFormats = [], depthStencilFormat, sampleCount, depthReadOnly, stencilReadOnly, label )
     {
-        super( colorFormats = [], depthStencilFormat, sampleCount, label );
+        super( colorFormats, depthStencilFormat, sampleCount, label );
         this.depthStencilFormat = depthStencilFormat; //Optional; boolean; undefined = false
         this.sampleCount = sampleCount; //Optional; boolean; undefined = false
     }

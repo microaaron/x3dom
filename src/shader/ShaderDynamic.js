@@ -844,6 +844,16 @@ fn ${fragmentShaderModuleEntryPoint}(
         var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
     }
     var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
+    var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
+
+    {
+        const colorFormats = [ navigator.gpu.getPreferredCanvasFormat() ];
+        const depthStencilFormat = "depth24plus-stencil8";
+        const sampleCount = 1;
+        var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
+        var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
+        renderBundleEncoder.setPipeline( renderPipeline );
+    }
 };
 
 function setRenderPipeline ( device )
