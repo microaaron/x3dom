@@ -13,7 +13,7 @@ x3dom.WebGPU.GPUPrimitiveState = class GPUPrimitiveState
         this.cullMode = cullMode; //Optional
 
         // Requires "depth-clip-control" feature.
-        this.unclippedDepth = unclippedDepth; //Optional
+        this.unclippedDepth = unclippedDepth; //Optional; boolean; undefined = false; Requires "depth-clip-control" feature.
     }
 
     setTopology ( topology )

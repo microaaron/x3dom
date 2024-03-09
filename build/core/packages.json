@@ -108,6 +108,8 @@
             "GPULoadOp.js",
             "GPUStoreOp.js",
             "GPURenderPassLayout.js",
+            "GPURenderBundleDescriptor.js",
+            "GPURenderBundleEncoderDescriptor.js",
             "GPUQuerySetDescriptor.js",
             "GPUQueryType.js",
             "GPUColorDict.js",

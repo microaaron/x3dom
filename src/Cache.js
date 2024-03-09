@@ -212,13 +212,13 @@ x3dom.Cache.prototype.getDynamicShader = function ( gl, viewarea, shape )
 /**
  * Returns a dynamic generated shader program by properties
  *
- * @param ctx3d
+ * @param context
  * @param shape
  * @param properties
  * @param pickMode
  * @param shadows
  */
-x3dom.Cache.prototype.getShaderByProperties = function ( ctx3d, shape, properties, pickMode, shadows )
+x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, properties, pickMode, shadows )
 {
     // Get shaderID
     var shaderID = properties.id;
@@ -239,19 +239,19 @@ x3dom.Cache.prototype.getShaderByProperties = function ( ctx3d, shape, propertie
 
         if ( pickMode !== undefined && pickMode !== null )
         {
-            program = new x3dom.shader.DynamicShaderPicking( ctx3d, properties, pickMode );
+            program = new x3dom.shader.DynamicShaderPicking( context, properties, pickMode );
         }
         else if ( shadows !== undefined && shadows !== null )
         {
-            program = new x3dom.shader.DynamicShadowShader( ctx3d, properties );
+            program = new x3dom.shader.DynamicShadowShader( context, properties );
         }
         else if ( properties.CSHADER != -1 )
         {
-            program = new x3dom.shader.ComposedShader( ctx3d, shape );
+            program = new x3dom.shader.ComposedShader( context, shape );
         }
         else if ( properties.KHR_MATERIAL_COMMONS != null && properties.KHR_MATERIAL_COMMONS != 0 )
         {
-            program = new x3dom.shader.KHRMaterialCommonsShader( ctx3d, properties );
+            program = new x3dom.shader.KHRMaterialCommonsShader( context, properties );
         }
         else if ( properties.EMPTY_SHADER != null && properties.EMPTY_SHADER != 0 )
         {
@@ -259,10 +259,10 @@ x3dom.Cache.prototype.getShaderByProperties = function ( ctx3d, shape, propertie
         }
         else
         {
-            program = new x3dom.shader.DynamicShader( ctx3d, properties );
+            program = new x3dom.shader.DynamicShader( context, properties );
         }
 
-        this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( ctx3d, program, shaderID );
+        this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( context, program, shaderID );
     }
 
     return this.shaders[ shaderID ];
