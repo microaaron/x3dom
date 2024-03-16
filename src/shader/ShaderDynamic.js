@@ -907,14 +907,27 @@ fn ${fragmentShaderModuleEntryPoint}(
         case /^f16$/.test(hostShareableType):
           return 2;
           break;
-        case /^i32$/.test(hostShareableType):
-        case /^u32$/.test(hostShareableType):
-        case /^f32$/.test(hostShareableType):
-        case /^atomic<.*>$/.test(hostShareableType):
+        case /^i32$|^u32$|^f32$|^atomic<.*>$/.test(hostShareableType):
+        //case /^u32$/.test(hostShareableType):
+        //case /^f32$/.test(hostShareableType):
+        //case /^atomic<.*>$/.test(hostShareableType):
           return 4;
           break;
-        case /^vec\d+<.*>$/.test(hostShareableType):
-          return ;
+        case (match=hostShareableType.match(/^vec(\d+)(.*)$/))?true:false:///^vec\d+<.*>$/.test(hostShareableType):
+          var N =Number(match[1]);//element count of the vector 
+          var T =match[2];//type
+          switch (true) {
+            case (match=T.match(/^<(.*)>$/))?true:false:// /^<.*>$/.test(T):
+            return N*SizeOf(match[1]);
+            break;
+            case /^i$|^u$|^f$/.test(T):
+            return N*4;
+            break;
+            case /^h$/.test(T):
+            return N*2;
+            break;
+            default:
+          }
           break;
         case (match=hostShareableType.match(/^mat(\d+)x(\d+)(.*)$/))?true:false:
           var C =Number(match[1]);//columns
@@ -922,13 +935,15 @@ fn ${fragmentShaderModuleEntryPoint}(
           var T =match[3];//type
           return SizeOf(`array<vec${R}${T},${C}>`);
           break;
-        case (match=hostShareableType.match(/^array<(.*),(\d+)>$/))?true:false:///^array<.*,\d+>$/.test(hostShareableType):
+        case (match=hostShareableType.match(/^array<(.*),(\d+)>$/))?true:false:
           var E =match[1];//element
           var N =Number(match[2]);//element count of the array
-          return SizeOf()*N;
+          var sizeOfE=SizeOf(E);
+          var alignOfE=AlignOf(E);
+          return N*(Math.ceil(sizeOfE/alignOfE)*alignOfE);
           break;
         default:
-          console.log('404 Not Found');
+          //console.log('404 Not Found');
       }
     }
     
