@@ -46,15 +46,15 @@ var BindingListArray = class BindingListArray extends Array
         for ( var bindingList of this )
         {
             var groupId = this.indexOf( bindingList );
-            for ( var binding of bindingList )
+            for ( var bindingData of bindingList )
             {
-                var bindingId = binding.entry.binding;
+                var bindingId = bindingData.entry.binding;
                 var declaration = `var`;
-                if ( binding.entry.buffer )
+                if ( bindingData.entry.buffer )
                 {
-                    var bufferType = binding.entry.buffer.type;
-                    var addressSpace = bufferType ? bufferType : `uniform`;
-                    var accessMode = undefined;
+                    let bufferType = bindingData.entry.buffer.type;
+                    let addressSpace = bufferType ? bufferType : `uniform`;
+                    let accessMode=undefined;
                     switch ( addressSpace )
                     {
                         case `storage`:
@@ -67,7 +67,7 @@ var BindingListArray = class BindingListArray extends Array
                     declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
                 }
                 var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${binding.name}: ${binding.wgslType};\n`;
-                var visibility = binding.entry.visibility;
+                var visibility = bindingData.entry.visibility;
                 if ( visibility & GPUShaderStage.VERTEX ){vertexBindingCode += code;}
                 if ( visibility & GPUShaderStage.FRAGMENT ){fragmentBindingCode += code;}
                 if ( visibility & GPUShaderStage.COMPUTE ){computeBindingCode += code;}
@@ -82,16 +82,19 @@ var BindingListArray = class BindingListArray extends Array
 
     getBindGroupLayouts ( device )
     {
-        var bindGroupLayouts = [];
-        for ( var bindingList of this )
-        {
-            if ( !bindingList.bindGroupLayout )
-            {
-                bindingList.createBindGroupLayout( device );
-            }
-            bindGroupLayouts.push( bindingList.bindGroupLayout );
+        if(!this.bindGroupLayouts){
+          this.bindGroupLayouts = [];
+          for ( var bindingList of this )
+          {
+              /*if ( !bindingList.bindGroupLayout )
+              {
+                  bindingList.createBindGroupLayout( device );
+              }*/
+              //this.bindGroupLayouts.push( bindingList.bindGroupLayout );
+              this.bindGroupLayouts.push(bindingList.getBindGroupLayout(device));
+          }
         }
-        return bindGroupLayouts;
+        return this.bindGroupLayouts;
     }
 
     static newBindingParamsList ()
@@ -101,13 +104,14 @@ var BindingListArray = class BindingListArray extends Array
 
     static BindingParamsList = class BindingParamsList extends Array
     {
-        addBindingParams ( name, wgslType, visibility, resourceLayoutObject )
+        addBindingParams ( name, wgslType, visibility, resourceLayoutObject,size )
         {
             this.push( {
                 name                 : name,
                 wgslType             : wgslType,
                 visibility           : visibility,
-                resourceLayoutObject : resourceLayoutObject
+                resourceLayoutObject : resourceLayoutObject,
+                size : size//Optional;
             } );
             return this;
         }
@@ -118,8 +122,12 @@ var BindingListArray = class BindingListArray extends Array
             {
                 createBindGroupLayout ( device )
                 {
-                    this.bindGroupLayout = device.createBindGroupLayout( this.bindGroupLayoutDescriptor );
-                    return this.bindGroupLayout;
+                    return this.bindGroupLayout = device.createBindGroupLayout( this.bindGroupLayoutDescriptor );
+                }
+                getBindGroupLayout(device){
+                  if(!this.bindGroupLayout){
+                    return createBindGroupLayout ( device );
+                  }
                 }
             }();
             var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
@@ -128,10 +136,11 @@ var BindingListArray = class BindingListArray extends Array
             {
                 var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
                 bindGroupLayoutDescriptor.entries.push( entry );
-                bindingList.push( {
-                    name     : bindingParams.name,
-                    wgslType : bindingParams.wgslType,
-                    entry    : entry
+                bindingList.push( new class BindingData{
+                    name=bindingParams.name;
+                    wgslType=bindingParams.wgslType;
+                    entry=entry;
+                    size=size;
                 } );
             }
 
@@ -845,6 +854,355 @@ fn ${fragmentShaderModuleEntryPoint}(
     }
     var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
     var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
+    
+    
+    
+    
+    var shader={};
+    shader.buffer={};
+    shader.uniform={};
+    shader.storage={};
+    shader.renderPipeline=renderPipeline;
+    
+    
+    
+    
+    var bindGroups=[];
+    for(var bindingList of bindingListArray){
+      bindGroups.push(bindingList.createBindGroup(context,bindingList,shader));
+    }
+    
+    
+    shader.bindGroups=bindGroups;
+    
+    
+    {
+      const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
+      const entries =??;
+      const label = undefined;
+      const bindGroupDescriptor =new x3dom.WebGPU.GPUBindGroupDescriptor( layout, entries, label );
+      var bindGroup = device.createBindGroup(bindGroupDescriptor);
+    }
+    
+    
+
+    
+    var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
+    var resource = sampler;
+    var resource = textureView;
+    var resource = externalTexture;
+    
+    var resources=new class Resources{
+      constructor (name,resource){
+        this.name=name;
+        this.resource=resource;
+      }
+    };
+    
+    
+    
+    var SizeOf=function (hostShareableType){
+      var match;
+      switch (true) {
+        case /^f16$/.test(hostShareableType):
+          return 2;
+          break;
+        case /^i32$/.test(hostShareableType):
+        case /^u32$/.test(hostShareableType):
+        case /^f32$/.test(hostShareableType):
+        case /^atomic<.*>$/.test(hostShareableType):
+          return 4;
+          break;
+        case /^vec\d+<.*>$/.test(hostShareableType):
+          return ;
+          break;
+        case (match=hostShareableType.match(/^mat(\d+)x(\d+)(.*)$/))?true:false:
+          var C =Number(match[1]);//columns
+          var R =Number(match[2]);//rows
+          var T =match[3];//type
+          return SizeOf(`array<vec${R}${T},${C}>`);
+          break;
+        case (match=hostShareableType.match(/^array<(.*),(\d+)>$/))?true:false:///^array<.*,\d+>$/.test(hostShareableType):
+          var E =match[1];//element
+          var N =Number(match[2]);//element count of the array
+          return SizeOf()*N;
+          break;
+        default:
+          console.log('404 Not Found');
+      }
+    }
+    
+    
+    
+
+    var createBindGroup = function (context,bindingList,shader,resources={}){
+      var calculateSize = function(wgslType){
+        switch(wgslType){
+          case `f16`:
+          return 2;
+          break;
+          case `i32`:
+          case `u32`:
+          case `f32`:
+          case `vec2<f16>`:
+          case `vec2h`:
+          return 4;
+          break;
+          case `vec3<f16>`:
+          case `vec3h`:
+          return 6;
+          break;
+          case `vec2<i32>`:
+          case `vec2i`:
+          case `vec2<u32>`:
+          case `vec2u`:
+          case `vec2<f32>`:
+          case `vec2f`:
+          case `vec4<f16>`:
+          case `vec4h`:
+          case `mat2x2<f16>`:
+          case `mat2x2h`:
+          return 8;
+          break;
+          case `vec3<i32>`:
+          case `vec3i`:
+          case `vec3<u32>`:
+          case `vec3u`:
+          case `vec3<f32>`:
+          case `vec3f`:
+          
+          case `mat3x2<f16>`:
+          case `mat3x2h`:
+          return 12;
+          break;
+          case `vec4<i32>`:
+          case `vec4i`:
+          case `vec4<u32>`:
+          case `vec4u`:
+          case `vec4<f32>`:
+          case `vec4f`:
+          case `mat2x2<f32>`:
+          case `mat2x2f`:
+          case `mat2x4<f16>`:
+          case `mat2x4h`:
+          case `mat4x2<f16>`:
+          case `mat4x2h`:
+          case `mat2x3<f16>`:
+          case `mat2x3h`:
+          return 16;
+          case `mat3x3<f16>`:
+          case `mat3x3h`:
+          return 18;
+          break;
+          case `mat2x3<f32>`:
+          case `mat2x3f`:
+          case `mat3x2<f32>`:
+          case `mat3x2f`:
+          case `mat3x4<f16>`:
+          case `mat3x4h`:
+          case `mat4x3<f16>`:
+          case `mat4x3h`:
+          return 24;
+          break;
+          case `mat2x4<f32>`:
+          case `mat2x4f`:
+          case `mat4x2<f32>`:
+          case `mat4x2f`:
+          case `mat4x4<f16>`:
+          case `mat4x4h`:
+          return 32;
+          break;
+          case `mat3x3<f32>`:
+          case `mat3x3f`:
+          return 36;
+          break;
+          case `mat3x4<f32>`:
+          case `mat3x4f`:
+          case `mat4x3<f32>`:
+          case `mat4x3f`:
+          return 48;
+          break;
+          case `mat4x4<f32>`:
+          case `mat4x4f`:
+          return 64;
+          break;
+          default :
+          if(/^array<.*,\d+>$/.test(wgslType))//Fixed-size array (array<E,N>)
+          {
+            //uniform storage requires that array elements are aligned to 16 bytes
+            return Math.ceil(calculateSize(wgslType.substring(6,wgslType.search(/,\d+>$/)))/16)*16*wgslType.substring(wgslType.search(/,\d+>$/)).match(/\d+/)[0];
+          }else{
+            //Runtime-sized array (array<E>) size cannot be automatically calculated
+            //Structure size cannot be automatically calculated
+            return 0;
+          }
+          break;
+        }
+      }
+      let layout = bindingList.getBindGroupLayout();
+      let entries=[];
+      for(var bindingData of bindingList){
+        let binding = bindingData.entry.binding;
+        let resource;
+        if(resources[bindingData.name]){
+          resource = resources[bindingData.name];
+        }else{
+          if(bindingData.entry.buffer){
+            let size = calculateSize(bindingData.wgslType);
+            let usage=GPUBufferUsage.COPY_DST;
+            if(bindingData.entry.buffer.type){
+              switch(bindingData.entry.buffer.type){
+                case `storage`:
+                case `read-only-storage`:
+                usage |= GPUBufferUsage.STORAGE;
+                break;
+                case `uniform`:
+                usage |= GPUBufferUsage.UNIFORM;
+                break;
+              }
+            }else{
+              usage |= GPUBufferUsage.UNIFORM;
+            }
+            let mappedAtCreation = false;
+            let label=bindingData.name;
+            let bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+            let buffer = context.device.createBuffer(bufferDescriptor);
+            let offset = 0;
+            resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
+            shader.buffers[bindingData.name]=buffer;
+            shader.uniform.__defineSetter__(bindingData.name,???);
+          }else if(bindingData.entry.sampler){
+            //incomplete
+          }else if(bindingData.entry.texture){
+            //incomplete
+          }else if(bindingData.entry.storageTexture){
+            //incomplete
+          }
+
+        }
+        entries.push(new x3dom.WebGPU.GPUBindGroupDescriptor.newEntry(binding, resource));
+      }
+      let label =undefined;
+      let bindGroupDescriptor =new x3dom.WebGPU.GPUBindGroupDescriptor( layout, entries, label );
+      return context.device.createBindGroup(bindGroupDescriptor);
+    }
+    
+    var createBuffer = function(size,usage,mappedAtCreation = false,label=undefined){
+      const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label )
+      return device.createBuffer(bufferDescriptor);
+    }
+    
+    function(val){
+      var float32Array;
+      if(val instanceof Float32Array){
+        float32Array=val;
+      }
+      elseif(typeof val === 'number'||val instanceof Number){
+        float32Array=new Float32Array([val]);
+      }
+      elseif(val instanceof Array){
+        float32Array=new Float32Array(val);
+      }
+      if(float32Array){
+        device.queue.writeBuffer(buffer,0,val.buffer,float32Array.byteOffset,float32Array.byteLength>buffer.size?buffer.size:float32Array.byteLength);
+      }
+    }
+    
+    
+    
+    const usage=GPUBufferUsage.COPY_DST;;
+    if(bindingData.entry.buffer.type){
+      switch(bindingData.entry.buffer.type){
+        case `storage`:
+        case `read-only-storage`:
+        usage |= GPUBufferUsage.STORAGE;
+        break;
+        case `uniform`:
+        usage |= GPUBufferUsage.UNIFORM;
+        break;
+      }
+    }else{
+      usage |= GPUBufferUsage.UNIFORM;
+    }
+
+    
+    
+    
+    bindingList0.entry.binding
+    
+      
+    {
+      const size = ;
+      const usage = ;
+      const mappedAtCreation = false;
+      const label = undefined;
+      const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+      device.createBuffer(bufferDescriptor);
+    }
+
+    
+    
+    
+    
+    
+    var buffer= new class Buffer{
+      constructor (){
+        var buffers=[];
+        var defineSetter = function (name){
+          this.__defineSetter__(name,function(p){console.log(p+p);this.b= p+p});
+        }
+        
+      }
+      createVertexBuffer (name,size){
+        
+      }
+    };
+    
+    var buffer= new class Buffer{
+      constructor (){
+        var name = 0;
+        //var defineSetter = function (name){
+          this.__defineSetter__("name",function(p){name++;console.log(name)});
+        //}
+      }
+    };
+    
+    var buffer=new Buffer();
+    
+    
+    for(var vertexList of vertexListArray){
+      var vertexNames=[];
+      for(var vertex of vertexList){
+        vertexNames.push(vertex.name);
+      }
+      buffer.__defineSetter__(vertexNames.join('_'),function(){});
+      const size =1000 * vertexList.vertexBufferLayout.arrayStride;
+      const usage=GPUBufferUsage.VERTEX;
+      const mappedAtCreation = false;
+      const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor(size, usage, mappedAtCreation/*, label*/);
+      var vertexBuffer = context.device.createBuffer(bufferDescriptor);
+      renderBundleEncoder.setVertexBuffer(vertexListArray.indexOf(vertexList), vertexBuffer);
+    }
+    
+    
+    
+    for(var vertexList of vertexListArray){
+      
+    }
+    
+    for(var bindingList of bindingListArray){
+      for(var binding of bindingList){
+        
+      }
+      
+      renderBundleEncoder.setBindGroup(bindingListArray.indexOf(bindingList), ??????);
+    }
+
+
+    
+
+
+    
 
     {
         const colorFormats = [ navigator.gpu.getPreferredCanvasFormat() ];
