@@ -48,6 +48,7 @@
         "src/util/WebGPU/":
         [
             "WebGPU.js",
+            "WGSL.js",
             "GPUObjectDescriptorBase.js",
             "GPUBufferDescriptor.js",
             "GPUBufferUsage.js",
