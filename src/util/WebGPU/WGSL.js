@@ -43,6 +43,7 @@ x3dom.WGSL = {
         return alignOf(E);
         break;
       default:
+      //Structure size cannot be automatically calculated
       return;
       break;
     }
@@ -88,6 +89,8 @@ x3dom.WGSL = {
         return N*(Math.ceil(sizeOfE/alignOfE)*alignOfE);
         break;
       default:
+      //Runtime-sized array (array<E>) size cannot be automatically calculated
+      //Structure size cannot be automatically calculated
       return;
       break;
     }

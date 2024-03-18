@@ -859,9 +859,8 @@ fn ${fragmentShaderModuleEntryPoint}(
     
     
     var shader={};
-    shader.buffer={};
-    shader.uniform={};
-    shader.storage={};
+    shader.buffers={};
+    shader.uniformStorage={};
     shader.renderPipeline=renderPipeline;
     
     
@@ -931,7 +930,85 @@ fn ${fragmentShaderModuleEntryPoint}(
             let offset = 0;
             resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
             shader.buffers[bindingData.name]=buffer;
-            shader.uniform.__defineSetter__(bindingData.name,???);
+            
+            let getTypedArray = function (hostShareableType){
+              var match;
+              switch (true) {
+                case /^f16$/.test(hostShareableType):
+                  return ;//not supported
+                  break;
+                case /^i32$/.test(hostShareableType):
+                  return Int32Array;
+                  break;
+                case /^u32$/.test(hostShareableType):
+                  return Uint32Array;
+                  break;
+                case /^f32$/.test(hostShareableType):
+                  return Float32Array;
+                  break;
+                case (match=hostShareableType.match(/^atomic<(.*)>$/))?true:false:
+                  return getViewType(match[1]);
+                  break; 
+                case (match=hostShareableType.match(/^vec\d+(.*)$/))?true:false:
+                  var T =match[1];//<type>
+                  switch (true) {
+                    case (match=T.match(/^<(.*)>$/))?true:false:
+                    return getViewType(match[1]);
+                    break;
+                    case /^h$/.test(T):
+                    return getViewType(`f16`);
+                    break;
+                    case /^i$/.test(T):
+                    return getViewType(`i32`);
+                    break;
+                    case /^u$/.test(T):
+                    return getViewType(`u32`);
+                    break;
+                    case /^f$/.test(T):
+                    return getViewType(`f32`);
+                    break;
+                    default:
+                    return;
+                    break;
+                  }
+                case (match=hostShareableType.match(/^mat\d+x(\d+)(.*)$/))?true:false:
+                  var R =Number(match[1]);//rows
+                  var T =match[2];//<type>
+                  return getViewType(`vec${R}${T}`);
+                  break;
+                case (match=hostShareableType.match(/^array<(.*),\d+>$/))?true:false:
+                case (match=hostShareableType.match(/^array<(.*)(?<!,\d+)>$/))?true:false:
+                  var E =match[1];//element
+                  return getViewType(E);
+                  break;
+                default:
+                return;
+                break;
+              }
+            }
+            let typedArray = getTypedArray(bindingData.entry.buffer.type);
+            
+            Object.defineProperty(shader.uniformStorage, bindingData.name,{
+              set: function(value){
+                let view;
+                if(ArrayBuffer.isView(value)){
+                  view=value;
+                }elseif(value instanceof ArrayBuffer){
+                  view=new DataView(value);
+                }elseif(typedArray){
+                  if(typeof value === 'number'||value instanceof Number){
+                    view=new typedArray([value]);
+                  }elseif(value instanceof Array){
+                    view=new typedArray(value);
+                  }else{
+                    return;//unknow value;
+                  }
+                }else{
+                  return;//unknow type;
+                }
+                device.queue.writeBuffer(buffer,0,view.buffer,view.byteOffset,view.byteLength>buffer.size?buffer.size:view.byteLength);
+              }
+            });
           }else if(bindingData.entry.sampler){
             //incomplete
           }else if(bindingData.entry.texture){
@@ -939,7 +1016,6 @@ fn ${fragmentShaderModuleEntryPoint}(
           }else if(bindingData.entry.storageTexture){
             //incomplete
           }
-
         }
         entries.push(new x3dom.WebGPU.GPUBindGroupDescriptor.newEntry(binding, resource));
       }
@@ -948,89 +1024,7 @@ fn ${fragmentShaderModuleEntryPoint}(
       return context.device.createBindGroup(bindGroupDescriptor);
     }
     
-    var createBuffer = function(size,usage,mappedAtCreation = false,label=undefined){
-      const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label )
-      return device.createBuffer(bufferDescriptor);
-    }
-    
-    function(val){
-      var float32Array;
-      if(val instanceof Float32Array){
-        float32Array=val;
-      }
-      elseif(typeof val === 'number'||val instanceof Number){
-        float32Array=new Float32Array([val]);
-      }
-      elseif(val instanceof Array){
-        float32Array=new Float32Array(val);
-      }
-      if(float32Array){
-        device.queue.writeBuffer(buffer,0,val.buffer,float32Array.byteOffset,float32Array.byteLength>buffer.size?buffer.size:float32Array.byteLength);
-      }
-    }
-    
-    
-    
-    const usage=GPUBufferUsage.COPY_DST;;
-    if(bindingData.entry.buffer.type){
-      switch(bindingData.entry.buffer.type){
-        case `storage`:
-        case `read-only-storage`:
-        usage |= GPUBufferUsage.STORAGE;
-        break;
-        case `uniform`:
-        usage |= GPUBufferUsage.UNIFORM;
-        break;
-      }
-    }else{
-      usage |= GPUBufferUsage.UNIFORM;
-    }
 
-    
-    
-    
-    bindingList0.entry.binding
-    
-      
-    {
-      const size = ;
-      const usage = ;
-      const mappedAtCreation = false;
-      const label = undefined;
-      const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-      device.createBuffer(bufferDescriptor);
-    }
-
-    
-    
-    
-    
-    
-    var buffer= new class Buffer{
-      constructor (){
-        var buffers=[];
-        var defineSetter = function (name){
-          this.__defineSetter__(name,function(p){console.log(p+p);this.b= p+p});
-        }
-        
-      }
-      createVertexBuffer (name,size){
-        
-      }
-    };
-    
-    var buffer= new class Buffer{
-      constructor (){
-        var name = 0;
-        //var defineSetter = function (name){
-          this.__defineSetter__("name",function(p){name++;console.log(name)});
-        //}
-      }
-    };
-    
-    var buffer=new Buffer();
-    
-    
     for(var vertexList of vertexListArray){
       var vertexNames=[];
       for(var vertex of vertexList){
