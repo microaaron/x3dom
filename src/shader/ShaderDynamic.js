@@ -870,33 +870,13 @@ fn ${fragmentShaderModuleEntryPoint}(
     for(var bindingList of bindingListArray){
       bindGroups.push(bindingList.createBindGroup(context,bindingList,shader));
     }
-    
-    
-    shader.bindGroups=bindGroups;
-    
-    
-    {
-      const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
-      const entries =??;
-      const label = undefined;
-      const bindGroupDescriptor =new x3dom.WebGPU.GPUBindGroupDescriptor( layout, entries, label );
-      var bindGroup = device.createBindGroup(bindGroupDescriptor);
-    }
-    
-    
 
-    
+    /*
     var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
     var resource = sampler;
     var resource = textureView;
     var resource = externalTexture;
-    
-    var resources=new class Resources{
-      constructor (name,resource){
-        this.name=name;
-        this.resource=resource;
-      }
-    };
+    */
     
     var createBindGroup = function (context,bindingList,shader,resources={}){
       let layout = bindingList.getBindGroupLayout();
@@ -930,7 +910,6 @@ fn ${fragmentShaderModuleEntryPoint}(
             let offset = 0;
             resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
             shader.buffers[bindingData.name]=buffer;
-            
             let getTypedArray = function (hostShareableType){
               var match;
               switch (true) {
@@ -987,7 +966,6 @@ fn ${fragmentShaderModuleEntryPoint}(
               }
             }
             let typedArray = getTypedArray(bindingData.entry.buffer.type);
-            
             Object.defineProperty(shader.uniformStorage, bindingData.name,{
               set: function(value){
                 let view;
@@ -1066,6 +1044,10 @@ fn ${fragmentShaderModuleEntryPoint}(
         var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
         var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
         renderBundleEncoder.setPipeline( renderPipeline );
+        for(var bindGroup of bindGroups){
+          renderBundleEncoder.setPipeline( bindGroups.indexOf(bindGroup),bindGroup )
+        }
+        
     }
 };
 
