@@ -109,7 +109,7 @@ x3dom.gfx_webgpu = ( function ()
             {
                 throw Error( "WebGPU not supported." );
             }
-            x3dom.debug.logInfo( "wgslLanguageFeatures: " + Array.from( navigator.gpu.wgslLanguageFeatures ) );
+            x3dom.debug.logInfo( `wgslLanguageFeatures: ${navigator.gpu.wgslLanguageFeatures?Array.from( navigator.gpu.wgslLanguageFeatures ):``}` );
 
             var adapter = await navigator.gpu.requestAdapter( {powerPreference: "high-performance"} );
             if ( !adapter )

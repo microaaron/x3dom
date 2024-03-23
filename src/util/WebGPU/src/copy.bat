@@ -9,6 +9,7 @@ echo '%%i',
 )
 node sort.js "!str!"
 copy /y WebGpu.js "%~dp0\.."
+copy /y WGSL.js "%~dp0\.."
 for /f "delims=" %%i in ('dir /b ..\*.js') do  (
   for /f "tokens=2 delims= " %%j in ("%%i") do ren "..\%%i" "%%j"
 )
