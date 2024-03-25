@@ -843,7 +843,7 @@ fn ${fragmentShaderModuleEntryPoint}(
     }
     //primitive: GPUPrimitiveState
     {
-        const stripIndexFormat = "uint32";
+        const stripIndexFormat = undefined;
         const frontFace = "ccw";
         const cullMode = "back";
         var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
@@ -1113,13 +1113,23 @@ var bindGroups=[];
             }
         } );
     }
+    
+    
+    for(var v in vertices){
+      v=new Float32Array(1000);
+    }
+    
+    
+    
 
-    const size = 1000;
+    const size = 48;
     const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
     const mappedAtCreation = false;
     const label = `indexBuffer`;
     const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-    var indexBuffer = context.device.createBuffer( bufferDescriptor );;
+    var indexBuffer = context.device.createBuffer( bufferDescriptor );
+    
+    context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array([1,2,3,4,5,6,7,8,9]), 0, 9 );
 
     {
         const colorFormats = [ navigator.gpu.getPreferredCanvasFormat() ];
@@ -1137,7 +1147,7 @@ var bindGroups=[];
             renderBundleEncoder.setVertexBuffer( vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
         }
         renderBundleEncoder.setIndexBuffer( indexBuffer, "uint32" );
-        renderBundleEncoder.drawIndexed( 9 );
+        renderBundleEncoder.drawIndexed( 12 );
 
         //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
         var renderBundle = renderBundleEncoder.finish();
@@ -1213,7 +1223,7 @@ function setRenderPipeline ( device )
     }
     //primitive: GPUPrimitiveState
     {
-        const stripIndexFormat = "uint32";
+        const stripIndexFormat = undefined;
         const frontFace = "ccw";
         const cullMode = "back";
         var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );

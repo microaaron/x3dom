@@ -123,8 +123,11 @@ x3dom.gfx_webgpu = ( function ()
                                 ( adapterInfo.architecture == "" ? "" : "architecture: " + adapterInfo.architecture + ", " ) +
                                 ( adapterInfo.device == "" ? "" : "device: " + adapterInfo.device + ", " ) +
                                 ( adapterInfo.description == "" ? "" : "description: " + adapterInfo.description + ", " ) );
-
-            var device = await adapter.requestDevice( {requiredFeatures: adapter.features } );
+            var limits={}
+            for(var limit in adapter.limits){
+              limits[limit]=adapter.limits[limit];
+            }
+            var device = await adapter.requestDevice( {requiredFeatures: adapter.features,requiredLimits:limits } );
             device.lost.then( ( info ) =>
             {
                 x3dom.debug.logWarning( `WebGPU device was lost: ${info.message}` );
