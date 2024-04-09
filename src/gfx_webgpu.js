@@ -109,7 +109,7 @@ x3dom.gfx_webgpu = ( function ()
             {
                 throw Error( "WebGPU not supported." );
             }
-            x3dom.debug.logInfo( `wgslLanguageFeatures: ${navigator.gpu.wgslLanguageFeatures?Array.from( navigator.gpu.wgslLanguageFeatures ):``}` );
+            x3dom.debug.logInfo( `wgslLanguageFeatures: ${navigator.gpu.wgslLanguageFeatures ? Array.from( navigator.gpu.wgslLanguageFeatures ) : ``}` );
 
             var adapter = await navigator.gpu.requestAdapter( {powerPreference: "high-performance"} );
             if ( !adapter )
@@ -123,11 +123,12 @@ x3dom.gfx_webgpu = ( function ()
                                 ( adapterInfo.architecture == "" ? "" : "architecture: " + adapterInfo.architecture + ", " ) +
                                 ( adapterInfo.device == "" ? "" : "device: " + adapterInfo.device + ", " ) +
                                 ( adapterInfo.description == "" ? "" : "description: " + adapterInfo.description + ", " ) );
-            var limits={}
-            for(var limit in adapter.limits){
-              limits[limit]=adapter.limits[limit];
+            var limits = {};
+            for ( var limit in adapter.limits )
+            {
+                limits[ limit ] = adapter.limits[ limit ];
             }
-            var device = await adapter.requestDevice( {requiredFeatures: adapter.features,requiredLimits:limits } );
+            var device = await adapter.requestDevice( {requiredFeatures: adapter.features, requiredLimits: limits } );
             device.lost.then( ( info ) =>
             {
                 x3dom.debug.logWarning( `WebGPU device was lost: ${info.message}` );
@@ -147,9 +148,9 @@ x3dom.gfx_webgpu = ( function ()
                 alphaMode : "premultiplied"
             } );
 
-            var newCtx = new Context( ctx, canvas, "webgpu", x3dElem, adapter, device );
+            return new Context( ctx, canvas, "webgpu", x3dElem, adapter, device );
 
-            return newCtx;
+            //return newCtx;
         }
         catch ( e )
         {

@@ -32,7 +32,7 @@ x3dom.WGSL = {
                         return N * 2;
                         break;
                     default:
-                        return;
+                        return 0;
                         break;
                 }
             case ( match = hostShareableType.match( /^mat\d+x(\d+)(.*)$/ ) ) ? true : false:
@@ -47,7 +47,7 @@ x3dom.WGSL = {
                 break;
             default:
                 //Structure size cannot be automatically calculated
-                return;
+                return 0;
                 break;
         }
     },
@@ -77,7 +77,7 @@ x3dom.WGSL = {
                         return N * 2;
                         break;
                     default:
-                        return;
+                        return 0;
                         break;
                 }
                 break;
@@ -97,7 +97,7 @@ x3dom.WGSL = {
             default:
                 //Runtime-sized array (array<E>) size cannot be automatically calculated
                 //Structure size cannot be automatically calculated
-                return;
+                return 0;
                 break;
         }
     }

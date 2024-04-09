@@ -12,9 +12,9 @@ x3dom.WebGPU.GPUBufferBinding = class GPUBufferBinding
         this.size = size;//Optional; GPUSize64; The size, in bytes, of the buffer binding. If not provided, specifies the range starting at offset and ending at the end of buffer.
     }
 
-    setBinding ( binding )
+    setBuffer ( buffer )
     {
-        this.binding = binding;
+        this.buffer = buffer;
     }
 
     setOffset ( offset )

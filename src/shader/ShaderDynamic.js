@@ -52,16 +52,22 @@ var BindingListArray = class BindingListArray extends Array
                 var declaration = `var`;
                 if ( bindingData.entry.buffer )
                 {
-                    const bufferType = bindingData.entry.buffer.type;
-                    const addressSpace = bufferType ? bufferType : `uniform`;
+                    let bufferType = bindingData.entry.buffer.type;
+                    bufferType = bufferType ? bufferType : `uniform`;
+                    let addressSpace;
                     let accessMode = undefined;
-                    switch ( addressSpace )
+                    switch ( bufferType )
                     {
+                        case `uniform`:
+                            addressSpace = `uniform`;
+                            break;
                         case `storage`:
+                            addressSpace = `storage`;
                             accessMode = `read_write`;
                             break;
                         case `read-only-storage`:
-                            accessMode = `read`;
+                            addressSpace = `storage`;
+                            //accessMode = `read`;
                             break;
                     }
                     declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
@@ -304,7 +310,7 @@ x3dom.shader.DynamicShader = function ( context, properties )
         .addBindingParams( `modelViewProjectionMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `modelViewProjectionMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
@@ -314,7 +320,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
         .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
 
     //Positions
     //var vertexParamsList0 = vertexListArray.newVertexParamsList();
@@ -446,9 +453,28 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
     }*/
 
     //Lights
+    fragmentShaderModuleDeclarationCode +=
+`struct light {
+  on : u32,
+  _type : u32,
+  location : vec3<f32>,
+  direction : vec3<f32>,
+  color : vec3<f32>,
+  attenuation : vec3<f32>,
+  radius : f32,
+  intensity : f32,
+  ambientIntensity : f32,
+  beamWidth : f32,
+  cutOffAngle : f32,
+  shadowIntensity : f32,
+}
+`;
+
+    bindingParamsList0.addBindingParams( `lights`, `array<light>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
+
     if ( properties.LIGHTS )
     {
-        for ( var l = 0; l < properties.LIGHTS; l++ )
+        /*for ( var l = 0; l < properties.LIGHTS; l++ )
         {
             bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
                 .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
@@ -462,9 +488,9 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
                 .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
                 .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
                 .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-        }
+        }*/
         var lighting =
-`fn lighting(lType: f32,
+`fn lighting(lType: u32,
 lLocation: vec3<f32>,
 lDirection: vec3<f32>,
 lColor: vec3<f32>,
@@ -487,7 +513,7 @@ specular: ptr<function, vec3<f32>>){
   var L: vec3<f32>;
   var spot: f32 = 1.0;
   var attentuation: f32 = 0.0;
-  if(lType == 0.0) {
+  if(lType == 0) {
     L = -normalize(lDirection);
     V = normalize(V);
     attentuation = 1.0;
@@ -499,7 +525,7 @@ specular: ptr<function, vec3<f32>>){
     if(lRadius == 0.0 || d <= lRadius){
       attentuation = 1.0 / max(lAttenuation.x + lAttenuation.y * d + lAttenuation.z * (d * d), 1.0);
     }
-    if(lType == 2.0){
+    if(lType == 2){
       var spotAngle: f32 = acos(max(0.0, dot(-L, normalize(lDirection))));
       if(spotAngle >= lCutOffAngle){spot = 0.0;}
       else if(spotAngle <= lBeamWidth){spot = 1.0;}
@@ -740,7 +766,25 @@ if ( isOrthoView > 0 ) {
         }
 
         //Calculate lights
-        if ( properties.LIGHTS )
+        fs_mainFunctionBodyCode +=
+`for(var i: u32 = 0; i < numberOfLights; i++){
+  lighting(lights[i]._type,
+  lights[i].location,
+  lights[i].direction,
+  lights[i].color,
+  lights[i].attenuation,
+  lights[i].radius,
+  lights[i].intensity,
+  lights[i].ambientIntensity,
+  lights[i].beamWidth,
+  lights[i].cutOffAngle,
+  positionVS, normal, eye, _shininess, _ambientIntensity, _specularColor, &ambient, &diffuse, &specular);
+  ambient = max(ambient, vec3(0.0, 0.0, 0.0));
+  diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
+  specular = max(specular, vec3(0.0, 0.0, 0.0));
+}
+`;
+        /*if ( properties.LIGHTS )
         {
             for ( var l = 0; l < properties.LIGHTS; l++ )
             {
@@ -761,7 +805,7 @@ diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
 specular = max(specular, vec3(0.0, 0.0, 0.0));
 `;
             }
-        }
+        }*/
 
         fs_mainFunctionBodyCode += "color = vec4<f32>(_emissiveColor + ((ambient + diffuse) * color.rgb + specular * _specularColor) * _occlusion,color.a);\n";
     }
@@ -864,9 +908,10 @@ fn ${fragmentShaderModuleEntryPoint}(
     var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
 
     var shader = {};
-    shader.buffers = {};
+    //shader.buffers = {};
     shader.uniformStorage = {};
     shader.renderPipeline = renderPipeline;
+    //shader.bindGroupDescriptors = [];
     shader.bindGroups = [];
 
     /*
@@ -876,11 +921,14 @@ fn ${fragmentShaderModuleEntryPoint}(
     var resource = externalTexture;
     */
 
-    var createStaticBindGroup = function ( context, shader, bindingList, resources = {} )
+    var createBindGroupDescriptor = function ( context, shader, bindingList, resources = {} )
     {
+        let updated = true;
+        let bindGroup;
         const layout = bindingList.getBindGroupLayout();
         const entries = [];
-        for ( var bindingData of bindingList )
+        const label = undefined;
+        for ( const bindingData of bindingList )
         {
             const binding = bindingData.entry.binding;
             let resource;
@@ -892,28 +940,30 @@ fn ${fragmentShaderModuleEntryPoint}(
             {
                 if ( bindingData.entry.buffer )
                 {
-                    const size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
-                    if ( size )
+                    let size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
+                    //if ( size )
+                    //{
+                    let usage = GPUBufferUsage.COPY_DST;
+                    switch ( bindingData.entry.buffer.type )
                     {
-                        let usage = GPUBufferUsage.COPY_DST;
-                        switch ( bindingData.entry.buffer.type )
-                        {
-                            case `storage`:
-                            case `read-only-storage`:
-                                usage |= GPUBufferUsage.STORAGE;
-                                break;
-                            case `uniform`:
-                            case undefined:
-                                usage |= GPUBufferUsage.UNIFORM;
-                                break;
-                        }
-                        const mappedAtCreation = false;
-                        const label = bindingData.name;
-                        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                        const buffer = context.device.createBuffer( bufferDescriptor );
-                        const offset = 0;
-                        resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
+                        case `storage`:
+                            usage |= GPUBufferUsage.SRC;
+                        case `read-only-storage`:
+                            usage |= GPUBufferUsage.STORAGE;
+                            break;
+                        case `uniform`:
+                        case undefined:
+                            usage |= GPUBufferUsage.UNIFORM;
+                            break;
                     }
+                    const mappedAtCreation = false;
+                    const label = bindingData.name;
+                    const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+                    const buffer = context.device.createBuffer( bufferDescriptor );
+                    const offset = undefined;
+                    size = undefined;
+                    resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
+                    //}
                 }
                 else if ( bindingData.entry.sampler )
                 {
@@ -930,103 +980,123 @@ fn ${fragmentShaderModuleEntryPoint}(
             }
             entries.push( x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource ) );
             //set properties
-            if ( bindingData.entry.buffer && resource.buffer instanceof GPUBuffer )
+            if ( bindingData.entry.buffer )
             {
-                const buffer = resource.buffer;
-                shader.buffers[ bindingData.name ] = buffer;
-                const getTypedArray = function ( hostShareableType )
+                if ( resource.buffer instanceof GPUBuffer )
                 {
-                    var match;
-                    switch ( true )
+                //const buffer = resource.buffer;
+                //shader.buffers[ bindingData.name ] = buffer;
+                    const typedArray = ( function getTypedArray ( hostShareableType )
                     {
-                        case /^f16$/.test( hostShareableType ):
-                            return ;//not supported
-                            break;
-                        case /^i32$/.test( hostShareableType ):
-                            return Int32Array;
-                            break;
-                        case /^u32$/.test( hostShareableType ):
-                            return Uint32Array;
-                            break;
-                        case /^f32$/.test( hostShareableType ):
-                            return Float32Array;
-                            break;
-                        case ( match = hostShareableType.match( /^atomic<(.*)>$/ ) ) ? true : false:
-                            return getTypedArray( match[ 1 ] );
-                            break;
-                        case ( match = hostShareableType.match( /^vec\d+(.*)$/ ) ) ? true : false:
-                            var T = match[ 1 ];//<type>
-                            switch ( true )
-                            {
-                                case ( match = T.match( /^<(.*)>$/ ) ) ? true : false:
-                                    return getTypedArray( match[ 1 ] );
-                                    break;
-                                case /^h$/.test( T ):
-                                    return getTypedArray( `f16` );
-                                    break;
-                                case /^i$/.test( T ):
-                                    return getTypedArray( `i32` );
-                                    break;
-                                case /^u$/.test( T ):
-                                    return getTypedArray( `u32` );
-                                    break;
-                                case /^f$/.test( T ):
-                                    return getTypedArray( `f32` );
-                                    break;
-                                default:
-                                    return;
-                                    break;
-                            }
-                        case ( match = hostShareableType.match( /^mat\d+x(\d+)(.*)$/ ) ) ? true : false:
-                            var R = Number( match[ 1 ] );//rows
-                            var T = match[ 2 ];//<type>
-                            return getTypedArray( `vec${R}${T}` );
-                            break;
-                        case ( match = hostShareableType.match( /^array<(.*),\d+>$/ ) ) ? true : false:
-                        case ( match = hostShareableType.match( /^array<(.*)(?<!,\d+)>$/ ) ) ? true : false:
-                            var E = match[ 1 ];//element
-                            return getTypedArray( E );
-                            break;
-                        default:
-                            return;
-                            break;
-                    }
-                };
-                const typedArray = getTypedArray( bindingData.wgslType );
-                Object.defineProperty( shader.uniformStorage, bindingData.name, {
-                    set : function ( value )
-                    {
-                        let view;
-                        if ( ArrayBuffer.isView( value ) )
+                        var match;
+                        switch ( true )
                         {
-                            view = value;
+                            case /^f16$/.test( hostShareableType ):
+                                return ;//not supported
+                                break;
+                            case /^i32$/.test( hostShareableType ):
+                                return Int32Array;
+                                break;
+                            case /^u32$/.test( hostShareableType ):
+                                return Uint32Array;
+                                break;
+                            case /^f32$/.test( hostShareableType ):
+                                return Float32Array;
+                                break;
+                            case ( match = hostShareableType.match( /^atomic<(.*)>$/ ) ) ? true : false:
+                                return getTypedArray( match[ 1 ] );
+                                break;
+                            case ( match = hostShareableType.match( /^vec\d+(.*)$/ ) ) ? true : false:
+                                var T = match[ 1 ];//<type>
+                                switch ( true )
+                                {
+                                    case ( match = T.match( /^<(.*)>$/ ) ) ? true : false:
+                                        return getTypedArray( match[ 1 ] );
+                                        break;
+                                    case /^h$/.test( T ):
+                                        return getTypedArray( `f16` );
+                                        break;
+                                    case /^i$/.test( T ):
+                                        return getTypedArray( `i32` );
+                                        break;
+                                    case /^u$/.test( T ):
+                                        return getTypedArray( `u32` );
+                                        break;
+                                    case /^f$/.test( T ):
+                                        return getTypedArray( `f32` );
+                                        break;
+                                    default:
+                                        return;
+                                        break;
+                                }
+                            case ( match = hostShareableType.match( /^mat\d+x(\d+)(.*)$/ ) ) ? true : false:
+                                var R = Number( match[ 1 ] );//rows
+                                var T = match[ 2 ];//<type>
+                                return getTypedArray( `vec${R}${T}` );
+                                break;
+                            case ( match = hostShareableType.match( /^array<(.*),\d+>$/ ) ) ? true : false:
+                            case ( match = hostShareableType.match( /^array<(.*)(?<!,\d+)>$/ ) ) ? true : false:
+                                var E = match[ 1 ];//element
+                                return getTypedArray( E );
+                                break;
+                            default:
+                                return;
+                                break;
                         }
-                        else if ( value instanceof ArrayBuffer )
+                    } )( bindingData.wgslType );
+                    //const typedArray = getTypedArray( bindingData.wgslType );
+                    Object.defineProperty( shader.uniformStorage, bindingData.name, {
+                        get:function(){
+                          return resource.buffer;
+                        },
+                        set : function ( value )
                         {
-                            view = new DataView( value );
-                        }
-                        else if ( typedArray )
-                        {
-                            if ( typeof value === `number` || value instanceof Number )
+                            let view;
+                            if ( ArrayBuffer.isView( value ) )
                             {
-                                view = new typedArray( [ value ] );
+                                view = value;
                             }
-                            else if ( value instanceof Array )
+                            else if ( value instanceof ArrayBuffer )
                             {
-                                view = new typedArray( value );
+                                view = new DataView( value );
+                            }
+                            else if ( typedArray )
+                            {
+                                if ( typeof value === `number` || value instanceof Number )
+                                {
+                                    view = new typedArray( [ value ] );
+                                }
+                                else if ( value instanceof Array )
+                                {
+                                    view = new typedArray( value );
+                                }
+                                else
+                                {
+                                    return;//unknow value;
+                                }
                             }
                             else
                             {
-                                return;//unknow value;
+                                return;//unknow type;
                             }
-                        }
-                        else
-                        {
-                            return;//unknow type;
-                        }
-                        device.queue.writeBuffer( buffer, 0, view.buffer, view.byteOffset, view.byteLength > buffer.size ? buffer.size : view.byteLength );
-                    }
-                } );
+                            if ( view.byteLength != resource.buffer.size )
+                            {
+                                resource.buffer.destroy();
+                                resource.setBuffer( context.device.createBuffer( new x3dom.WebGPU.GPUBufferDescriptor( view.byteLength, resource.buffer.usage, false, resource.buffer.label ) ) );
+                                //resource.setOffset(0);
+                                //resource.setSize(view.byteLength);
+                                updated = true;
+                            }
+                            context.device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
+
+                        //context.device.queue.writeBuffer( buffer, 0, view.buffer, view.byteOffset, view.byteLength > buffer.size ? buffer.size : view.byteLength );
+                        
+                    } );
+                }
+                else
+                {
+                //resource error
+                }
             }
             else if ( bindingData.entry.sampler )
             {
@@ -1041,16 +1111,189 @@ fn ${fragmentShaderModuleEntryPoint}(
                 //incomplete
             }
         }
-        const label = undefined;
-        const bindGroupDescriptor = new x3dom.WebGPU.GPUBindGroupDescriptor( layout, entries, label );
-        return context.device.createBindGroup( bindGroupDescriptor );
+        return new class extends x3dom.WebGPU.GPUBindGroupDescriptor
+        {
+            getBindGroup ()
+            {
+                if ( updated )
+                {
+                    bindGroup = context.device.createBindGroup( this );
+                    updated = false;
+                }
+                return bindGroup;
+            }
+        }( layout, entries, label );
+        //return bindGroupDescriptor;
+        //return context.device.createBindGroup( bindGroupDescriptor );
     };
 
     //var bindGroups=[];
-    for ( var bindingList of bindingListArray )
+    for ( const bindingList of bindingListArray )
     {
-        shader.bindGroups.push( createStaticBindGroup( context, shader, bindingList ) );
+        const bindGroupDescriptor = createBindGroupDescriptor( context, shader, bindingList );
+        //shader.bindGroupDescriptors.push( bindGroupDescriptor );
+        //shader.bindGroups.push( context.device.createBindGroup( bindGroupDescriptor ) );
+        Object.defineProperty( shader.bindGroups, bindingListArray.indexOf( bindingList ), {
+            get : function ()
+            {
+                return bindGroupDescriptor.getBindGroup();
+            }
+        } );
     }
+
+    /*
+struct light {
+  on : u32,
+  type : u32,
+  location : vec3<f32>,
+  direction : vec3<f32>,
+  color : vec3<f32>,
+  attenuation : vec3<f32>,
+  radius : f32,
+  intensity : f32,
+  ambientIntensity : f32,
+  beamWidth : f32,
+  cutOffAngle : f32,
+  shadowIntensity : f32,
+}*/
+    /*
+    var lights = new class lights{
+      stride = 7*16;
+      dataView = new DataView(new ArrayBuffer(stride*2) );
+      setOn = function(index,value){
+        this.dataView.setUint32(index*stride,value,true);
+      }
+      setType = function(index,value){
+        this.dataView.setUint32(index*stride+4,value,true);
+      }
+      setLocation = function(index,value){
+        this.dataView.setFloat32(index*stride+16,value[0],true);
+        this.dataView.setFloat32(index*stride+16+4,value[1],true);
+        this.dataView.setFloat32(index*stride+16+8,value[2],true);
+      }
+      setDirection = function(index,value){
+        this.dataView.setFloat32(index*stride+32,value[0],true);
+        this.dataView.setFloat32(index*stride+32+4,value[1],true);
+        this.dataView.setFloat32(index*stride+32+8,value[2],true);
+      }
+      setColor = function(index,value){
+        this.dataView.setFloat32(index*stride+48,value[0],true);
+        this.dataView.setFloat32(index*stride+48+4,value[1],true);
+        this.dataView.setFloat32(index*stride+48+8,value[2],true);
+      }
+      setAttenuation = function(index,value){
+        this.dataView.setFloat32(index*stride+64,value[0],true);
+        this.dataView.setFloat32(index*stride+64+4,value[1],true);
+        this.dataView.setFloat32(index*stride+64+8,value[2],true);
+      }
+      setRadius = function(index,value){
+        this.dataView.setFloat32(index*stride+80,value,true);
+      }
+      setIntensity = function(index,value){
+        this.dataView.setFloat32(index*stride+84,value,true);
+      }
+      setAmbientIntensity = function(index,value){
+        this.dataView.setFloat32(index*stride+88,value,true);
+      }
+      setBeamWidth = function(index,value){
+        this.dataView.setFloat32(index*stride+92,value,true);
+      }
+      setCutOffAngle = function(index,value){
+        this.dataView.setFloat32(index*stride+96,value,true);
+      }
+      setShadowIntensity = function(index,value){
+        this.dataView.setFloat32(index*stride+100,value,true);
+      }
+    }*/
+
+    var lights = class lights extends DataView
+    {
+        stride = 7 * 16;
+
+        constructor ( number )
+        {
+            super( new ArrayBuffer( number * 7 * 16 ) );
+        }
+
+        setOn = function ( index, value )
+        {
+            this.setUint32( index * this.stride, value, true );
+        };
+
+        setType = function ( index, value )
+        {
+            this.setUint32( index * this.stride + 4, value, true );
+        };
+
+        setLocation = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 16, value[ 0 ], true );
+            this.setFloat32( index * this.stride + 16 + 4, value[ 1 ], true );
+            this.setFloat32( index * this.stride + 16 + 8, value[ 2 ], true );
+        };
+
+        setDirection = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 32, value[ 0 ], true );
+            this.setFloat32( index * this.stride + 32 + 4, value[ 1 ], true );
+            this.setFloat32( index * this.stride + 32 + 8, value[ 2 ], true );
+        };
+
+        setColor = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 48, value[ 0 ], true );
+            this.setFloat32( index * this.stride + 48 + 4, value[ 1 ], true );
+            this.setFloat32( index * this.stride + 48 + 8, value[ 2 ], true );
+        };
+
+        setAttenuation = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 64, value[ 0 ], true );
+            this.setFloat32( index * this.stride + 64 + 4, value[ 1 ], true );
+            this.setFloat32( index * this.stride + 64 + 8, value[ 2 ], true );
+        };
+
+        setRadius = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 80, value, true );
+        };
+
+        setIntensity = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 84, value, true );
+        };
+
+        setAmbientIntensity = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 88, value, true );
+        };
+
+        setBeamWidth = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 92, value, true );
+        };
+
+        setCutOffAngle = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 96, value, true );
+        };
+
+        setShadowIntensity = function ( index, value )
+        {
+            this.setFloat32( index * this.stride + 100, value, true );
+        };
+    };
+
+    //var lights = new DataView(new ArrayBuffer(stride*2) );
+
+    shader.uniformStorage.lights = new lights( 2 );
+
+    /*for ( var bindGroupDescriptor of shader.bindGroupDescriptors )
+    {
+      if(bindGroupDescriptor.needToUpdateBindGroup){
+        shader.bindGroups[shader.bindGroupDescriptors.indexOf(bindGroupDescriptor)]=context.device.createBindGroup( bindGroupDescriptor );
+      }
+    }*/
 
     /*
 var buffers={};
@@ -1060,7 +1303,7 @@ var bindGroups=[];
 
     var vertexBuffers = [];
     var vertices = {};
-    for ( var vertexList of vertexListArray )
+    for ( const vertexList of vertexListArray )
     {
         /*let size = 1000*vertexList.vertexBufferLayout.arrayStride;
       let usage= GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST;
@@ -1073,12 +1316,16 @@ var bindGroups=[];
       let bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
       vertexBuffers.push(context.device.createBuffer(bufferDescriptor));*/
         const vertexNames = [];
-        for ( var vertexData of vertexList )
+        for ( let vertexData of vertexList )
         {
             vertexNames.push( vertexData.name );
         }
         const vertexBufferName = vertexNames.join( `_` );
+        const vertexBufferIndex = vertexListArray.indexOf( vertexList );
         Object.defineProperty( vertices, vertexBufferName, {
+            get:function(){
+              return vertexBuffers[ vertexBufferIndex ];
+            },
             set : function ( value )
             {
                 let view;
@@ -1094,7 +1341,6 @@ var bindGroups=[];
                 {
                     return;//unknow type;
                 }
-                const vertexBufferIndex = vertexListArray.indexOf( vertexList );
                 switch ( true )
                 {
                     case vertexBuffers[ vertexBufferIndex ] instanceof GPUBuffer && view.byteLength != vertexBuffers[ vertexBufferIndex ].size:
@@ -1113,26 +1359,23 @@ var bindGroups=[];
             }
         } );
     }
-    
-    
-    for(var v in vertices){
-      v=new Float32Array(1000);
-    }
-    
-    
-    
 
-    const size = 48;
-    const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
-    const mappedAtCreation = false;
-    const label = `indexBuffer`;
-    const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-    var indexBuffer = context.device.createBuffer( bufferDescriptor );
-    
-    context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array([1,2,3,4,5,6,7,8,9]), 0, 9 );
+    vertices.position = new Float32Array( 1000 );
+    vertices.normal = new Float32Array( 1000 );
 
     {
-        const colorFormats = [ navigator.gpu.getPreferredCanvasFormat() ];
+        const size = 48;
+        const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
+        const mappedAtCreation = false;
+        const label = `indexBuffer`;
+        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+        var indexBuffer = context.device.createBuffer( bufferDescriptor );
+
+        context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] ), 0, 9 );
+    }
+
+    {
+        const colorFormats = [ context.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
         const depthStencilFormat = "depth24plus-stencil8";
         const sampleCount = 1;
         var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
@@ -1153,42 +1396,51 @@ var bindGroups=[];
         var renderBundle = renderBundleEncoder.finish();
     }
 
+    {
+        const size = new x3dom.WebGPU.GPUExtent3DDict( context.canvas.width, context.canvas.height );
+        let mipLevelCount;
+        let sampleCount;
+        let dimension;
+        const format = "depth24plus-stencil8";
+        const usage = GPUTextureUsage.RENDER_ATTACHMENT;
+        let viewFormats;
+        let label;
 
+        var textureDescriptor = new x3dom.WebGPU.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
+        var depthTexture = context.device.createTexture( textureDescriptor );
+    }
 
-    depthTexture = context.device.createTexture({
-              size: [context.canvas.width, context.canvas.height],
-              format: 'depth24plus-stencil8',
-              usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            });
+    {
+        const view = context.ctx3d.getCurrentTexture().createView();
+        let depthSlice;
+        let resolveTarget;
+        const clearValue = new x3dom.WebGPU.GPUColorDict( 0.5, 0.5, 0.5, 1.0 );
+        const loadOp = "clear";
+        const storeOp = "store";
 
-    renderPassDescriptor = {
-              colorAttachments: [
-                {
-                  // view is acquired and set in render loop.
-                  view: context.ctx3d
-            .getCurrentTexture()
-            .createView(),
-          
-                  clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-                  loadOp: 'clear',
-                  storeOp: 'store',
-                },
-              ],
-              depthStencilAttachment: {
-                view: depthTexture.createView(),
-                depthClearValue: 1.0,
-                depthLoadOp: 'clear',
-                depthStoreOp: 'store',
-                stencilClearValue: 0,
-                stencilLoadOp: 'clear',
-                stencilStoreOp: 'store',
-              },
-            };
+        var colorAttachments = [ new x3dom.WebGPU.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
+    }
 
+    {
+        const view = depthTexture.createView();
+        const depthClearValue = 1.0;
+        const depthLoadOp = "clear";
+        const depthStoreOp = "store";
+        let depthReadOnly;
+        const stencilClearValue = 0;
+        const stencilLoadOp = "clear";
+        const stencilStoreOp = "store";
+        let stencilReadOnly;
 
+        var depthStencilAttachment = new x3dom.WebGPU.GPURenderPassDepthStencilAttachment( view, depthClearValue, depthLoadOp, depthStoreOp, depthReadOnly, stencilClearValue, stencilLoadOp, stencilStoreOp, stencilReadOnly );
 
+        let occlusionQuerySet;
+        let timestampWrites;
+        let maxDrawCount;
+        let label;
 
-
+        var renderPassDescriptor = new x3dom.WebGPU.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
+    }
 
     var commandEncoder = context.device.createCommandEncoder();
 
