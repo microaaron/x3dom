@@ -1046,8 +1046,9 @@ fn ${fragmentShaderModuleEntryPoint}(
                     } )( bindingData.wgslType );
                     //const typedArray = getTypedArray( bindingData.wgslType );
                     Object.defineProperty( shader.uniformStorage, bindingData.name, {
-                        get:function(){
-                          return resource.buffer;
+                        get : function ()
+                        {
+                            return resource.buffer;
                         },
                         set : function ( value )
                         {
@@ -1090,7 +1091,7 @@ fn ${fragmentShaderModuleEntryPoint}(
                             context.device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
 
                         //context.device.queue.writeBuffer( buffer, 0, view.buffer, view.byteOffset, view.byteLength > buffer.size ? buffer.size : view.byteLength );
-                        
+                        }
                     } );
                 }
                 else
@@ -1316,15 +1317,16 @@ var bindGroups=[];
       let bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
       vertexBuffers.push(context.device.createBuffer(bufferDescriptor));*/
         const vertexNames = [];
-        for ( let vertexData of vertexList )
+        for ( const vertexData of vertexList )
         {
             vertexNames.push( vertexData.name );
         }
         const vertexBufferName = vertexNames.join( `_` );
         const vertexBufferIndex = vertexListArray.indexOf( vertexList );
         Object.defineProperty( vertices, vertexBufferName, {
-            get:function(){
-              return vertexBuffers[ vertexBufferIndex ];
+            get : function ()
+            {
+                return vertexBuffers[ vertexBufferIndex ];
             },
             set : function ( value )
             {
