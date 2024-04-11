@@ -30,279 +30,13 @@
     return this.program;
 };*/
 
-var BindingListArray = class BindingListArray extends Array
-{
-    addBindingList ( bindingList )
-    {
-        this.push( bindingList );
-        return this;
-    }
-
-    createShaderModuleBindingCodes ()
-    {
-        var vertexBindingCode = ``;
-        var fragmentBindingCode = ``;
-        var computeBindingCode = ``;
-        for ( var bindingList of this )
-        {
-            var groupId = this.indexOf( bindingList );
-            for ( var bindingData of bindingList )
-            {
-                var bindingId = bindingData.entry.binding;
-                var declaration = `var`;
-                if ( bindingData.entry.buffer )
-                {
-                    let bufferType = bindingData.entry.buffer.type;
-                    bufferType = bufferType ? bufferType : `uniform`;
-                    let addressSpace;
-                    let accessMode = undefined;
-                    switch ( bufferType )
-                    {
-                        case `uniform`:
-                            addressSpace = `uniform`;
-                            break;
-                        case `storage`:
-                            addressSpace = `storage`;
-                            accessMode = `read_write`;
-                            break;
-                        case `read-only-storage`:
-                            addressSpace = `storage`;
-                            //accessMode = `read`;
-                            break;
-                    }
-                    declaration += `<${addressSpace}${accessMode ? `,${accessMode}` : ``}>`;
-                }
-                var code = `@group(${groupId}) @binding(${bindingId}) ${declaration} ${bindingData.name}: ${bindingData.wgslType};\n`;
-                var visibility = bindingData.entry.visibility;
-                if ( visibility & GPUShaderStage.VERTEX ){vertexBindingCode += code;}
-                if ( visibility & GPUShaderStage.FRAGMENT ){fragmentBindingCode += code;}
-                if ( visibility & GPUShaderStage.COMPUTE ){computeBindingCode += code;}
-            }
-        }
-        return {
-            vertexBindingCode   : vertexBindingCode,
-            fragmentBindingCode : fragmentBindingCode,
-            computeBindingCode  : computeBindingCode
-        };
-    }
-
-    getBindGroupLayouts ( device )
-    {
-        if ( !this.bindGroupLayouts )
-        {
-            this.bindGroupLayouts = [];
-            for ( var bindingList of this )
-            {
-                /*if ( !bindingList.bindGroupLayout )
-              {
-                  bindingList.createBindGroupLayout( device );
-              }*/
-                //this.bindGroupLayouts.push( bindingList.bindGroupLayout );
-                this.bindGroupLayouts.push( bindingList.getBindGroupLayout( device ) );
-            }
-        }
-        return this.bindGroupLayouts;
-    }
-
-    static newBindingParamsList ()
-    {
-        return new BindingListArray.BindingParamsList();
-    }
-
-    static BindingParamsList = class BindingParamsList extends Array
-    {
-        addBindingParams ( name, wgslType, visibility, resourceLayoutObject, size )
-        {
-            this.push( {
-                name                 : name,
-                wgslType             : wgslType,
-                visibility           : visibility,
-                resourceLayoutObject : resourceLayoutObject,
-                size                 : size//Optional;
-            } );
-            return this;
-        }
-
-        createBindingList ()
-        {
-            var bindingList = new class BindingList extends Array
-            {
-                createBindGroupLayout ( device )
-                {
-                    return this.bindGroupLayout = device.createBindGroupLayout( this.bindGroupLayoutDescriptor );
-                }
-
-                getBindGroupLayout ( device )
-                {
-                    return this.bindGroupLayout ? this.bindGroupLayout : this.createBindGroupLayout( device );
-                }
-            }();
-            var bindGroupLayoutDescriptor = new x3dom.WebGPU.GPUBindGroupLayoutDescriptor();
-
-            for ( var bindingParams of this )
-            {
-                var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
-                bindGroupLayoutDescriptor.entries.push( entry );
-                bindingList.push( new class BindingData
-                {
-                    name = bindingParams.name;
-
-                    wgslType = bindingParams.wgslType;
-
-                    entry = entry;
-
-                    size = bindingParams.size;
-                }() );
-            }
-
-            bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
-            return bindingList;
-        }
-    };
-};
-BindingListArray.prototype.newBindingParamsList = BindingListArray.newBindingParamsList;
-
-var VertexListArray = class VertexListArray extends Array
-{
-    addVertexList ( vertexList )
-    {
-        this.push( vertexList );
-        return this;
-    }
-
-    createVertexBufferLayouts ()
-    {
-        this.vertexBufferLayouts = new class VertexBufferLayouts extends Array{}();
-        var shaderLocation = 0;
-        for ( var vertexList of this )
-        {
-            for ( var attribute of vertexList.vertexBufferLayout.attributes )
-            {
-                attribute.shaderLocation = shaderLocation;
-                shaderLocation++;
-            }
-            this.vertexBufferLayouts.push( vertexList.vertexBufferLayout );
-        }
-        return this.vertexBufferLayouts;
-    }
-
-    createShaderModuleVertexInputCode ()
-    {
-        if ( !this.vertexBufferLayouts )
-        {
-            this.createVertexBufferLayouts();
-        }
-        var vertexInputCodes = [];
-        for ( var vertexList of this )
-        {
-            for ( var vertex of vertexList )
-            {
-                vertexInputCodes.push( `@location(${vertex.vertexAttribute.shaderLocation}) ${vertex.name}: ${vertex.wgslType}` );
-            }
-        }
-        return vertexInputCodes.join();
-    }
-
-    static newVertexParamsList ()
-    {
-        return new VertexListArray.VertexParamsList();
-    }
-
-    static VertexParamsList = class extends Array
-    {
-        addVertexParams ( name, wgslType, format, offset/*(Optional)*/ )
-        {
-            this.push( {
-                name     : name,
-                wgslType : wgslType,
-                format   : format,
-                offset   : offset
-            } );
-            return this;
-        }
-
-        createVertexList ( arrayStride/*(Optional)*/, stepMode/*(Optional)*/ )
-        {
-            var vertexList = new class VertexList extends Array{}();
-            var vertexBufferLayout = new x3dom.WebGPU.GPUVertexBufferLayout( arrayStride, stepMode );
-            var autoArrayStride = 0;
-            var vertexFormats = new x3dom.WebGPU.GPUVertexFormat();
-            for ( var vertexParams of this )
-            {
-                if ( Number.isInteger( vertexParams.offset ) )
-                {
-                    var format = vertexParams.format;
-                    var offset = vertexParams.offset;
-                    var byteSize = vertexFormats.byteSizeOf( format );
-                    var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
-                    vertexBufferLayout.attributes.push( vertexAttribute );
-                    vertexList.push( {
-                        name            : vertexParams.name,
-                        wgslType        : vertexParams.wgslType,
-                        vertexAttribute : vertexAttribute
-                    } );
-                    autoArrayStride = ( autoArrayStride > offset ? autoArrayStride : offset ) + byteSize;
-                }
-            }
-            for ( var vertexParams of this )
-            {
-                if ( !Number.isInteger( vertexParams.offset ) )
-                {
-                    var format = vertexParams.format;
-                    var offset = autoArrayStride;
-                    var byteSize = vertexFormats.byteSizeOf( format );
-                    var vertexAttribute = new x3dom.WebGPU.GPUVertexAttribute( format, offset );
-                    vertexBufferLayout.attributes.push( vertexAttribute );
-                    vertexList.push( new class vertexData
-                    {
-                        name = vertexParams.name;
-
-                        wgslType = vertexParams.wgslType;
-
-                        vertexAttribute = vertexAttribute;
-                    }() );
-                    autoArrayStride += byteSize;
-                }
-            }
-            vertexBufferLayout.setArrayStride( Number.isInteger( arrayStride ) ? ( arrayStride ? arrayStride : autoArrayStride ) : autoArrayStride );
-            vertexList.vertexBufferLayout = vertexBufferLayout;
-            return vertexList;
-        }
-    };
-};
-VertexListArray.prototype.newVertexParamsList = VertexListArray.newVertexParamsList;
-
-var shaderModuleInputOutputList = class ShaderModuleInputOutputList extends Array
-{
-    add ( name, wgslType )
-    {
-        this.push( {
-            name     : name,
-            wgslType : wgslType
-        } );
-        return this;
-    }
-
-    createShaderModuleInputOutputCode ()
-    {
-        var location = 0;
-        var inputOutputCodes = [];
-        for ( var inputOutput of this )
-        {
-            inputOutputCodes.push( `@location(${location}) ${inputOutput.name}: ${inputOutput.wgslType}` );
-            location++;
-        }
-        return inputOutputCodes.join();
-    }
-};
-
 x3dom.shader.DynamicShader = function ( context, properties )
 {
-    var bindingListArray = new BindingListArray();
-    var vertexListArray = new VertexListArray();
+    var bindingListArray = new x3dom.WebGPU.BindingListArray();
+    var vertexListArray = new x3dom.WebGPU.VertexListArray();
 
-    var vertexOutputList = new shaderModuleInputOutputList();
-    var fragmentOutputList = new shaderModuleInputOutputList();
+    var vertexOutputList = new x3dom.WebGPU.ShaderModuleInputOutputList();
+    var fragmentOutputList = new x3dom.WebGPU.ShaderModuleInputOutputList();
 
     var bindingParamsList0 = bindingListArray.newBindingParamsList()
         .addBindingParams( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
@@ -907,13 +641,18 @@ fn ${fragmentShaderModuleEntryPoint}(
     var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
     var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
 
-    var shader = {};
+    /*var shader = {};
     //shader.buffers = {};
     shader.uniformStorage = {};
     shader.renderPipeline = renderPipeline;
     //shader.bindGroupDescriptors = [];
-    shader.bindGroups = [];
+    shader.bindGroups = [];*/
 
+    var shader = new x3dom.WebGPU.Shader( renderPipeline );
+    for ( const bindingList of bindingListArray )
+    {
+        shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( context.device, bindingList ) );
+    }
     /*
     var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
     var resource = sampler;
@@ -921,217 +660,11 @@ fn ${fragmentShaderModuleEntryPoint}(
     var resource = externalTexture;
     */
 
-    var createBindGroupDescriptor = function ( context, shader, bindingList, resources = {} )
-    {
-        let updated = true;
-        let bindGroup;
-        const layout = bindingList.getBindGroupLayout();
-        const entries = [];
-        const label = undefined;
-        for ( const bindingData of bindingList )
-        {
-            const binding = bindingData.entry.binding;
-            let resource;
-            if ( resources[ bindingData.name ] )
-            {
-                resource = resources[ bindingData.name ];
-            }
-            else
-            {
-                if ( bindingData.entry.buffer )
-                {
-                    let size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
-                    //if ( size )
-                    //{
-                    let usage = GPUBufferUsage.COPY_DST;
-                    switch ( bindingData.entry.buffer.type )
-                    {
-                        case `storage`:
-                            usage |= GPUBufferUsage.SRC;
-                        case `read-only-storage`:
-                            usage |= GPUBufferUsage.STORAGE;
-                            break;
-                        case `uniform`:
-                        case undefined:
-                            usage |= GPUBufferUsage.UNIFORM;
-                            break;
-                    }
-                    const mappedAtCreation = false;
-                    const label = bindingData.name;
-                    const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                    const buffer = context.device.createBuffer( bufferDescriptor );
-                    const offset = undefined;
-                    size = undefined;
-                    resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
-                    //}
-                }
-                else if ( bindingData.entry.sampler )
-                {
-                    //incomplete
-                }
-                else if ( bindingData.entry.texture )
-                {
-                    //incomplete
-                }
-                else if ( bindingData.entry.storageTexture )
-                {
-                    //incomplete
-                }
-            }
-            entries.push( x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource ) );
-            //set properties
-            if ( bindingData.entry.buffer )
-            {
-                if ( resource.buffer instanceof GPUBuffer )
-                {
-                //const buffer = resource.buffer;
-                //shader.buffers[ bindingData.name ] = buffer;
-                    const typedArray = ( function getTypedArray ( hostShareableType )
-                    {
-                        var match;
-                        switch ( true )
-                        {
-                            case /^f16$/.test( hostShareableType ):
-                                return ;//not supported
-                                break;
-                            case /^i32$/.test( hostShareableType ):
-                                return Int32Array;
-                                break;
-                            case /^u32$/.test( hostShareableType ):
-                                return Uint32Array;
-                                break;
-                            case /^f32$/.test( hostShareableType ):
-                                return Float32Array;
-                                break;
-                            case ( match = hostShareableType.match( /^atomic<(.*)>$/ ) ) ? true : false:
-                                return getTypedArray( match[ 1 ] );
-                                break;
-                            case ( match = hostShareableType.match( /^vec\d+(.*)$/ ) ) ? true : false:
-                                var T = match[ 1 ];//<type>
-                                switch ( true )
-                                {
-                                    case ( match = T.match( /^<(.*)>$/ ) ) ? true : false:
-                                        return getTypedArray( match[ 1 ] );
-                                        break;
-                                    case /^h$/.test( T ):
-                                        return getTypedArray( `f16` );
-                                        break;
-                                    case /^i$/.test( T ):
-                                        return getTypedArray( `i32` );
-                                        break;
-                                    case /^u$/.test( T ):
-                                        return getTypedArray( `u32` );
-                                        break;
-                                    case /^f$/.test( T ):
-                                        return getTypedArray( `f32` );
-                                        break;
-                                    default:
-                                        return;
-                                        break;
-                                }
-                            case ( match = hostShareableType.match( /^mat\d+x(\d+)(.*)$/ ) ) ? true : false:
-                                var R = Number( match[ 1 ] );//rows
-                                var T = match[ 2 ];//<type>
-                                return getTypedArray( `vec${R}${T}` );
-                                break;
-                            case ( match = hostShareableType.match( /^array<(.*),\d+>$/ ) ) ? true : false:
-                            case ( match = hostShareableType.match( /^array<(.*)(?<!,\d+)>$/ ) ) ? true : false:
-                                var E = match[ 1 ];//element
-                                return getTypedArray( E );
-                                break;
-                            default:
-                                return;
-                                break;
-                        }
-                    } )( bindingData.wgslType );
-                    //const typedArray = getTypedArray( bindingData.wgslType );
-                    Object.defineProperty( shader.uniformStorage, bindingData.name, {
-                        get : function ()
-                        {
-                            return resource.buffer;
-                        },
-                        set : function ( value )
-                        {
-                            let view;
-                            if ( ArrayBuffer.isView( value ) )
-                            {
-                                view = value;
-                            }
-                            else if ( value instanceof ArrayBuffer )
-                            {
-                                view = new DataView( value );
-                            }
-                            else if ( typedArray )
-                            {
-                                if ( typeof value === `number` || value instanceof Number )
-                                {
-                                    view = new typedArray( [ value ] );
-                                }
-                                else if ( value instanceof Array )
-                                {
-                                    view = new typedArray( value );
-                                }
-                                else
-                                {
-                                    return;//unknow value;
-                                }
-                            }
-                            else
-                            {
-                                return;//unknow type;
-                            }
-                            if ( view.byteLength != resource.buffer.size )
-                            {
-                                resource.buffer.destroy();
-                                resource.setBuffer( context.device.createBuffer( new x3dom.WebGPU.GPUBufferDescriptor( view.byteLength, resource.buffer.usage, false, resource.buffer.label ) ) );
-                                //resource.setOffset(0);
-                                //resource.setSize(view.byteLength);
-                                updated = true;
-                            }
-                            context.device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
-
-                        //context.device.queue.writeBuffer( buffer, 0, view.buffer, view.byteOffset, view.byteLength > buffer.size ? buffer.size : view.byteLength );
-                        }
-                    } );
-                }
-                else
-                {
-                //resource error
-                }
-            }
-            else if ( bindingData.entry.sampler )
-            {
-                //incomplete
-            }
-            else if ( bindingData.entry.texture )
-            {
-                //incomplete
-            }
-            else if ( bindingData.entry.storageTexture )
-            {
-                //incomplete
-            }
-        }
-        return new class extends x3dom.WebGPU.GPUBindGroupDescriptor
-        {
-            getBindGroup ()
-            {
-                if ( updated )
-                {
-                    bindGroup = context.device.createBindGroup( this );
-                    updated = false;
-                }
-                return bindGroup;
-            }
-        }( layout, entries, label );
-        //return bindGroupDescriptor;
-        //return context.device.createBindGroup( bindGroupDescriptor );
-    };
-
     //var bindGroups=[];
+    /*
     for ( const bindingList of bindingListArray )
     {
-        const bindGroupDescriptor = createBindGroupDescriptor( context, shader, bindingList );
+        const bindGroupDescriptor = x3dom.WebGPU.createBindGroupDescriptor( context.device, shader, bindingList );
         //shader.bindGroupDescriptors.push( bindGroupDescriptor );
         //shader.bindGroups.push( context.device.createBindGroup( bindGroupDescriptor ) );
         Object.defineProperty( shader.bindGroups, bindingListArray.indexOf( bindingList ), {
@@ -1140,74 +673,9 @@ fn ${fragmentShaderModuleEntryPoint}(
                 return bindGroupDescriptor.getBindGroup();
             }
         } );
-    }
-
-    /*
-struct light {
-  on : u32,
-  type : u32,
-  location : vec3<f32>,
-  direction : vec3<f32>,
-  color : vec3<f32>,
-  attenuation : vec3<f32>,
-  radius : f32,
-  intensity : f32,
-  ambientIntensity : f32,
-  beamWidth : f32,
-  cutOffAngle : f32,
-  shadowIntensity : f32,
-}*/
-    /*
-    var lights = new class lights{
-      stride = 7*16;
-      dataView = new DataView(new ArrayBuffer(stride*2) );
-      setOn = function(index,value){
-        this.dataView.setUint32(index*stride,value,true);
-      }
-      setType = function(index,value){
-        this.dataView.setUint32(index*stride+4,value,true);
-      }
-      setLocation = function(index,value){
-        this.dataView.setFloat32(index*stride+16,value[0],true);
-        this.dataView.setFloat32(index*stride+16+4,value[1],true);
-        this.dataView.setFloat32(index*stride+16+8,value[2],true);
-      }
-      setDirection = function(index,value){
-        this.dataView.setFloat32(index*stride+32,value[0],true);
-        this.dataView.setFloat32(index*stride+32+4,value[1],true);
-        this.dataView.setFloat32(index*stride+32+8,value[2],true);
-      }
-      setColor = function(index,value){
-        this.dataView.setFloat32(index*stride+48,value[0],true);
-        this.dataView.setFloat32(index*stride+48+4,value[1],true);
-        this.dataView.setFloat32(index*stride+48+8,value[2],true);
-      }
-      setAttenuation = function(index,value){
-        this.dataView.setFloat32(index*stride+64,value[0],true);
-        this.dataView.setFloat32(index*stride+64+4,value[1],true);
-        this.dataView.setFloat32(index*stride+64+8,value[2],true);
-      }
-      setRadius = function(index,value){
-        this.dataView.setFloat32(index*stride+80,value,true);
-      }
-      setIntensity = function(index,value){
-        this.dataView.setFloat32(index*stride+84,value,true);
-      }
-      setAmbientIntensity = function(index,value){
-        this.dataView.setFloat32(index*stride+88,value,true);
-      }
-      setBeamWidth = function(index,value){
-        this.dataView.setFloat32(index*stride+92,value,true);
-      }
-      setCutOffAngle = function(index,value){
-        this.dataView.setFloat32(index*stride+96,value,true);
-      }
-      setShadowIntensity = function(index,value){
-        this.dataView.setFloat32(index*stride+100,value,true);
-      }
     }*/
 
-    var lights = class lights extends DataView
+    shader.assets.Lights = class Lights extends DataView
     {
         stride = 7 * 16;
 
@@ -1287,7 +755,7 @@ struct light {
 
     //var lights = new DataView(new ArrayBuffer(stride*2) );
 
-    shader.uniformStorage.lights = new lights( 2 );
+    shader.uniformStorage.lights = new shader.assets.Lights( 2 );
 
     /*for ( var bindGroupDescriptor of shader.bindGroupDescriptors )
     {
@@ -1451,48 +919,3 @@ var bindGroups=[];
     renderPassEncoder.end();
     context.device.queue.submit( [ commandEncoder.finish() ] );
 };
-
-function setRenderPipeline ( device )
-{
-    //layout: GPUPipelineLayout
-    {
-        const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
-        var layout = context.device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
-    }
-    //vertex: GPUVertexState
-    {
-        const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
-        const entryPoint = vertexShaderModuleEntryPoint;
-        const constants = undefined;
-        const buffers = vertexListArray.vertexBufferLayouts;
-        var vertex = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
-    }
-    //fragment: GPUFragmentState
-    {
-        const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
-        const entryPoint = fragmentShaderModuleEntryPoint;
-        const constants = undefined;
-        const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
-        var fragment = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
-    }
-    //primitive: GPUPrimitiveState
-    {
-        const stripIndexFormat = undefined;
-        const frontFace = "ccw";
-        const cullMode = "back";
-        var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
-    }
-    //depthStencil: GPUDepthStencilState
-    {
-        const format = "depth24plus-stencil8";
-        const depthWriteEnabled = true;
-        const depthCompare = "less";
-        var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
-    }
-    //multisample: GPUMultisampleState
-    {
-        const count = 1;
-        var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
-    }
-    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
-}
