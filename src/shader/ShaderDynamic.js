@@ -639,7 +639,7 @@ fn ${fragmentShaderModuleEntryPoint}(
         var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
     }
     var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
-    var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
+    //var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
 
     /*var shader = {};
     //shader.buffers = {};
@@ -648,10 +648,11 @@ fn ${fragmentShaderModuleEntryPoint}(
     //shader.bindGroupDescriptors = [];
     shader.bindGroups = [];*/
 
-    var shader = new x3dom.WebGPU.Shader( renderPipeline );
+    var shader = new x3dom.WebGPU.Shader( context.device );
+    shader.renderPipelineDescriptor = renderPipelineDescriptor;
     for ( const bindingList of bindingListArray )
     {
-        shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( context.device, bindingList ) );
+        shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( bindingList ) );
     }
     /*
     var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
@@ -850,7 +851,7 @@ var bindGroups=[];
         const sampleCount = 1;
         var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
         var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
-        renderBundleEncoder.setPipeline( renderPipeline );
+        renderBundleEncoder.setPipeline( shader.renderPipeline );
         for ( var bindGroup of shader.bindGroups )
         {
             renderBundleEncoder.setBindGroup( shader.bindGroups.indexOf( bindGroup ), bindGroup );
