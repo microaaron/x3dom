@@ -278,7 +278,8 @@ x3dom.WebGPU.Shader = class Shader
             get : function ()
             {
                 return device;
-            }
+            },
+            configurable : true
         } );
         Object.defineProperty( this, "renderPipelineDescriptor", {
             get : function ()
@@ -289,7 +290,8 @@ x3dom.WebGPU.Shader = class Shader
             {
                 renderPipelineDescriptor = descriptor;
                 renderPipelineDescriptorUpdated = true;
-            }
+            },
+            configurable : true
         } );
         Object.defineProperty( this, "renderPipeline", {
             get : function ()
@@ -300,7 +302,8 @@ x3dom.WebGPU.Shader = class Shader
                     renderPipelineDescriptorUpdated = false;
                 }
                 return renderPipeline;
-            }
+            },
+            configurable : true
         } );
     }
 
@@ -467,7 +470,8 @@ x3dom.WebGPU.Shader = class Shader
                                 updated = true;
                             }
                             device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
-                        }
+                        },
+                        configurable : true
                     } );
                 }
                 else
@@ -508,7 +512,17 @@ x3dom.WebGPU.Shader = class Shader
             get : function ()
             {
                 return bindGroupDescriptor.getBindGroup();
-            }
+            },
+            configurable : true
+        } );
+    }
+
+    copyUniformStoragePropertyFromShader ( shader, name )
+    {
+        Object.defineProperty( this.uniformStorage, name, {
+            get          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).get,
+            set          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).set,
+            configurable : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).configurable
         } );
     }
 };

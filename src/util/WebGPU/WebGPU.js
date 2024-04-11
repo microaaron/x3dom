@@ -75,7 +75,7 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
     static newBindingParamsList ()
     {
-        return new BindingListArray.BindingParamsList();
+        return new this.BindingParamsList();
     }
 
     static BindingParamsList = class BindingParamsList extends Array
@@ -174,7 +174,7 @@ x3dom.WebGPU.VertexListArray = class VertexListArray extends Array
 
     static newVertexParamsList ()
     {
-        return new VertexListArray.VertexParamsList();
+        return new this.VertexParamsList();
     }
 
     static VertexParamsList = class extends Array
@@ -271,14 +271,15 @@ x3dom.WebGPU.Shader = class Shader
         this.uniformStorage = {};
         this.bindGroups = [];
         this.assets = {};
-        let renderPipelineDescriptor;
         let renderPipeline;
-        let updated;
+        let renderPipelineDescriptor;
+        let renderPipelineDescriptorUpdated;
         Object.defineProperty( this, "device", {
             get : function ()
             {
                 return device;
-            }
+            },
+            configurable : true
         } );
         Object.defineProperty( this, "renderPipelineDescriptor", {
             get : function ()
@@ -288,19 +289,21 @@ x3dom.WebGPU.Shader = class Shader
             set : function ( descriptor )
             {
                 renderPipelineDescriptor = descriptor;
-                updated = true;
-            }
+                renderPipelineDescriptorUpdated = true;
+            },
+            configurable : true
         } );
         Object.defineProperty( this, "renderPipeline", {
             get : function ()
             {
-                if ( updated )
+                if ( renderPipelineDescriptorUpdated )
                 {
                     renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
-                    updated = false;
+                    renderPipelineDescriptorUpdated = false;
                 }
                 return renderPipeline;
-            }
+            },
+            configurable : true
         } );
     }
 
@@ -467,7 +470,8 @@ x3dom.WebGPU.Shader = class Shader
                                 updated = true;
                             }
                             device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
-                        }
+                        },
+                        configurable : true
                     } );
                 }
                 else
@@ -508,7 +512,17 @@ x3dom.WebGPU.Shader = class Shader
             get : function ()
             {
                 return bindGroupDescriptor.getBindGroup();
-            }
+            },
+            configurable : true
+        } );
+    }
+
+    copyUniformStoragePropertyFromShader ( shader, name )
+    {
+        Object.defineProperty( this.uniformStorage, name, {
+            get          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).get,
+            set          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).set,
+            configurable : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).configurable
         } );
     }
 };
