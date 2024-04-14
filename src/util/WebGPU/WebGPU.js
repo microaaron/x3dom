@@ -75,7 +75,7 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
     static newBindingParamsList ()
     {
-        return new this.BindingParamsList();
+        return new BindingListArray.BindingParamsList();
     }
 
     static BindingParamsList = class BindingParamsList extends Array
@@ -174,7 +174,7 @@ x3dom.WebGPU.VertexListArray = class VertexListArray extends Array
 
     static newVertexParamsList ()
     {
-        return new this.VertexParamsList();
+        return new VertexListArray.VertexParamsList();
     }
 
     static VertexParamsList = class extends Array
@@ -266,45 +266,56 @@ x3dom.WebGPU.ShaderModuleInputOutputList = class ShaderModuleInputOutputList ext
 };
 x3dom.WebGPU.Shader = class Shader
 {
-    constructor ( device )
+    constructor ( arg )
     {
-        this.uniformStorage = {};
-        this.bindGroups = [];
-        this.assets = {};
-        let renderPipeline;
-        let renderPipelineDescriptor;
-        let renderPipelineDescriptorUpdated;
-        Object.defineProperty( this, "device", {
-            get : function ()
-            {
-                return device;
-            },
-            configurable : true
-        } );
-        Object.defineProperty( this, "renderPipelineDescriptor", {
-            get : function ()
-            {
-                return renderPipelineDescriptor;
-            },
-            set : function ( descriptor )
-            {
-                renderPipelineDescriptor = descriptor;
-                renderPipelineDescriptorUpdated = true;
-            },
-            configurable : true
-        } );
-        Object.defineProperty( this, "renderPipeline", {
-            get : function ()
-            {
-                if ( renderPipelineDescriptorUpdated )
+        if ( arg instanceof GPUDevice )
+        {
+            this.bindingListArray = [];
+            this.bindGroupDescriptors = [];
+            this.uniformStorage = {};
+            this.bindGroups = [];
+            this.vertices = {};
+            this.vertexBuffers = [];
+            this.assets = {};
+            let renderPipeline;
+            let renderPipelineDescriptor;
+            let renderPipelineDescriptorUpdated;
+            Object.defineProperty( this, "device", {
+                get : function ()
                 {
-                    renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
-                    renderPipelineDescriptorUpdated = false;
-                }
-                return renderPipeline;
-            },
-            configurable : true
-        } );
+                    return arg;
+                },
+                configurable : true
+            } );
+            Object.defineProperty( this, "renderPipelineDescriptor", {
+                get : function ()
+                {
+                    return renderPipelineDescriptor;
+                },
+                set : function ( descriptor )
+                {
+                    renderPipelineDescriptor = descriptor;
+                    renderPipelineDescriptorUpdated = true;
+                },
+                configurable : true
+            } );
+            Object.defineProperty( this, "renderPipeline", {
+                get : function ()
+                {
+                    if ( renderPipelineDescriptorUpdated )
+                    {
+                        renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
+                        renderPipelineDescriptorUpdated = false;
+                    }
+                    return renderPipeline;
+                },
+                configurable : true
+            } );
+        }
+        else if ( arg instanceof Shader )
+        {
+            return arg.copy( arguments[ 1 ] );
+        }
     }
 
     initBindGroupDescriptor ( bindingList, resources = {}/*(Optional)*/ )
@@ -344,7 +355,7 @@ x3dom.WebGPU.Shader = class Shader
                     const mappedAtCreation = false;
                     const label = bindingData.name;
                     const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                    const buffer = this.device.createBuffer( bufferDescriptor );
+                    const buffer = device.createBuffer( bufferDescriptor );
                     const offset = undefined;
                     size = undefined;
                     resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
@@ -517,12 +528,86 @@ x3dom.WebGPU.Shader = class Shader
         } );
     }
 
+    initBindGroups ( bindingListArray = this.bindingListArray )
+    {
+        for ( const bindingList of bindingListArray )
+        {
+            const index = bindingListArray.indexOf( bindingList );
+            const bindGroupDescriptor = this.initBindGroupDescriptor( bindingList );
+            this.bindGroupDescriptors[ index ] = bindGroupDescriptor;
+            this.initBindGroup( index, bindGroupDescriptor );
+        }
+    }
+
+    initVertexBuffer ( index, vertexList )
+    {
+        const device = this.device;
+        const vertexNames = [];
+        for ( const vertexData of vertexList )
+        {
+            vertexNames.push( vertexData.name );
+        }
+        const vertexBufferName = vertexNames.join( `_` );
+        const vertexBuffers = this.vertexBuffers;
+        Object.defineProperty( this.vertices, vertexBufferName, {
+            get : function ()
+            {
+                return vertexBuffers[ index ];
+            },
+            set : function ( value )
+            {
+                let view;
+                if ( ArrayBuffer.isView( value ) )
+                {
+                    view = value;
+                }
+                else if ( value instanceof ArrayBuffer )
+                {
+                    view = new DataView( value );
+                }
+                else
+                {
+                    return;//unknow type;
+                }
+                switch ( true )
+                {
+                    case vertexBuffers[ index ] instanceof GPUBuffer && view.byteLength != vertexBuffers[ index ].size:
+                        vertexBuffers[ index ].destroy();
+                    case !( vertexBuffers[ index ] instanceof GPUBuffer ):
+                        const size = view.byteLength;
+                        const usage = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
+                        const mappedAtCreation = false;
+                        const label = vertexBufferName;
+                        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+                        vertexBuffers[ index ] = device.createBuffer( bufferDescriptor );
+                    default:
+                        device.queue.writeBuffer( vertexBuffers[ index ], 0, view.buffer, view.byteOffset, view.byteLength );
+                        break;
+                }
+            }
+        } );
+    }
+
+    initVertexBuffers ( vertexListArray = this.vertexListArray )
+    {
+        for ( const vertexList of vertexListArray )
+        {
+            this.initVertexBuffer( vertexListArray.indexOf( vertexList ), vertexList );
+        }
+    }
+
     copyUniformStoragePropertyFromShader ( shader, name )
     {
-        Object.defineProperty( this.uniformStorage, name, {
-            get          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).get,
-            set          : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).set,
-            configurable : Object.getOwnPropertyDescriptor( shader.uniformStorage, name ).configurable
-        } );
+        Object.defineProperty( this.uniformStorage, name, Object.getOwnPropertyDescriptor( shader.uniformStorage, name ) );
+    }
+
+    copy ( override )
+    {
+        let overridePropertyDescriptors;
+        if ( override instanceof Object )
+        {
+            overridePropertyDescriptors = Object.getOwnPropertyDescriptors( override );
+        }
+        return Object.defineProperties( new Shader(), Object.assign( Object.getOwnPropertyDescriptors( this ), overridePropertyDescriptors ) );
     }
 };

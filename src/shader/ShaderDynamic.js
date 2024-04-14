@@ -650,10 +650,13 @@ fn ${fragmentShaderModuleEntryPoint}(
 
     var shader = new x3dom.WebGPU.Shader( context.device );
     shader.renderPipelineDescriptor = renderPipelineDescriptor;
-    for ( const bindingList of bindingListArray )
+    shader.bindingListArray = bindingListArray;
+    shader.vertexListArray = vertexListArray;
+    shader.initBindGroups();
+    /*for ( const bindingList of bindingListArray )
     {
         shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( bindingList ) );
-    }
+    }*/
     /*
     var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
     var resource = sampler;
@@ -771,68 +774,18 @@ var uniformStorage={};
 var bindGroups=[];
 */
 
-    var vertexBuffers = [];
-    var vertices = {};
-    for ( const vertexList of vertexListArray )
-    {
-        /*let size = 1000*vertexList.vertexBufferLayout.arrayStride;
-      let usage= GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST;
-      let mappedAtCreation = false;
-      let vertexNames=[];
-      for(var vertexData of vertexList){
-        vertexNames.push(vertexData.name);
-      }
-      let label=vertexNames.join(`_`);
-      let bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-      vertexBuffers.push(context.device.createBuffer(bufferDescriptor));*/
-        const vertexNames = [];
-        for ( const vertexData of vertexList )
-        {
-            vertexNames.push( vertexData.name );
-        }
-        const vertexBufferName = vertexNames.join( `_` );
-        const vertexBufferIndex = vertexListArray.indexOf( vertexList );
-        Object.defineProperty( vertices, vertexBufferName, {
-            get : function ()
-            {
-                return vertexBuffers[ vertexBufferIndex ];
-            },
-            set : function ( value )
-            {
-                let view;
-                if ( ArrayBuffer.isView( value ) )
-                {
-                    view = value;
-                }
-                else if ( value instanceof ArrayBuffer )
-                {
-                    view = new DataView( value );
-                }
-                else
-                {
-                    return;//unknow type;
-                }
-                switch ( true )
-                {
-                    case vertexBuffers[ vertexBufferIndex ] instanceof GPUBuffer && view.byteLength != vertexBuffers[ vertexBufferIndex ].size:
-                        vertexBuffers[ vertexBufferIndex ].destroy();
-                    case !( vertexBuffers[ vertexBufferIndex ] instanceof GPUBuffer ):
-                        const size = view.byteLength;
-                        const usage = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
-                        const mappedAtCreation = false;
-                        const label = vertexBufferName;
-                        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                        vertexBuffers[ vertexBufferIndex ] = context.device.createBuffer( bufferDescriptor );
-                    default:
-                        context.device.queue.writeBuffer( vertexBuffers[ vertexBufferIndex ], 0, view.buffer, view.byteOffset, view.byteLength );
-                        break;
-                }
-            }
-        } );
-    }
+    /*var shader2 = shader.copy( {
+        vertexBuffers : [],
+        vertices      : {}
+    } );*/
+    var shader2 = new x3dom.WebGPU.Shader( shader, {
+        vertexBuffers : [],
+        vertices      : {}
+    } );
+    shader2.initVertexBuffers();
 
-    vertices.position = new Float32Array( 1000 );
-    vertices.normal = new Float32Array( 1000 );
+    shader2.vertices.position = new Float32Array( 1000 );
+    shader2.vertices.normal = new Float32Array( 1000 );
 
     {
         const size = 48;
@@ -851,14 +804,14 @@ var bindGroups=[];
         const sampleCount = 1;
         var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
         var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
-        renderBundleEncoder.setPipeline( shader.renderPipeline );
-        for ( var bindGroup of shader.bindGroups )
+        renderBundleEncoder.setPipeline( shader2.renderPipeline );
+        for ( var bindGroup of shader2.bindGroups )
         {
-            renderBundleEncoder.setBindGroup( shader.bindGroups.indexOf( bindGroup ), bindGroup );
+            renderBundleEncoder.setBindGroup( shader2.bindGroups.indexOf( bindGroup ), bindGroup );
         }
-        for ( var vertexBuffer of vertexBuffers )
+        for ( var vertexBuffer of shader2.vertexBuffers )
         {
-            renderBundleEncoder.setVertexBuffer( vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
+            renderBundleEncoder.setVertexBuffer( shader2.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
         }
         renderBundleEncoder.setIndexBuffer( indexBuffer, "uint32" );
         renderBundleEncoder.drawIndexed( 12 );
