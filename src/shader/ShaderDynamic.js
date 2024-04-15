@@ -648,7 +648,7 @@ fn ${fragmentShaderModuleEntryPoint}(
     //shader.bindGroupDescriptors = [];
     shader.bindGroups = [];*/
 
-    var shader = new x3dom.WebGPU.Shader( context.device );
+    var shader = new x3dom.WebGPU.RenderPassResource( context.device );
     shader.renderPipelineDescriptor = renderPipelineDescriptor;
     shader.bindingListArray = bindingListArray;
     shader.vertexListArray = vertexListArray;
@@ -778,7 +778,7 @@ var bindGroups=[];
         vertexBuffers : [],
         vertices      : {}
     } );*/
-    var shader2 = new x3dom.WebGPU.Shader( shader, {
+    var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
         vertexBuffers : [],
         vertices      : {}
     } );

@@ -18,6 +18,7 @@ x3dom.Cache = function ()
 {
     this.textures = [];
     this.shaders = [];
+    this.passResources = [];
 };
 
 /**
@@ -259,7 +260,8 @@ x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, propert
         }
         else
         {
-            program = new x3dom.shader.DynamicShader( context, properties );
+            //program = new x3dom.shader.DynamicShader( context, properties );
+            return this.passResources[ shaderID ] = x3dom.shader.DynamicShader( context, properties );
         }
 
         this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( context, program, shaderID );

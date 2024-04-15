@@ -130,7 +130,6 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
     };
 };
 x3dom.WebGPU.BindingListArray.prototype.newBindingParamsList = x3dom.WebGPU.BindingListArray.newBindingParamsList;
-
 x3dom.WebGPU.VertexListArray = class VertexListArray extends Array
 {
     addVertexList ( vertexList )
@@ -240,7 +239,6 @@ x3dom.WebGPU.VertexListArray = class VertexListArray extends Array
     };
 };
 x3dom.WebGPU.VertexListArray.prototype.newVertexParamsList = x3dom.WebGPU.VertexListArray.newVertexParamsList;
-
 x3dom.WebGPU.ShaderModuleInputOutputList = class ShaderModuleInputOutputList extends Array
 {
     add ( name, wgslType )
@@ -264,57 +262,29 @@ x3dom.WebGPU.ShaderModuleInputOutputList = class ShaderModuleInputOutputList ext
         return inputOutputCodes.join();
     }
 };
-x3dom.WebGPU.Shader = class Shader
+x3dom.WebGPU.PassResource = class PassResource
 {
-    constructor ( arg )
+    constructor ( arg0, arg1 )
     {
-        if ( arg instanceof GPUDevice )
+        if ( arg0 instanceof GPUDevice )
         {
             this.bindingListArray = [];
             this.bindGroupDescriptors = [];
             this.uniformStorage = {};
             this.bindGroups = [];
-            this.vertices = {};
-            this.vertexBuffers = [];
             this.assets = {};
-            let renderPipeline;
-            let renderPipelineDescriptor;
-            let renderPipelineDescriptorUpdated;
             Object.defineProperty( this, "device", {
                 get : function ()
                 {
-                    return arg;
+                    return arg0;
                 },
-                configurable : true
-            } );
-            Object.defineProperty( this, "renderPipelineDescriptor", {
-                get : function ()
-                {
-                    return renderPipelineDescriptor;
-                },
-                set : function ( descriptor )
-                {
-                    renderPipelineDescriptor = descriptor;
-                    renderPipelineDescriptorUpdated = true;
-                },
-                configurable : true
-            } );
-            Object.defineProperty( this, "renderPipeline", {
-                get : function ()
-                {
-                    if ( renderPipelineDescriptorUpdated )
-                    {
-                        renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
-                        renderPipelineDescriptorUpdated = false;
-                    }
-                    return renderPipeline;
-                },
+                enumerable   : true,
                 configurable : true
             } );
         }
-        else if ( arg instanceof Shader )
+        else if ( arg0 instanceof PassResource )
         {
-            return arg.copy( arguments[ 1 ] );
+            return arg0.copy( arg1 );
         }
     }
 
@@ -362,15 +332,15 @@ x3dom.WebGPU.Shader = class Shader
                 }
                 else if ( bindingData.entry.sampler )
                 {
-                //incomplete
+                    //incomplete
                 }
                 else if ( bindingData.entry.texture )
                 {
-                //incomplete
+                    //incomplete
                 }
                 else if ( bindingData.entry.storageTexture )
                 {
-                //incomplete
+                    //incomplete
                 }
             }
             entries.push( x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource ) );
@@ -482,6 +452,7 @@ x3dom.WebGPU.Shader = class Shader
                             }
                             device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
                         },
+                        enumerable   : true,
                         configurable : true
                     } );
                 }
@@ -492,15 +463,15 @@ x3dom.WebGPU.Shader = class Shader
             }
             else if ( bindingData.entry.sampler )
             {
-            //incomplete
+                //incomplete
             }
             else if ( bindingData.entry.texture )
             {
-            //incomplete
+                //incomplete
             }
             else if ( bindingData.entry.storageTexture )
             {
-            //incomplete
+                //incomplete
             }
         }
         return new class extends x3dom.WebGPU.GPUBindGroupDescriptor
@@ -524,6 +495,7 @@ x3dom.WebGPU.Shader = class Shader
             {
                 return bindGroupDescriptor.getBindGroup();
             },
+            enumerable   : true,
             configurable : true
         } );
     }
@@ -536,6 +508,82 @@ x3dom.WebGPU.Shader = class Shader
             const bindGroupDescriptor = this.initBindGroupDescriptor( bindingList );
             this.bindGroupDescriptors[ index ] = bindGroupDescriptor;
             this.initBindGroup( index, bindGroupDescriptor );
+        }
+    }
+
+    copyUniformStoragePropertyFromPassResource ( passResource, name )
+    {
+        Object.defineProperty( this.uniformStorage, name, Object.getOwnPropertyDescriptor( passResource.uniformStorage, name ) );
+    }
+
+    copy ( override )
+    {
+        let overridePropertyDescriptors;
+        if ( override instanceof Object )
+        {
+            overridePropertyDescriptors = Object.getOwnPropertyDescriptors( override );
+        }
+        return Object.defineProperties( new this.constructor(), Object.assign( Object.getOwnPropertyDescriptors( this ), overridePropertyDescriptors ) );
+    }
+};
+x3dom.WebGPU.ComputerPassResource = class ComputePassResource extends x3dom.WebGPU.PassResource
+{
+    constructor ( arg0, arg1 )
+    {
+        super( arg0, arg1 );
+    }
+};
+x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.PassResource
+{
+    constructor ( arg0, arg1 )
+    {
+        super( arg0, arg1 );
+        if ( arg0 instanceof GPUDevice )
+        {
+            /*this.bindingListArray = [];
+            this.bindGroupDescriptors = [];
+            this.uniformStorage = {};
+            this.bindGroups = [];*/
+            this.vertices = {};
+            this.vertexBuffers = [];
+            //this.assets = {};
+            let renderPipeline;
+            let renderPipelineDescriptor;
+            let renderPipelineDescriptorUpdated;
+            /*Object.defineProperty( this, "device", {
+                get : function ()
+                {
+                    return arg;
+                },
+                enumerable   : true,
+                configurable : true
+            } );*/
+            Object.defineProperty( this, "renderPipelineDescriptor", {
+                get : function ()
+                {
+                    return renderPipelineDescriptor;
+                },
+                set : function ( descriptor )
+                {
+                    renderPipelineDescriptor = descriptor;
+                    renderPipelineDescriptorUpdated = true;
+                },
+                enumerable   : true,
+                configurable : true
+            } );
+            Object.defineProperty( this, "renderPipeline", {
+                get : function ()
+                {
+                    if ( renderPipelineDescriptorUpdated )
+                    {
+                        renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
+                        renderPipelineDescriptorUpdated = false;
+                    }
+                    return renderPipeline;
+                },
+                enumerable   : true,
+                configurable : true
+            } );
         }
     }
 
@@ -584,7 +632,9 @@ x3dom.WebGPU.Shader = class Shader
                         device.queue.writeBuffer( vertexBuffers[ index ], 0, view.buffer, view.byteOffset, view.byteLength );
                         break;
                 }
-            }
+            },
+            enumerable   : true,
+            configurable : true
         } );
     }
 
@@ -594,20 +644,5 @@ x3dom.WebGPU.Shader = class Shader
         {
             this.initVertexBuffer( vertexListArray.indexOf( vertexList ), vertexList );
         }
-    }
-
-    copyUniformStoragePropertyFromShader ( shader, name )
-    {
-        Object.defineProperty( this.uniformStorage, name, Object.getOwnPropertyDescriptor( shader.uniformStorage, name ) );
-    }
-
-    copy ( override )
-    {
-        let overridePropertyDescriptors;
-        if ( override instanceof Object )
-        {
-            overridePropertyDescriptors = Object.getOwnPropertyDescriptors( override );
-        }
-        return Object.defineProperties( new Shader(), Object.assign( Object.getOwnPropertyDescriptors( this ), overridePropertyDescriptors ) );
     }
 };
