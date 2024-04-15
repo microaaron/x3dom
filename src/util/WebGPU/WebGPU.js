@@ -526,7 +526,7 @@ x3dom.WebGPU.PassResource = class PassResource
         return Object.defineProperties( new this.constructor(), Object.assign( Object.getOwnPropertyDescriptors( this ), overridePropertyDescriptors ) );
     }
 };
-x3dom.WebGPU.ComputerPassResource = class ComputePassResource extends x3dom.WebGPU.PassResource
+x3dom.WebGPU.ComputePassResource = class ComputePassResource extends x3dom.WebGPU.PassResource
 {
     constructor ( arg0, arg1 )
     {
