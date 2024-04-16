@@ -273,7 +273,7 @@ x3dom.WebGPU.PassResource = class PassResource
             this.uniformStorage = {};
             this.bindGroups = [];
             this.assets = {};
-            Object.defineProperty( this, "device", {
+            Object.defineProperty( this, `device`, {
                 get : function ()
                 {
                     return arg0;
@@ -558,7 +558,7 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 enumerable   : true,
                 configurable : true
             } );*/
-            Object.defineProperty( this, "renderPipelineDescriptor", {
+            Object.defineProperty( this, `renderPipelineDescriptor`, {
                 get : function ()
                 {
                     return renderPipelineDescriptor;
@@ -571,7 +571,7 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 enumerable   : true,
                 configurable : true
             } );
-            Object.defineProperty( this, "renderPipeline", {
+            Object.defineProperty( this, `renderPipeline`, {
                 get : function ()
                 {
                     if ( renderPipelineDescriptorUpdated )
@@ -613,6 +613,15 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 {
                     view = new DataView( value );
                 }
+                else if ( value instanceof GPUBuffer )
+                {
+                    if ( vertexBuffers[ index ] instanceof GPUBuffer )
+                    {
+                        vertexBuffers[ index ].destroy();
+                    }
+                    vertexBuffers[ index ] = value;
+                    return;
+                }
                 else
                 {
                     return;//unknow type;
@@ -644,5 +653,75 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
         {
             this.initVertexBuffer( vertexListArray.indexOf( vertexList ), vertexList );
         }
+    }
+
+    initIndexBuffer ()
+    {
+        const device = this.device;
+        //let indexFormat;
+        let indexBuffer;
+        /*Object.defineProperty( this, `indexFormat`, {
+            get : function ()
+            {
+                return indexFormat;
+            },
+            enumerable   : true,
+            configurable : true
+        } );*/
+        Object.defineProperty( this, `indexBuffer`, {
+            get : function ()
+            {
+                return indexBuffer;
+            },
+            set : function ( value )
+            {
+                switch ( true )
+                {
+                    case value instanceof Uint16Array:
+                        this.indexFormat = `uint16`;
+                        break;
+                    case value instanceof Uint32Array:
+                        this.indexFormat = `uint32`;
+                        break;
+                    case value instanceof Array:
+                        value = new Uint32Array( value );
+                        this.indexFormat = `uint32`;
+                        break;
+                    case typeof value === `number` || value instanceof Number:
+                        value = new Uint32Array( [ value ] );
+                        this.indexFormat = `uint32`;
+                        break;
+                    case value instanceof GPUBuffer://You need to set indexFormat manually
+                        if ( indexBuffer instanceof GPUBuffer )
+                        {
+                            indexBuffer.destroy();
+                        }
+                        indexBuffer = value;
+                        return;
+                        break;
+                    default:
+                        //unknow value
+                        return;
+                        break;
+                }
+                switch ( true )
+                {
+                    case indexBuffer instanceof GPUBuffer && value.byteLength != indexBuffer.size:
+                        indexBuffer.destroy();
+                    case !( indexBuffer instanceof GPUBuffer ):
+                        const size = value.byteLength;
+                        const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
+                        const mappedAtCreation = false;
+                        let label;
+                        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
+                        indexBuffer = device.createBuffer( bufferDescriptor );
+                    default:
+                        device.queue.writeBuffer( indexBuffer, 0, value.buffer, value.byteOffset, value.byteLength );
+                        break;
+                }
+            },
+            enumerable   : true,
+            configurable : true
+        } );
     }
 };

@@ -872,4 +872,6 @@ var bindGroups=[];
     renderPassEncoder.executeBundles( [ renderBundle ] );
     renderPassEncoder.end();
     context.device.queue.submit( [ commandEncoder.finish() ] );
+
+    return shader;
 };
