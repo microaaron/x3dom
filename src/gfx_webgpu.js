@@ -718,16 +718,18 @@ x3dom.gfx_webgpu = ( function ()
         // Set Shader
         // shape._webgl.shader = this.cache.getDynamicShader(gl, viewarea, shape);
         // shape._webgl.shader = this.cache.getShaderByProperties(gl, drawable.properties);
-        shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).copy( {
-            vertexBuffers : [],
-            vertices      : {}
-        } );
+        shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).copy();
         shape._webgpu.shader.initVertexBuffers();
+        shape._webgpu.shader.initIndexBuffer();
 
         // init vertex attribs
         var sp = shape._webgpu.shader;
-        var currAttribs = 0;
+        //var currAttribs = 0;
 
+        sp.vertices.position = new sp.assets.Positions( shape._webgpu.positions[ 0 ] );
+        sp.vertices.normal = new sp.assets.Normals( shape._webgpu.normals[ 0 ] );
+        sp.indexBuffer = shape._webgpu.indexes[ 0 ];
+        /*
         shape._webgpu.buffers = [];
         shape._webgpu.dynamicFields = [];
 
@@ -939,6 +941,7 @@ x3dom.gfx_webgpu = ( function ()
                 }
             }
         } // Standard geometry
+        */
     };
 
     /**
@@ -2255,10 +2258,10 @@ x3dom.gfx_webgpu = ( function ()
      * @param mat_scene
      * @param mat_light
      * @param mat_proj
-     * @param gl
+     * @param ctx3d
      */
     Context.prototype.renderShape = function ( drawable, viewarea, slights, numLights, mat_view, mat_scene,
-        mat_light, mat_proj, gl )
+        mat_light, mat_proj, ctx3d )
     {
         // Variable to indicate that the indices are successful bind
         var indicesReady = false;
@@ -2267,14 +2270,14 @@ x3dom.gfx_webgpu = ( function ()
         var transform = drawable.transform;
         var transparent = drawable.sortType == "transparent";
 
-        if ( !shape || !shape._webgl || !transform )
+        if ( !shape || !shape._webgpu || !transform )
         {
             x3dom.debug.logError( "[Context|RenderShape] No valid Shape!" );
             return;
         }
 
-        var s_gl = shape._webgl;
-        var sp = s_gl.shader;
+        var s_gpu = shape._webgpu;
+        var sp = s_gpu.shader;
 
         if ( !sp )
         {
@@ -3847,13 +3850,13 @@ x3dom.gfx_webgpu = ( function ()
         {
             return;
         }
-        /*
+
         var rentex = viewarea._doc._nodeBag.renderTextures;
         var rt_tex,
             rtl_i,
             rtl_n = rentex.length;
         var texProp = null;
-
+        /*
         // for initFBO
         var type = ctx3d.UNSIGNED_BYTE;
         var shadowType = ctx3d.UNSIGNED_BYTE;
@@ -4238,7 +4241,7 @@ x3dom.gfx_webgpu = ( function ()
             var traverseTime = x3dom.Utils.stopMeasure( "traverse" );
             this.x3dElem.runtime.addMeasurement( "TRAVERSE", traverseTime );
         }
-        /*
+
         // Sort drawables
         x3dom.Utils.startMeasure( "sorting" );
 
@@ -4312,11 +4315,11 @@ x3dom.gfx_webgpu = ( function ()
 
         mat_light = viewarea.getWCtoLCMatrix( viewarea.getLightMatrix()[ 0 ] );
 
-        for ( rtl_i = 0; rtl_i < rtl_n; rtl_i++ )
+        for ( var rtl_i = 0; rtl_i < rtl_n; rtl_i++ )
         {
             this.renderRTPass( ctx3d, viewarea, rentex[ rtl_i ] );
         }
-*/
+
         // rendering
         x3dom.Utils.startMeasure( "render" );
         /*
@@ -4329,7 +4332,7 @@ x3dom.gfx_webgpu = ( function ()
         x3dom.nodeTypes.PopGeometry.numRenderedVerts = 0;
         x3dom.nodeTypes.PopGeometry.numRenderedTris = 0;
 
-        n = scene.drawableCollection.length;
+        var n = scene.drawableCollection.length;
 
         // Very, very experimental priority culling, currently coupled with frustum and small feature culling
         // TODO: what about shadows?
@@ -4343,7 +4346,7 @@ x3dom.gfx_webgpu = ( function ()
         //        this.stateManager.unsetProgram();
 
         // render all remaining shapes
-        for ( i = 0; i < n; i++ )
+        for ( var i = 0; i < n; i++ )
         {
             var drawable = scene.drawableCollection.get( i );
 

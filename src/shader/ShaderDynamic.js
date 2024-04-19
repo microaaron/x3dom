@@ -45,8 +45,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
         .addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `modelViewProjectionMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         //.addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
 
         .addBindingParams( `diffuseColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
@@ -54,9 +54,13 @@ x3dom.shader.DynamicShader = function ( context, properties )
         .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
 
+    var bindingParamsList1 = bindingListArray.newBindingParamsList()
+        .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
     //Positions
     //var vertexParamsList0 = vertexListArray.newVertexParamsList();
     if ( properties.POSCOMPONENTS == 3 )
@@ -117,7 +121,7 @@ x3dom.shader.DynamicShader = function ( context, properties )
     //Lights & Fog
     if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
     {
-        bindingParamsList0.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        bindingParamsList1.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
             .addBindingParams( `isOrthoView`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
         vertexOutputList.add( `fragPosition`, `vec4<f32>` );
         vertexOutputList.add( `fragPositionWS`, `vec4<f32>` );
@@ -204,7 +208,7 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
 }
 `;
 
-    bindingParamsList0.addBindingParams( `lights`, `array<light>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
+    bindingParamsList1.addBindingParams( `lights`, `array<light>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
 
     if ( properties.LIGHTS )
     {
@@ -329,7 +333,7 @@ fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
 };`;
     }
 
-    bindingListArray.addBindingList( bindingParamsList0.createBindingList() );
+    bindingListArray.addBindingList( bindingParamsList0.createBindingList() ).addBindingList( bindingParamsList1.createBindingList() );
     var bindingCodes = bindingListArray.createShaderModuleBindingCodes();
     var vertexInputCode = vertexListArray.createShaderModuleVertexInputCode();
     var vertexOutputCode = vertexOutputList.createShaderModuleInputOutputCode();
@@ -652,7 +656,8 @@ fn ${fragmentShaderModuleEntryPoint}(
     shader.renderPipelineDescriptor = renderPipelineDescriptor;
     shader.bindingListArray = bindingListArray;
     shader.vertexListArray = vertexListArray;
-    shader.initBindGroups();
+
+    //shader.initBindGroups( perInitBindingListArray );
     /*for ( const bindingList of bindingListArray )
     {
         shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( bindingList ) );
@@ -761,6 +766,77 @@ fn ${fragmentShaderModuleEntryPoint}(
 
     shader.uniformStorage.lights = new shader.assets.Lights( 2 );
 
+    shader.assets.Positions = class Positions extends Float32Array
+    {
+        constructor ( arg )
+        {
+            switch ( true )
+            {
+                case typeof arg === `number` || arg instanceof Number:
+                    super( arg * 3 );
+                    break;
+                case arg instanceof Array:
+                    super( arg );
+                    break;
+                default:
+                    super( arg );
+                    break;
+            }
+        }
+
+        setPosition = function ( index, value )
+        {
+            switch ( true )
+            {
+                case value instanceof Array:
+                    this[ index * 3 ] = value[ 0 ];
+                    this[ index * 3 + 1 ] = value[ 1 ];
+                    this[ index * 3 + 2 ] = value[ 2 ];
+                    break;
+                case typeof value === `number` || value instanceof Number:
+                    this[ index * 3 ] = arguments[ 1 ];
+                    this[ index * 3 + 1 ] = arguments[ 2 ];
+                    this[ index * 3 + 2 ] = arguments[ 3 ];
+                    break;
+            }
+        };
+    };
+    shader.assets.Normals = class Normals extends Float32Array
+    {
+        constructor ( arg )
+        {
+            switch ( true )
+            {
+                case typeof arg === `number` || arg instanceof Number:
+                    super( arg * 3 );
+                    break;
+                case arg instanceof Array:
+                    super( arg );
+                    break;
+                default:
+                    super( arg );
+                    break;
+            }
+        }
+
+        setNormal = function ( index, value )
+        {
+            switch ( true )
+            {
+                case value instanceof Array:
+                    this[ index * 3 ] = value[ 0 ];
+                    this[ index * 3 + 1 ] = value[ 1 ];
+                    this[ index * 3 + 2 ] = value[ 2 ];
+                    break;
+                case typeof value === `number` || value instanceof Number:
+                    this[ index * 3 ] = arguments[ 1 ];
+                    this[ index * 3 + 1 ] = arguments[ 2 ];
+                    this[ index * 3 + 2 ] = arguments[ 3 ];
+                    break;
+            }
+        };
+    };
+
     /*for ( var bindGroupDescriptor of shader.bindGroupDescriptors )
     {
       if(bindGroupDescriptor.needToUpdateBindGroup){
@@ -778,10 +854,43 @@ var bindGroups=[];
         vertexBuffers : [],
         vertices      : {}
     } );*/
-    var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
-        vertexBuffers : [],
-        vertices      : {}
+
+    /*var perInitBindingListArray = [ [] ];
+    perInitBindingListArray[ 0 ][ 5 ] = bindingListArray[ 0 ][ 5 ];//screenWidth
+    perInitBindingListArray[ 0 ][ 6 ] = bindingListArray[ 0 ][ 6 ];//cameraPosWS
+    //perInitBindingListArray[0][7]=bindingListArray[0][7];//alphaCutoff
+    perInitBindingListArray[ 0 ][ 14 ] = bindingListArray[ 0 ][ 14 ];//numberOfLights
+    perInitBindingListArray[ 0 ][ 17 ] = bindingListArray[ 0 ][ 17 ];//eyePosition
+    perInitBindingListArray[ 0 ][ 18 ] = bindingListArray[ 0 ][ 18 ];//isOrthoView
+    perInitBindingListArray[ 0 ][ 20 ] = bindingListArray[ 0 ][ 20 ];//lights
+    perInitBindingListArray[ 0 ].getBindGroupLayout = ()=>{};
+
+    shader.bindGroupDescriptors[ 0 ] = shader.initBindGroupDescriptor( perInitBindingListArray[ 0 ] );
+    var resourcesArray = [ shader.bindGroupDescriptors[ 0 ].getResources() ];*/
+
+    shader.initBindGroups( [ , bindingListArray[ 1 ] ] );
+
+    //Object.defineProperties( {}, Object.assign( Object.getOwnPropertyDescriptors( shader.uniformStorage ));
+    //var uniformStorage = Object.defineProperties( {}, Object.assign( Object.getOwnPropertyDescriptors( shader.uniformStorage ));
+
+    //var copy=shader.copy;
+    shader.copy = ()=> new x3dom.WebGPU.RenderPassResource(shader, {
+        bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
+        uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
+        bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( shader.bindGroups, 1 ) ),
+        vertexBuffers        : [],
+        vertices             : {}
     } );
+    shader2 = shader.copy();
+    /*var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
+        bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
+        uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
+        bindGroups           : Object.defineProperty( [],1, Object.getOwnPropertyDescriptor( shader.bindGroups,1 ) ),
+        vertexBuffers        : [],
+        vertices             : {}
+    } );*/
+    //shader2.initBindGroups( undefined, resourcesArray );
+    shader2.initBindGroups( [ bindingListArray[ 0 ] ] );
     shader2.initVertexBuffers();
 
     shader2.vertices.position = new Float32Array( 1000 );
