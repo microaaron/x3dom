@@ -529,200 +529,6 @@ x3dom.WebGPU.PassResource = class PassResource
         }( layout, entries, label );
         bindGroupDescriptor.initEntries( this, bindingList, resources );
         return bindGroupDescriptor;
-        /*
-        for ( const bindingData of bindingList )
-        {
-            if(!bindingData){
-              break;
-            }
-            const binding = bindingData.entry.binding;
-            let resource;
-            if ( resources[ bindingData.name ] )
-            {
-                resource = resources[ bindingData.name ];
-            }
-            else
-            {
-                if ( bindingData.entry.buffer )
-                {
-                    let size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
-                    let usage = GPUBufferUsage.COPY_DST;
-                    switch ( bindingData.entry.buffer.type )
-                    {
-                        case `storage`:
-                            usage |= GPUBufferUsage.SRC;
-                        case `read-only-storage`:
-                            usage |= GPUBufferUsage.STORAGE;
-                            break;
-                        case `uniform`:
-                        case undefined:
-                            usage |= GPUBufferUsage.UNIFORM;
-                            break;
-                    }
-                    const mappedAtCreation = false;
-                    const label = bindingData.name;
-                    const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                    const buffer = device.createBuffer( bufferDescriptor );
-                    const offset = undefined;
-                    size = undefined;
-                    resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
-                }
-                else if ( bindingData.entry.sampler )
-                {
-                    //incomplete
-                }
-                else if ( bindingData.entry.texture )
-                {
-                    //incomplete
-                }
-                else if ( bindingData.entry.storageTexture )
-                {
-                    //incomplete
-                }
-            }
-            entries[binding]=x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource );
-            //set properties
-            if ( bindingData.entry.buffer )
-            {
-                if ( resource.buffer instanceof GPUBuffer )
-                {
-                    const typedArray = ( function getTypedArray ( hostShareableType )
-                    {
-                        var match;
-                        switch ( true )
-                        {
-                            case /^f16$/.test( hostShareableType ):
-                                return ;//not supported
-                                break;
-                            case /^i32$/.test( hostShareableType ):
-                                return Int32Array;
-                                break;
-                            case /^u32$/.test( hostShareableType ):
-                                return Uint32Array;
-                                break;
-                            case /^f32$/.test( hostShareableType ):
-                                return Float32Array;
-                                break;
-                            case ( match = hostShareableType.match( /^atomic<(.*)>$/ ) ) ? true : false:
-                                return getTypedArray( match[ 1 ] );
-                                break;
-                            case ( match = hostShareableType.match( /^vec\d+(.*)$/ ) ) ? true : false:
-                                var T = match[ 1 ];//<type>
-                                switch ( true )
-                                {
-                                    case ( match = T.match( /^<(.*)>$/ ) ) ? true : false:
-                                        return getTypedArray( match[ 1 ] );
-                                        break;
-                                    case /^h$/.test( T ):
-                                        return getTypedArray( `f16` );
-                                        break;
-                                    case /^i$/.test( T ):
-                                        return getTypedArray( `i32` );
-                                        break;
-                                    case /^u$/.test( T ):
-                                        return getTypedArray( `u32` );
-                                        break;
-                                    case /^f$/.test( T ):
-                                        return getTypedArray( `f32` );
-                                        break;
-                                    default:
-                                        return;
-                                        break;
-                                }
-                            case ( match = hostShareableType.match( /^mat\d+x(\d+)(.*)$/ ) ) ? true : false:
-                                var R = Number( match[ 1 ] );//rows
-                                var T = match[ 2 ];//<type>
-                                return getTypedArray( `vec${R}${T}` );
-                                break;
-                            case ( match = hostShareableType.match( /^array<(.*),\d+>$/ ) ) ? true : false:
-                            case ( match = hostShareableType.match( /^array<(.*)(?<!,\d+)>$/ ) ) ? true : false:
-                                var E = match[ 1 ];//element
-                                return getTypedArray( E );
-                                break;
-                            default:
-                                return;
-                                break;
-                        }
-                    } )( bindingData.wgslType );
-                    Object.defineProperty( this.uniformStorage, bindingData.name, {
-                        get : function ()
-                        {
-                            return resource.buffer;
-                        },
-                        set : function ( value )
-                        {
-                            let view;
-                            if ( ArrayBuffer.isView( value ) )
-                            {
-                                view = value;
-                            }
-                            else if ( value instanceof ArrayBuffer )
-                            {
-                                view = new DataView( value );
-                            }
-                            else if ( typedArray )
-                            {
-                                if ( typeof value === `number` || value instanceof Number )
-                                {
-                                    view = new typedArray( [ value ] );
-                                }
-                                else if ( value instanceof Array )
-                                {
-                                    view = new typedArray( value );
-                                }
-                                else
-                                {
-                                    return;//unknow value;
-                                }
-                            }
-                            else
-                            {
-                                return;//unknow type;
-                            }
-                            if ( view.byteLength != resource.buffer.size )
-                            {
-                                resource.buffer.destroy();
-                                resource.setBuffer( device.createBuffer( new x3dom.WebGPU.GPUBufferDescriptor( view.byteLength, resource.buffer.usage, false, resource.buffer.label ) ) );
-                                //resource.setOffset(0);
-                                //resource.setSize(view.byteLength);
-                                updated = true;
-                            }
-                            device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
-                        },
-                        enumerable   : true,
-                        configurable : true
-                    } );
-                }
-                else
-                {
-                    //resource error
-                }
-            }
-            else if ( bindingData.entry.sampler )
-            {
-                //incomplete
-            }
-            else if ( bindingData.entry.texture )
-            {
-                //incomplete
-            }
-            else if ( bindingData.entry.storageTexture )
-            {
-                //incomplete
-            }
-        }
-        return new class extends x3dom.WebGPU.GPUBindGroupDescriptor
-        {
-            getBindGroup ()
-            {
-                if ( updated )
-                {
-                    bindGroup = device.createBindGroup( this );
-                    updated = false;
-                }
-                return bindGroup;
-            }
-        }( layout, entries, label );*/
     }
 
     initBindGroup ( index, bindGroupDescriptor )
@@ -835,12 +641,12 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
         {
             vertexNames.push( vertexData.name );
         }
+        let vertexBuffer;
         const vertexBufferName = vertexNames.join( `_` );
-        const vertexBuffers = this.vertexBuffers;
         Object.defineProperty( this.vertices, vertexBufferName, {
             get : function ()
             {
-                return vertexBuffers[ index ];
+                return vertexBuffer;
             },
             set : function ( value )
             {
@@ -855,11 +661,11 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 }
                 else if ( value instanceof GPUBuffer )
                 {
-                    if ( vertexBuffers[ index ] instanceof GPUBuffer )
+                    if ( vertexBuffer instanceof GPUBuffer )
                     {
-                        vertexBuffers[ index ].destroy();
+                        vertexBuffer.destroy();
                     }
-                    vertexBuffers[ index ] = value;
+                    vertexBuffer = value;
                     return;
                 }
                 else
@@ -868,19 +674,27 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 }
                 switch ( true )
                 {
-                    case vertexBuffers[ index ] instanceof GPUBuffer && view.byteLength != vertexBuffers[ index ].size:
-                        vertexBuffers[ index ].destroy();
-                    case !( vertexBuffers[ index ] instanceof GPUBuffer ):
+                    case vertexBuffer instanceof GPUBuffer && view.byteLength != vertexBuffer.size:
+                        vertexBuffer.destroy();
+                    case !( vertexBuffer instanceof GPUBuffer ):
                         const size = view.byteLength;
                         const usage = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
                         const mappedAtCreation = false;
                         const label = vertexBufferName;
                         const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-                        vertexBuffers[ index ] = device.createBuffer( bufferDescriptor );
+                        vertexBuffer = device.createBuffer( bufferDescriptor );
                     default:
-                        device.queue.writeBuffer( vertexBuffers[ index ], 0, view.buffer, view.byteOffset, view.byteLength );
+                        device.queue.writeBuffer( vertexBuffer, 0, view.buffer, view.byteOffset, view.byteLength );
                         break;
                 }
+            },
+            enumerable   : true,
+            configurable : true
+        } );
+        Object.defineProperty( this.vertexBuffers, index, {
+            get : function ()
+            {
+                return vertexBuffer;
             },
             enumerable   : true,
             configurable : true
@@ -898,16 +712,7 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
     initIndexBuffer ()
     {
         const device = this.device;
-        //let indexFormat;
         let indexBuffer;
-        /*Object.defineProperty( this, `indexFormat`, {
-            get : function ()
-            {
-                return indexFormat;
-            },
-            enumerable   : true,
-            configurable : true
-        } );*/
         Object.defineProperty( this, `indexBuffer`, {
             get : function ()
             {

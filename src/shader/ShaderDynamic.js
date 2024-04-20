@@ -762,10 +762,6 @@ fn ${fragmentShaderModuleEntryPoint}(
         };
     };
 
-    //var lights = new DataView(new ArrayBuffer(stride*2) );
-
-    shader.uniformStorage.lights = new shader.assets.Lights( 2 );
-
     shader.assets.Positions = class Positions extends Float32Array
     {
         constructor ( arg )
@@ -874,14 +870,21 @@ var bindGroups=[];
     //var uniformStorage = Object.defineProperties( {}, Object.assign( Object.getOwnPropertyDescriptors( shader.uniformStorage ));
 
     //var copy=shader.copy;
-    shader.copy = ()=> new x3dom.WebGPU.RenderPassResource(shader, {
-        bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
-        uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
-        bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( shader.bindGroups, 1 ) ),
-        vertexBuffers        : [],
-        vertices             : {}
-    } );
-    shader2 = shader.copy();
+    shader.new = ()=>
+    {
+        var newShade = shader.copy( {
+            bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
+            uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
+            bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( shader.bindGroups, 1 ) ),
+            vertexBuffers        : [],
+            vertices             : {}
+        } );
+        newShade.initBindGroups( [ bindingListArray[ 0 ] ] );
+        newShade.initVertexBuffers();
+        newShade.initIndexBuffer();
+        return newShade;
+    };
+    shader2 = shader.new();
     /*var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
         bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
         uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
@@ -890,13 +893,17 @@ var bindGroups=[];
         vertices             : {}
     } );*/
     //shader2.initBindGroups( undefined, resourcesArray );
-    shader2.initBindGroups( [ bindingListArray[ 0 ] ] );
-    shader2.initVertexBuffers();
+    //shader2.initBindGroups( [ bindingListArray[ 0 ] ] );
+    //shader2.initVertexBuffers();
+    //shader2.initIndexBuffer();
+    shader2.uniformStorage.lights = new shader.assets.Lights( 2 );
+    //var lights = new DataView(new ArrayBuffer(stride*2) );
 
     shader2.vertices.position = new Float32Array( 1000 );
     shader2.vertices.normal = new Float32Array( 1000 );
+    shader2.indexBuffer = new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] );
 
-    {
+    /*{
         const size = 48;
         const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
         const mappedAtCreation = false;
@@ -905,7 +912,7 @@ var bindGroups=[];
         var indexBuffer = context.device.createBuffer( bufferDescriptor );
 
         context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] ), 0, 9 );
-    }
+    }*/
 
     {
         const colorFormats = [ context.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
@@ -922,8 +929,8 @@ var bindGroups=[];
         {
             renderBundleEncoder.setVertexBuffer( shader2.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
         }
-        renderBundleEncoder.setIndexBuffer( indexBuffer, "uint32" );
-        renderBundleEncoder.drawIndexed( 12 );
+        renderBundleEncoder.setIndexBuffer( shader2.indexBuffer, "uint32" );
+        renderBundleEncoder.drawIndexed( 9 );
 
         //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
         var renderBundle = renderBundleEncoder.finish();

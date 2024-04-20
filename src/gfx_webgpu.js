@@ -718,9 +718,9 @@ x3dom.gfx_webgpu = ( function ()
         // Set Shader
         // shape._webgl.shader = this.cache.getDynamicShader(gl, viewarea, shape);
         // shape._webgl.shader = this.cache.getShaderByProperties(gl, drawable.properties);
-        shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).copy();
-        shape._webgpu.shader.initVertexBuffers();
-        shape._webgpu.shader.initIndexBuffer();
+        shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).new();
+        //shape._webgpu.shader.initVertexBuffers();
+        //shape._webgpu.shader.initIndexBuffer();
 
         // init vertex attribs
         var sp = shape._webgpu.shader;
