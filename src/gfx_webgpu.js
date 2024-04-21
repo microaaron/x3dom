@@ -2294,7 +2294,7 @@ x3dom.gfx_webgpu = ( function ()
 
         var scene = viewarea._scene;
         var tex = null;
-
+        /*
         if ( s_gl.coordType != gl.FLOAT )
         {
             if ( !s_gl.popGeometry && ( x3dom.Utils.isUnsignedType( s_geo._vf.coordType ) ) )
@@ -2368,13 +2368,13 @@ x3dom.gfx_webgpu = ( function ()
             sp.fogColor = fog._vf.color.toGL();
             sp.fogRange = fog._vf.visibilityRange;
             sp.fogType = ( fog._vf.fogType == "LINEAR" ) ? 0.0 : 1.0;
-        }
+        }*/
 
         // Set Material
         var mat = s_app ? s_app._cf.material.node : null;
         var shader = s_app ? s_app._shader : null;
         var twoSidedMat = false;
-
+/*
         var isUserDefinedShader = shader && x3dom.isa( shader, x3dom.nodeTypes.ComposedShader );
 
         if ( s_gl.csshader )
@@ -2474,8 +2474,16 @@ x3dom.gfx_webgpu = ( function ()
             sp.ambientIntensity = 1.0;
             sp.transparency     = 0.0;
             sp.alphaCutoff      = 0.1;
-        }
-
+        }*/
+        sp.uniformStorage.diffuseColor = mat._vf.diffuseColor.toGL();
+        sp.uniformStorage.specularColor     = mat._vf.specularColor.toGL();
+        sp.uniformStorage.emissiveColor     = mat._vf.emissiveColor.toGL();
+        sp.uniformStorage.shininess         = mat._vf.shininess;
+        sp.uniformStorage.ambientIntensity  = mat._vf.ambientIntensity;
+        sp.uniformStorage.transparency      = mat._vf.transparency;
+        //sp.uniformStorage.environmentFactor = 0.0;
+        sp.uniformStorage.alphaCutoff       = s_app._vf.alphaClipThreshold;
+        /*
         // Look for user-defined shaders
         if ( shader )
         {
@@ -2585,8 +2593,23 @@ x3dom.gfx_webgpu = ( function ()
             sp[ "light" + numLights + "_BeamWidth" ] = 0.0;
             sp[ "light" + numLights + "_CutOffAngle" ] = 0.0;
             sp[ "light" + numLights + "_ShadowIntensity" ] = 0.0;
-        }
+        }*/
 
+        var lights = new sp.assets.Lights( 1 );
+        lights.setType( 0, 0.0 );
+        lights.setOn( 0, 1.0 );
+        lights.setColor( 0, [ 1.0, 1.0, 1.0 ] );
+        lights.setIntensity( 0, 1.0 );
+        lights.setAmbientIntensity( 0, 0.0 );
+        lights.setDirection( 0, [ 0.0, 0.0, -1.0 ] );
+        lights.setAttenuation( 0, [ 1.0, 1.0, 1.0 ] );
+        lights.setLocation( 0, [ 1.0, 1.0, 1.0 ] );
+        lights.setRadius( 0, 0.0 );
+        lights.setBeamWidth( 0, 0.0 );
+        lights.setCutOffAngle( 0, 0.0 );
+        lights.setShadowIntensity( 0, 0.0 );
+        sp.uniformStorage.lights = lights;
+        /*
         // Set ClipPlanes
         if ( shape._clipPlanes )
         {
@@ -2634,9 +2657,13 @@ x3dom.gfx_webgpu = ( function ()
             this.stateManager.enable( gl.DEPTH_TEST );
             this.stateManager.depthMask( writeDepth );
             this.stateManager.depthFunc( gl.LEQUAL );
-        }
-
-        // Set BlendMode
+        }*/
+        var renderPipelineDescriptor = sp.renderPipelineDescriptor;
+        renderPipelineDescriptor.depthStencil.depthWriteEnabled = true;
+        renderPipelineDescriptor.depthStencil.depthCompare = "less";
+        renderPipelineDescriptor.depthStencil.format = "depth32float-stencil8";
+        sp.renderPipelineDescriptor=renderPipelineDescriptor;
+        /*        // Set BlendMode
         var blendMode = s_app ? s_app._cf.blendMode.node : null;
         if ( blendMode )
         {
@@ -2686,9 +2713,12 @@ x3dom.gfx_webgpu = ( function ()
                 this.stateManager.enable( gl.BLEND );
                 this.stateManager.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE );
             }
-        }
+        }*/
+        //var blendState = new x3dom.WebGPU.GPUBlendState();
 
-        // Set ColorMaskMode
+        //renderPipelineDescriptor.fragment.targets[0].setBlend(blendState);
+
+        /*        // Set ColorMaskMode
         var colorMaskMode = s_app ? s_app._cf.colorMaskMode.node : null;
         if ( colorMaskMode )
         {
@@ -2731,33 +2761,33 @@ x3dom.gfx_webgpu = ( function ()
         else
         {
             this.stateManager.disable( gl.CULL_FACE );
-        }
+        }*/
 
         // transformation matrices
         var model_view = mat_view.mult( transform );
         var model_view_inv = model_view.inverse();
 
-        sp.screenWidth = this.canvas.width;
+        sp.uniformStorage.screenWidth = this.canvas.width;
 
-        sp.isOrthoView = ( mat_proj._33 == 1 ) ? 1.0 : 0.0;
+        sp.uniformStorage.isOrthoView = ( mat_proj._33 == 1 ) ? 1.0 : 0.0;
 
-        sp.modelMatrix = transform.toGL();
-        sp.modelViewMatrix = model_view.toGL();
-        sp.viewMatrix = mat_view.toGL();
+        sp.uniformStorage.modelMatrix = transform.toGL();
+        sp.uniformStorage.modelViewMatrix = model_view.toGL();
+        sp.uniformStorage.viewMatrix = mat_view.toGL();
 
-        sp.normalMatrix = model_view_inv.transpose().toGL();
-        sp.modelViewMatrixInverse = model_view_inv.toGL();
+        sp.uniformStorage.normalMatrix = model_view_inv.transpose().toGL();
+        sp.uniformStorage.modelViewMatrixInverse = model_view_inv.toGL();
 
         sp.modelViewProjectionMatrix = mat_scene.mult( transform ).toGL();
         sp.modelViewProjectionInverseMatrix = mat_scene.mult( transform ).inverse().toGL();
 
-        sp.viewMatrixInverse = mat_view.inverse().toGL();
+        sp.uniformStorage.viewMatrixInverse = mat_view.inverse().toGL();
 
-        sp.cameraPosWS = mat_view.inverse().e3().toGL();
+        sp.uniformStorage.cameraPosWS = mat_view.inverse().e3().toGL();
 
         this.setTonemappingOperator( viewarea, sp );
 
-        // only calculate on "request" (maybe of interest for users)
+        /*        // only calculate on "request" (maybe of interest for users)
         // may be used by external materials
         if ( isUserDefinedShader )
         {
@@ -3156,9 +3186,82 @@ x3dom.gfx_webgpu = ( function ()
                         this.drawElements( gl, s_gl.primType, s_gl.indexes[ q ].length, s_gl.indexType, 0 );
                     }
                 }
+            }*/
+        {
+            const colorFormats = [ this.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
+            const depthStencilFormat = "depth32float-stencil8";
+            const sampleCount = 1;
+            var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
+            var renderBundleEncoder = this.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
+            renderBundleEncoder.setPipeline( sp.renderPipeline );
+            for ( var bindGroup of sp.bindGroups )
+            {
+                renderBundleEncoder.setBindGroup( sp.bindGroups.indexOf( bindGroup ), bindGroup );
             }
+            for ( var vertexBuffer of sp.vertexBuffers )
+            {
+                renderBundleEncoder.setVertexBuffer( sp.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
+            }
+            renderBundleEncoder.setIndexBuffer( sp.indexBuffer, sp.indexFormat );
+            renderBundleEncoder.drawIndexed( s_gpu.indexes[ 0 ].length );
 
-            // disable all used vertex attributes
+            //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
+            var renderBundle = renderBundleEncoder.finish();
+        }
+        {
+            const size = new x3dom.WebGPU.GPUExtent3DDict( this.canvas.width, this.canvas.height );
+            let mipLevelCount;
+            let sampleCount;
+            let dimension;
+            const format = "depth32float-stencil8";
+            const usage = GPUTextureUsage.RENDER_ATTACHMENT;
+            let viewFormats;
+            let label;
+
+            var textureDescriptor = new x3dom.WebGPU.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
+            var depthTexture = this.device.createTexture( textureDescriptor );
+        }
+
+        {
+            const view = this.ctx3d.getCurrentTexture().createView();
+            let depthSlice;
+            let resolveTarget;
+            const clearValue = new x3dom.WebGPU.GPUColorDict( 0.5, 0.5, 0.5, 1.0 );
+            const loadOp = "clear";
+            const storeOp = "store";
+
+            var colorAttachments = [ new x3dom.WebGPU.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
+        }
+
+        {
+            const view = depthTexture.createView();
+            const depthClearValue = 1.0;
+            const depthLoadOp = "clear";
+            const depthStoreOp = "store";
+            let depthReadOnly;
+            const stencilClearValue = 0;
+            const stencilLoadOp = "clear";
+            const stencilStoreOp = "store";
+            let stencilReadOnly;
+
+            var depthStencilAttachment = new x3dom.WebGPU.GPURenderPassDepthStencilAttachment( view, depthClearValue, depthLoadOp, depthStoreOp, depthReadOnly, stencilClearValue, stencilLoadOp, stencilStoreOp, stencilReadOnly );
+
+            let occlusionQuerySet;
+            let timestampWrites;
+            let maxDrawCount;
+            let label;
+
+            var renderPassDescriptor = new x3dom.WebGPU.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
+        }
+
+        var commandEncoder = this.device.createCommandEncoder();
+
+        var renderPassEncoder = commandEncoder.beginRenderPass( renderPassDescriptor );
+        renderPassEncoder.executeBundles( [ renderBundle ] );
+        renderPassEncoder.end();
+        this.device.queue.submit( [ commandEncoder.finish() ] );
+
+        /*            // disable all used vertex attributes
             gl.disableVertexAttribArray( sp.position );
 
             if ( sp.normal !== undefined )
@@ -3284,7 +3387,7 @@ x3dom.gfx_webgpu = ( function ()
                     gl.bindTexture( gl.TEXTURE_2D, null );
                 }
             }
-        }
+        }*/
     };
 
     /**

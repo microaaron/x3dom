@@ -632,7 +632,7 @@ fn ${fragmentShaderModuleEntryPoint}(
     }
     //depthStencil: GPUDepthStencilState
     {
-        const format = "depth24plus-stencil8";
+        const format = "depth32float-stencil8";
         const depthWriteEnabled = true;
         const depthCompare = "less";
         var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
@@ -916,7 +916,7 @@ var bindGroups=[];
 
     {
         const colorFormats = [ context.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
-        const depthStencilFormat = "depth24plus-stencil8";
+        const depthStencilFormat = "depth32float-stencil8";
         const sampleCount = 1;
         var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
         var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
@@ -941,7 +941,7 @@ var bindGroups=[];
         let mipLevelCount;
         let sampleCount;
         let dimension;
-        const format = "depth24plus-stencil8";
+        const format = "depth32float-stencil8";
         const usage = GPUTextureUsage.RENDER_ATTACHMENT;
         let viewFormats;
         let label;
