@@ -565,6 +565,7 @@ if(tonemappingOperator == 3.0) {
         fs_mainFunctionBodyCode += `color = gammaEncodeVec4(color);\n`;
     }
     fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = color;\n`;
+    //fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = vec4<f32>(1.0,1.0,1.0,1.0);\n`;
     fs_mainFunctionBodyCode += `return fragmentOutput;`;
     //End Of Shader
 

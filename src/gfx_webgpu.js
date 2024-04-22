@@ -2778,8 +2778,8 @@ x3dom.gfx_webgpu = ( function ()
         sp.uniformStorage.normalMatrix = model_view_inv.transpose().toGL();
         sp.uniformStorage.modelViewMatrixInverse = model_view_inv.toGL();
 
-        sp.modelViewProjectionMatrix = mat_scene.mult( transform ).toGL();
-        sp.modelViewProjectionInverseMatrix = mat_scene.mult( transform ).inverse().toGL();
+        sp.uniformStorage.modelViewProjectionMatrix = mat_scene.mult( transform ).toGL();
+        sp.uniformStorage.modelViewProjectionInverseMatrix = mat_scene.mult( transform ).inverse().toGL();
 
         sp.uniformStorage.viewMatrixInverse = mat_view.inverse().toGL();
 
