@@ -234,7 +234,7 @@ x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, propert
         shaderID += "S";
     }
 
-    if ( this.shaders[ shaderID ] === undefined )
+    if ( this.passResources[ shaderID ] === undefined )
     {
         var program = null;
 

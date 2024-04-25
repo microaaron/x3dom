@@ -593,9 +593,9 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
             this.vertices = {};
             this.vertexBuffers = [];
             //this.assets = {};
-            let renderPipeline;
-            let renderPipelineDescriptor;
-            let renderPipelineDescriptorUpdated;
+            //let renderPipeline;
+            //let renderPipelineDescriptor;
+            //let renderPipelineDescriptorUpdated;
             /*Object.defineProperty( this, "device", {
                 get : function ()
                 {
@@ -604,7 +604,8 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 enumerable   : true,
                 configurable : true
             } );*/
-            Object.defineProperty( this, `renderPipelineDescriptor`, {
+            //initRenderPipeline();
+            /*Object.defineProperty( this, `renderPipelineDescriptor`, {
                 get : function ()
                 {
                     return renderPipelineDescriptor;
@@ -629,8 +630,41 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
                 },
                 enumerable   : true,
                 configurable : true
-            } );
+            } );*/
         }
+    }
+
+    initRenderPipeline ( renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor() )
+    {
+        let renderPipeline;
+        //let renderPipelineDescriptor;
+        let renderPipelineDescriptorUpdated = true;
+        Object.defineProperty( this, `renderPipelineDescriptor`, {
+            get : function ()
+            {
+                return renderPipelineDescriptor;
+            },
+            set : function ( descriptor )
+            {
+                renderPipelineDescriptor = descriptor;
+                renderPipelineDescriptorUpdated = true;
+            },
+            enumerable   : true,
+            configurable : true
+        } );
+        Object.defineProperty( this, `renderPipeline`, {
+            get : function ()
+            {
+                if ( renderPipelineDescriptorUpdated )
+                {
+                    renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
+                    renderPipelineDescriptorUpdated = false;
+                }
+                return renderPipeline;
+            },
+            enumerable   : true,
+            configurable : true
+        } );
     }
 
     initVertexBuffer ( index, vertexList )

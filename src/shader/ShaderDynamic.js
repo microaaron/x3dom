@@ -179,7 +179,8 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
     return tonemapeFilmic(color);
   }
   return color;
-}`;
+}
+`;
     //Colors
     //VertexID
     //Textures
@@ -307,7 +308,8 @@ fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
 };
 fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
   return (color * color);
-};`;
+};
+`;
     }
     else
     {
@@ -466,7 +468,8 @@ var _shininess: f32 = shininess;
 var _specularColor: vec3<f32> = specularColor;
 var _ambientIntensity: f32 = ambientIntensity;
 var _transparency: f32 = transparency;
-var _occlusion: f32 = 1.0;`;
+var _occlusion: f32 = 1.0;
+`;
 
     if ( properties.ALPHAMODE == "OPAQUE" )
     {
@@ -565,7 +568,7 @@ if(tonemappingOperator == 3.0) {
         fs_mainFunctionBodyCode += `color = gammaEncodeVec4(color);\n`;
     }
     fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = color;\n`;
-    //fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = vec4<f32>(1.0,1.0,1.0,1.0);\n`;
+    //fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = vec4<f32>(lights[0].intensity,lights[0].intensity,lights[0].intensity,1.0);\n`;
     fs_mainFunctionBodyCode += `return fragmentOutput;`;
     //End Of Shader
 
@@ -654,7 +657,7 @@ fn ${fragmentShaderModuleEntryPoint}(
     shader.bindGroups = [];*/
 
     var shader = new x3dom.WebGPU.RenderPassResource( context.device );
-    shader.renderPipelineDescriptor = renderPipelineDescriptor;
+    //shader.renderPipelineDescriptor = renderPipelineDescriptor;
     shader.bindingListArray = bindingListArray;
     shader.vertexListArray = vertexListArray;
 
@@ -734,32 +737,32 @@ fn ${fragmentShaderModuleEntryPoint}(
 
         setRadius = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 80, value, true );
+            this.setFloat32( index * this.stride + 76, value, true );
         };
 
         setIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 84, value, true );
+            this.setFloat32( index * this.stride + 80, value, true );
         };
 
         setAmbientIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 88, value, true );
+            this.setFloat32( index * this.stride + 84, value, true );
         };
 
         setBeamWidth = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 92, value, true );
+            this.setFloat32( index * this.stride + 88, value, true );
         };
 
         setCutOffAngle = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 96, value, true );
+            this.setFloat32( index * this.stride + 92, value, true );
         };
 
         setShadowIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 100, value, true );
+            this.setFloat32( index * this.stride + 96, value, true );
         };
     };
 
@@ -880,12 +883,53 @@ var bindGroups=[];
             vertexBuffers        : [],
             vertices             : {}
         } );
+        //layout: GPUPipelineLayout
+        {
+            const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
+            var layout = context.device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
+        }
+        //vertex: GPUVertexState
+        {
+            const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
+            const entryPoint = vertexShaderModuleEntryPoint;
+            const constants = undefined;
+            const buffers = vertexListArray.vertexBufferLayouts;
+            var vertex = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+        }
+        //fragment: GPUFragmentState
+        {
+            const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
+            const entryPoint = fragmentShaderModuleEntryPoint;
+            const constants = undefined;
+            const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
+            var fragment = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
+        }
+        //primitive: GPUPrimitiveState
+        {
+            const stripIndexFormat = undefined;
+            const frontFace = "ccw";
+            const cullMode = "back";
+            var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
+        }
+        //depthStencil: GPUDepthStencilState
+        {
+            const format = "depth32float-stencil8";
+            const depthWriteEnabled = true;
+            const depthCompare = "less";
+            var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
+        }
+        //multisample: GPUMultisampleState
+        {
+            const count = 1;
+            var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
+        }
+        newShade.initRenderPipeline( new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
         newShade.initBindGroups( [ bindingListArray[ 0 ] ] );
         newShade.initVertexBuffers();
         newShade.initIndexBuffer();
         return newShade;
     };
-    shader2 = shader.new();
+    //shader2 = shader.new();
     /*var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
         bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
         uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
@@ -897,12 +941,12 @@ var bindGroups=[];
     //shader2.initBindGroups( [ bindingListArray[ 0 ] ] );
     //shader2.initVertexBuffers();
     //shader2.initIndexBuffer();
-    shader2.uniformStorage.lights = new shader.assets.Lights( 2 );
+    //shader2.uniformStorage.lights = new shader.assets.Lights( 2 );
     //var lights = new DataView(new ArrayBuffer(stride*2) );
 
-    shader2.vertices.position = new Float32Array( 1000 );
-    shader2.vertices.normal = new Float32Array( 1000 );
-    shader2.indexBuffer = new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] );
+    //shader2.vertices.position = new Float32Array( 1000 );
+    //shader2.vertices.normal = new Float32Array( 1000 );
+    //shader2.indexBuffer = new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] );
 
     /*{
         const size = 48;
@@ -914,12 +958,12 @@ var bindGroups=[];
 
         context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] ), 0, 9 );
     }*/
-
+    /*
     {
-        const colorFormats = [ context.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
+        const colorFormats = [ context.ctx3d.getCurrentTexture().format];
         const depthStencilFormat = "depth32float-stencil8";
         const sampleCount = 1;
-        var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
+        var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount);
         var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
         renderBundleEncoder.setPipeline( shader2.renderPipeline );
         for ( var bindGroup of shader2.bindGroups )
@@ -989,6 +1033,6 @@ var bindGroups=[];
     renderPassEncoder.executeBundles( [ renderBundle ] );
     renderPassEncoder.end();
     context.device.queue.submit( [ commandEncoder.finish() ] );
-
+*/
     return shader;
 };

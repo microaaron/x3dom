@@ -2374,7 +2374,7 @@ x3dom.gfx_webgpu = ( function ()
         var mat = s_app ? s_app._cf.material.node : null;
         var shader = s_app ? s_app._shader : null;
         var twoSidedMat = false;
-/*
+        /*
         var isUserDefinedShader = shader && x3dom.isa( shader, x3dom.nodeTypes.ComposedShader );
 
         if ( s_gl.csshader )
@@ -2594,10 +2594,10 @@ x3dom.gfx_webgpu = ( function ()
             sp[ "light" + numLights + "_CutOffAngle" ] = 0.0;
             sp[ "light" + numLights + "_ShadowIntensity" ] = 0.0;
         }*/
-
+        sp.uniformStorage.numberOfLights = 1;
         var lights = new sp.assets.Lights( 1 );
-        lights.setType( 0, 0.0 );
-        lights.setOn( 0, 1.0 );
+        lights.setType( 0, 0 );
+        lights.setOn( 0, 1 );
         lights.setColor( 0, [ 1.0, 1.0, 1.0 ] );
         lights.setIntensity( 0, 1.0 );
         lights.setAmbientIntensity( 0, 0.0 );
@@ -2662,7 +2662,7 @@ x3dom.gfx_webgpu = ( function ()
         renderPipelineDescriptor.depthStencil.depthWriteEnabled = true;
         renderPipelineDescriptor.depthStencil.depthCompare = "less";
         renderPipelineDescriptor.depthStencil.format = "depth32float-stencil8";
-        sp.renderPipelineDescriptor=renderPipelineDescriptor;
+        sp.renderPipelineDescriptor = renderPipelineDescriptor;
         /*        // Set BlendMode
         var blendMode = s_app ? s_app._cf.blendMode.node : null;
         if ( blendMode )
@@ -3208,7 +3208,7 @@ x3dom.gfx_webgpu = ( function ()
             //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
             var renderBundle = renderBundleEncoder.finish();
         }
-        {
+        /*{
             const size = new x3dom.WebGPU.GPUExtent3DDict( this.canvas.width, this.canvas.height );
             let mipLevelCount;
             let sampleCount;
@@ -3220,27 +3220,27 @@ x3dom.gfx_webgpu = ( function ()
 
             var textureDescriptor = new x3dom.WebGPU.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
             var depthTexture = this.device.createTexture( textureDescriptor );
-        }
+        }*/
 
         {
             const view = this.ctx3d.getCurrentTexture().createView();
             let depthSlice;
             let resolveTarget;
-            const clearValue = new x3dom.WebGPU.GPUColorDict( 0.5, 0.5, 0.5, 1.0 );
-            const loadOp = "clear";
+            let clearValue;//= new x3dom.WebGPU.GPUColorDict( 1.0, 1.0, 1.0, 1.0 );
+            const loadOp = "load";
             const storeOp = "store";
 
             var colorAttachments = [ new x3dom.WebGPU.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
         }
 
         {
-            const view = depthTexture.createView();
-            const depthClearValue = 1.0;
-            const depthLoadOp = "clear";
+            const view = this.depthTexture.createView();
+            let depthClearValue;//= 1.0;
+            const depthLoadOp = "load";
             const depthStoreOp = "store";
             let depthReadOnly;
-            const stencilClearValue = 0;
-            const stencilLoadOp = "clear";
+            let stencilClearValue;//= 0;
+            const stencilLoadOp = "load";
             const stencilStoreOp = "store";
             let stencilReadOnly;
 
@@ -3953,6 +3953,55 @@ x3dom.gfx_webgpu = ( function ()
         {
             return;
         }
+
+        {
+            const size = new x3dom.WebGPU.GPUExtent3DDict( this.canvas.width, this.canvas.height );
+            let mipLevelCount;
+            let sampleCount;
+            let dimension;
+            const format = "depth32float-stencil8";
+            const usage = GPUTextureUsage.RENDER_ATTACHMENT;
+            let viewFormats;
+            let label;
+
+            const textureDescriptor = new x3dom.WebGPU.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
+            this.depthTexture = this.device.createTexture( textureDescriptor );
+        }
+        {
+            const view = this.ctx3d.getCurrentTexture().createView();
+            let depthSlice;
+            let resolveTarget;
+            const clearValue = new x3dom.WebGPU.GPUColorDict( 1.0, 1.0, 1.0, 1.0 );
+            const loadOp = "clear";
+            const storeOp = "store";
+
+            var colorAttachments = [ new x3dom.WebGPU.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
+        }
+
+        {
+            const view = this.depthTexture.createView();
+            const depthClearValue = 1.0;
+            const depthLoadOp = "clear";
+            const depthStoreOp = "store";
+            let depthReadOnly;
+            const stencilClearValue = 0;
+            const stencilLoadOp = "clear";
+            const stencilStoreOp = "store";
+            let stencilReadOnly;
+
+            var depthStencilAttachment = new x3dom.WebGPU.GPURenderPassDepthStencilAttachment( view, depthClearValue, depthLoadOp, depthStoreOp, depthReadOnly, stencilClearValue, stencilLoadOp, stencilStoreOp, stencilReadOnly );
+
+            let occlusionQuerySet;
+            let timestampWrites;
+            let maxDrawCount;
+            let label;
+
+            var renderPassDescriptor = new x3dom.WebGPU.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
+        }
+        var commandEncoder = this.device.createCommandEncoder();
+        var renderPassEncoder = commandEncoder.beginRenderPass( renderPassDescriptor );
+        renderPassEncoder.end();
+        this.device.queue.submit( [ commandEncoder.finish() ] );
 
         var rentex = viewarea._doc._nodeBag.renderTextures;
         var rt_tex,

@@ -322,7 +322,7 @@ x3dom.fields.SFMatrix4f.perspective = function ( fov, aspect, near, far )
         0, 0, ( near + far ) / ( near - far ), 2 * near * far / ( near - far ),
         0, 0, -1, 0
     );*/
-    //Normalized device coordinates X:[-1~1] Y:[-1~1] Z:[0~1] 
+    //Normalized device coordinates X:[-1~1] Y:[-1~1] Z:[0~1]
     return new x3dom.fields.SFMatrix4f(
         f / aspect, 0, 0, 0,
         0, f, 0, 0,
