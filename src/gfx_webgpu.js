@@ -2594,8 +2594,9 @@ x3dom.gfx_webgpu = ( function ()
             sp[ "light" + numLights + "_CutOffAngle" ] = 0.0;
             sp[ "light" + numLights + "_ShadowIntensity" ] = 0.0;
         }*/
-        sp.uniformStorage.numberOfLights = 1;
+        //sp.uniformStorage.numberOfLights = 1;
         var lights = new sp.assets.Lights( 1 );
+        //lights.setNumber( 1 );
         lights.setType( 0, 0 );
         lights.setOn( 0, 1 );
         lights.setColor( 0, [ 1.0, 1.0, 1.0 ] );

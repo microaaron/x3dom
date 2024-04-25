@@ -59,8 +59,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
 
     var bindingParamsList1 = bindingListArray.newBindingParamsList()
         .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
     //Positions
     //var vertexParamsList0 = vertexListArray.newVertexParamsList();
     if ( properties.POSCOMPONENTS == 3 )
@@ -193,7 +193,7 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
 
     //Lights
     fragmentShaderModuleDeclarationCode +=
-`struct light {
+`struct Light {
   on : u32,
   _type : u32,
   location : vec3<f32>,
@@ -207,9 +207,13 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
   cutOffAngle : f32,
   shadowIntensity : f32,
 }
+struct Lights {
+  number : u32,
+  lightArray : array<Light>,
+}
 `;
 
-    bindingParamsList1.addBindingParams( `lights`, `array<light>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
+    bindingParamsList1.addBindingParams( `lights`, `Lights`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
 
     if ( properties.LIGHTS )
     {
@@ -503,22 +507,23 @@ if ( isOrthoView > 0 ) {
             fs_mainFunctionBodyCode +=
 `if (dot(normalize(fragNormal), eye) < 0.0) {
   normal *= -1.0;
-}`;
+}
+`;
         }
 
         //Calculate lights
         fs_mainFunctionBodyCode +=
-`for(var i: u32 = 0; i < numberOfLights; i++){
-  lighting(lights[i]._type,
-  lights[i].location,
-  lights[i].direction,
-  lights[i].color,
-  lights[i].attenuation,
-  lights[i].radius,
-  lights[i].intensity,
-  lights[i].ambientIntensity,
-  lights[i].beamWidth,
-  lights[i].cutOffAngle,
+`for(var i: u32 = 0; i < lights.number; i++){
+  lighting(lights.lightArray[i]._type,
+  lights.lightArray[i].location,
+  lights.lightArray[i].direction,
+  lights.lightArray[i].color,
+  lights.lightArray[i].attenuation,
+  lights.lightArray[i].radius,
+  lights.lightArray[i].intensity,
+  lights.lightArray[i].ambientIntensity,
+  lights.lightArray[i].beamWidth,
+  lights.lightArray[i].cutOffAngle,
   positionVS, normal, eye, _shininess, _ambientIntensity, _specularColor, &ambient, &diffuse, &specular);
   ambient = max(ambient, vec3(0.0, 0.0, 0.0));
   diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
@@ -694,75 +699,81 @@ fn ${fragmentShaderModuleEntryPoint}(
 
         constructor ( number )
         {
-            super( new ArrayBuffer( number * 7 * 16 ) );
+            super( new ArrayBuffer( 16 + number * 7 * 16 ) );
+            this.setNumber( number );
         }
+
+        setNumber = function ( value )
+        {
+            this.setUint32( 0, value, true );
+        };
 
         setOn = function ( index, value )
         {
-            this.setUint32( index * this.stride, value, true );
+            this.setUint32( 16 + index * this.stride, value, true );
         };
 
         setType = function ( index, value )
         {
-            this.setUint32( index * this.stride + 4, value, true );
+            this.setUint32( 16 + index * this.stride + 4, value, true );
         };
 
         setLocation = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 16, value[ 0 ], true );
-            this.setFloat32( index * this.stride + 16 + 4, value[ 1 ], true );
-            this.setFloat32( index * this.stride + 16 + 8, value[ 2 ], true );
+            this.setFloat32( 16 + index * this.stride + 16, value[ 0 ], true );
+            this.setFloat32( 16 + index * this.stride + 16 + 4, value[ 1 ], true );
+            this.setFloat32( 16 + index * this.stride + 16 + 8, value[ 2 ], true );
         };
 
         setDirection = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 32, value[ 0 ], true );
-            this.setFloat32( index * this.stride + 32 + 4, value[ 1 ], true );
-            this.setFloat32( index * this.stride + 32 + 8, value[ 2 ], true );
+            this.setFloat32( 16 + index * this.stride + 32, value[ 0 ], true );
+            this.setFloat32( 16 + index * this.stride + 32 + 4, value[ 1 ], true );
+            this.setFloat32( 16 + index * this.stride + 32 + 8, value[ 2 ], true );
         };
 
         setColor = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 48, value[ 0 ], true );
-            this.setFloat32( index * this.stride + 48 + 4, value[ 1 ], true );
-            this.setFloat32( index * this.stride + 48 + 8, value[ 2 ], true );
+            this.setFloat32( 16 + index * this.stride + 48, value[ 0 ], true );
+            this.setFloat32( 16 + index * this.stride + 48 + 4, value[ 1 ], true );
+            this.setFloat32( 16 + index * this.stride + 48 + 8, value[ 2 ], true );
         };
 
         setAttenuation = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 64, value[ 0 ], true );
-            this.setFloat32( index * this.stride + 64 + 4, value[ 1 ], true );
-            this.setFloat32( index * this.stride + 64 + 8, value[ 2 ], true );
+            this.setFloat32( 16 + index * this.stride + 64, value[ 0 ], true );
+            this.setFloat32( 16 + index * this.stride + 64 + 4, value[ 1 ], true );
+            this.setFloat32( 16 + index * this.stride + 64 + 8, value[ 2 ], true );
         };
 
         setRadius = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 76, value, true );
+            this.setFloat32( 16 + index * this.stride + 76, value, true );
         };
 
         setIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 80, value, true );
+            this.setFloat32( 16 + index * this.stride + 80, value, true );
         };
 
         setAmbientIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 84, value, true );
+            this.setFloat32( 16 + index * this.stride + 84, value, true );
         };
 
         setBeamWidth = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 88, value, true );
+            this.setFloat32( 16 + index * this.stride + 88, value, true );
         };
 
         setCutOffAngle = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 92, value, true );
+            this.setFloat32( 16 + index * this.stride + 92, value, true );
         };
 
         setShadowIntensity = function ( index, value )
         {
-            this.setFloat32( index * this.stride + 96, value, true );
+            this.setFloat32( 16 + index * this.stride + 96, value, true );
         };
     };
 
