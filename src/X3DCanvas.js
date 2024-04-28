@@ -321,12 +321,12 @@ x3dom.X3DCanvas.prototype.bindEventListeners = function ()
                          this.mouse_button == 2 && !this.parent.disableRightDrag ||
                          this.mouse_button == 4 && !this.parent.disableMiddleDrag )
                     {
-                        this.parent.doc.onDrag( that.gl, this.mouse_drag_x, this.mouse_drag_y, this.mouse_button );
+                        this.parent.doc.onDrag( that.context, this.mouse_drag_x, this.mouse_drag_y, this.mouse_button );
                     }
                 }
                 else
                 {
-                    this.parent.doc.onMove( that.gl, this.mouse_drag_x, this.mouse_drag_y, this.mouse_button );
+                    this.parent.doc.onMove( that.context, this.mouse_drag_x, this.mouse_drag_y, this.mouse_button );
                 }
 
                 this.parent.doc.needRender = true;

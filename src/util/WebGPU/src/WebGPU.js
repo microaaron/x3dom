@@ -293,11 +293,16 @@ x3dom.WebGPU.PassResource = class PassResource
         const device = this.device;
         let updated = true;
         let bindGroup;
-        const layout = bindingList.getBindGroupLayout();
+        const layout = bindingList.getBindGroupLayout( device );
         const entries = [];
         const label = undefined;
         const bindGroupDescriptor = new class extends x3dom.WebGPU.GPUBindGroupDescriptor
         {
+            update ()
+            {
+                updated = true;
+            }
+
             setUpdated ( value )
             {
                 updated = value ? true : false;

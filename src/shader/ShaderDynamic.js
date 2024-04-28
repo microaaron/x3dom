@@ -1,35 +1,3 @@
-/*
- * X3DOM JavaScript Library
- * http://www.x3dom.org
- *
- * (C)2009 Fraunhofer IGD, Darmstadt, Germany
- * Dual licensed under the MIT and GPL
- *
- * Based on code originally provided by
- * Philip Taylor: http://philip.html5.org
- */
-
-/**
- * Generate the final Shader program
- */
-/*x3dom.shader.DynamicShader = function ( ctx3d, properties )
-{
-    this.program = ctx3d.createProgram();
-
-    var vertexShader     = this.generateVertexShader( ctx3d, properties, x3dom.caps.WEBGL_VERSION );
-    var fragmentShader   = this.generateFragmentShader( ctx3d, properties, x3dom.caps.WEBGL_VERSION );
-
-    ctx3d.attachShader( this.program, vertexShader );
-    ctx3d.attachShader( this.program, fragmentShader );
-
-    // optional, but position should be at location 0 for performance reasons
-    ctx3d.bindAttribLocation( this.program, 0, `position` );
-
-    ctx3d.linkProgram( this.program );
-
-    return this.program;
-};*/
-
 x3dom.shader.DynamicShader = function ( context, properties )
 {
     var bindingListArray = new x3dom.WebGPU.BindingListArray();
@@ -611,89 +579,10 @@ fn ${fragmentShaderModuleEntryPoint}(
   ${fs_mainFunctionBodyCode}
 }`;
 
-    //layout: GPUPipelineLayout
-    {
-        const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
-        var layout = context.device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
-    }
-    //vertex: GPUVertexState
-    {
-        const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
-        const entryPoint = vertexShaderModuleEntryPoint;
-        const constants = undefined;
-        const buffers = vertexListArray.vertexBufferLayouts;
-        var vertex = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
-    }
-    //fragment: GPUFragmentState
-    {
-        const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
-        const entryPoint = fragmentShaderModuleEntryPoint;
-        const constants = undefined;
-        const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
-        var fragment = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
-    }
-    //primitive: GPUPrimitiveState
-    {
-        const stripIndexFormat = undefined;
-        const frontFace = "ccw";
-        const cullMode = "back";
-        var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
-    }
-    //depthStencil: GPUDepthStencilState
-    {
-        const format = "depth32float-stencil8";
-        const depthWriteEnabled = true;
-        const depthCompare = "less";
-        var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
-    }
-    //multisample: GPUMultisampleState
-    {
-        const count = 1;
-        var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
-    }
-    var renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ );
-    //var renderPipeline = context.device.createRenderPipeline( renderPipelineDescriptor );
-
-    /*var shader = {};
-    //shader.buffers = {};
-    shader.uniformStorage = {};
-    shader.renderPipeline = renderPipeline;
-    //shader.bindGroupDescriptors = [];
-    shader.bindGroups = [];*/
-
-    var shader = new x3dom.WebGPU.RenderPassResource( context.device );
-    //shader.renderPipelineDescriptor = renderPipelineDescriptor;
-    shader.bindingListArray = bindingListArray;
-    shader.vertexListArray = vertexListArray;
-
-    //shader.initBindGroups( perInitBindingListArray );
-    /*for ( const bindingList of bindingListArray )
-    {
-        shader.initBindGroup( bindingListArray.indexOf( bindingList ), shader.initBindGroupDescriptor( bindingList ) );
-    }*/
-    /*
-    var resource = new x3dom.WebGPU.GPUBufferBinding( buffer, offset, size );
-    var resource = sampler;
-    var resource = textureView;
-    var resource = externalTexture;
-    */
-
-    //var bindGroups=[];
-    /*
-    for ( const bindingList of bindingListArray )
-    {
-        const bindGroupDescriptor = x3dom.WebGPU.createBindGroupDescriptor( context.device, shader, bindingList );
-        //shader.bindGroupDescriptors.push( bindGroupDescriptor );
-        //shader.bindGroups.push( context.device.createBindGroup( bindGroupDescriptor ) );
-        Object.defineProperty( shader.bindGroups, bindingListArray.indexOf( bindingList ), {
-            get : function ()
-            {
-                return bindGroupDescriptor.getBindGroup();
-            }
-        } );
-    }*/
-
-    shader.assets.Lights = class Lights extends DataView
+    var renderPassResource = new x3dom.WebGPU.RenderPassResource( context.device );
+    renderPassResource.bindingListArray = bindingListArray;
+    renderPassResource.vertexListArray = vertexListArray;
+    renderPassResource.assets.Lights = class Lights extends DataView
     {
         stride = 7 * 16;
 
@@ -777,7 +666,7 @@ fn ${fragmentShaderModuleEntryPoint}(
         };
     };
 
-    shader.assets.Positions = class Positions extends Float32Array
+    renderPassResource.assets.Positions = class Positions extends Float32Array
     {
         constructor ( arg )
         {
@@ -812,7 +701,7 @@ fn ${fragmentShaderModuleEntryPoint}(
             }
         };
     };
-    shader.assets.Normals = class Normals extends Float32Array
+    renderPassResource.assets.Normals = class Normals extends Float32Array
     {
         constructor ( arg )
         {
@@ -848,49 +737,14 @@ fn ${fragmentShaderModuleEntryPoint}(
         };
     };
 
-    /*for ( var bindGroupDescriptor of shader.bindGroupDescriptors )
+    renderPassResource.initBindGroups( [ , bindingListArray[ 1 ] ] );
+
+    renderPassResource.new = ()=>
     {
-      if(bindGroupDescriptor.needToUpdateBindGroup){
-        shader.bindGroups[shader.bindGroupDescriptors.indexOf(bindGroupDescriptor)]=context.device.createBindGroup( bindGroupDescriptor );
-      }
-    }*/
-
-    /*
-var buffers={};
-var uniformStorage={};
-var bindGroups=[];
-*/
-
-    /*var shader2 = shader.copy( {
-        vertexBuffers : [],
-        vertices      : {}
-    } );*/
-
-    /*var perInitBindingListArray = [ [] ];
-    perInitBindingListArray[ 0 ][ 5 ] = bindingListArray[ 0 ][ 5 ];//screenWidth
-    perInitBindingListArray[ 0 ][ 6 ] = bindingListArray[ 0 ][ 6 ];//cameraPosWS
-    //perInitBindingListArray[0][7]=bindingListArray[0][7];//alphaCutoff
-    perInitBindingListArray[ 0 ][ 14 ] = bindingListArray[ 0 ][ 14 ];//numberOfLights
-    perInitBindingListArray[ 0 ][ 17 ] = bindingListArray[ 0 ][ 17 ];//eyePosition
-    perInitBindingListArray[ 0 ][ 18 ] = bindingListArray[ 0 ][ 18 ];//isOrthoView
-    perInitBindingListArray[ 0 ][ 20 ] = bindingListArray[ 0 ][ 20 ];//lights
-    perInitBindingListArray[ 0 ].getBindGroupLayout = ()=>{};
-
-    shader.bindGroupDescriptors[ 0 ] = shader.initBindGroupDescriptor( perInitBindingListArray[ 0 ] );
-    var resourcesArray = [ shader.bindGroupDescriptors[ 0 ].getResources() ];*/
-
-    shader.initBindGroups( [ , bindingListArray[ 1 ] ] );
-
-    //Object.defineProperties( {}, Object.assign( Object.getOwnPropertyDescriptors( shader.uniformStorage ));
-    //var uniformStorage = Object.defineProperties( {}, Object.assign( Object.getOwnPropertyDescriptors( shader.uniformStorage ));
-
-    //var copy=shader.copy;
-    shader.new = ()=>
-    {
-        var newShade = shader.copy( {
-            bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
-            uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
-            bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( shader.bindGroups, 1 ) ),
+        var newRenderPassResource = renderPassResource.copy( {
+            bindGroupDescriptors : [ , renderPassResource.bindGroupDescriptors[ 1 ] ],
+            uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( renderPassResource.uniformStorage ) ),
+            bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( renderPassResource.bindGroups, 1 ) ),
             vertexBuffers        : [],
             vertices             : {}
         } );
@@ -934,116 +788,11 @@ var bindGroups=[];
             const count = 1;
             var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
         }
-        newShade.initRenderPipeline( new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
-        newShade.initBindGroups( [ bindingListArray[ 0 ] ] );
-        newShade.initVertexBuffers();
-        newShade.initIndexBuffer();
-        return newShade;
+        newRenderPassResource.initRenderPipeline( new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
+        newRenderPassResource.initBindGroups( [ bindingListArray[ 0 ] ] );
+        newRenderPassResource.initVertexBuffers();
+        newRenderPassResource.initIndexBuffer();
+        return newRenderPassResource;
     };
-    //shader2 = shader.new();
-    /*var shader2 = new x3dom.WebGPU.RenderPassResource( shader, {
-        bindGroupDescriptors : [ , shader.bindGroupDescriptors[ 1 ] ],
-        uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( shader.uniformStorage ) ),
-        bindGroups           : Object.defineProperty( [],1, Object.getOwnPropertyDescriptor( shader.bindGroups,1 ) ),
-        vertexBuffers        : [],
-        vertices             : {}
-    } );*/
-    //shader2.initBindGroups( undefined, resourcesArray );
-    //shader2.initBindGroups( [ bindingListArray[ 0 ] ] );
-    //shader2.initVertexBuffers();
-    //shader2.initIndexBuffer();
-    //shader2.uniformStorage.lights = new shader.assets.Lights( 2 );
-    //var lights = new DataView(new ArrayBuffer(stride*2) );
-
-    //shader2.vertices.position = new Float32Array( 1000 );
-    //shader2.vertices.normal = new Float32Array( 1000 );
-    //shader2.indexBuffer = new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] );
-
-    /*{
-        const size = 48;
-        const usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
-        const mappedAtCreation = false;
-        const label = `indexBuffer`;
-        const bufferDescriptor = new x3dom.WebGPU.GPUBufferDescriptor( size, usage, mappedAtCreation, label );
-        var indexBuffer = context.device.createBuffer( bufferDescriptor );
-
-        context.device.queue.writeBuffer( indexBuffer, 0, new Uint32Array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ] ), 0, 9 );
-    }*/
-    /*
-    {
-        const colorFormats = [ context.ctx3d.getCurrentTexture().format];
-        const depthStencilFormat = "depth32float-stencil8";
-        const sampleCount = 1;
-        var renderBundleEncoderDescriptor = new x3dom.WebGPU.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount);
-        var renderBundleEncoder = context.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
-        renderBundleEncoder.setPipeline( shader2.renderPipeline );
-        for ( var bindGroup of shader2.bindGroups )
-        {
-            renderBundleEncoder.setBindGroup( shader2.bindGroups.indexOf( bindGroup ), bindGroup );
-        }
-        for ( var vertexBuffer of shader2.vertexBuffers )
-        {
-            renderBundleEncoder.setVertexBuffer( shader2.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
-        }
-        renderBundleEncoder.setIndexBuffer( shader2.indexBuffer, "uint32" );
-        renderBundleEncoder.drawIndexed( 9 );
-
-        //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
-        var renderBundle = renderBundleEncoder.finish();
-    }
-
-    {
-        const size = new x3dom.WebGPU.GPUExtent3DDict( context.canvas.width, context.canvas.height );
-        let mipLevelCount;
-        let sampleCount;
-        let dimension;
-        const format = "depth32float-stencil8";
-        const usage = GPUTextureUsage.RENDER_ATTACHMENT;
-        let viewFormats;
-        let label;
-
-        var textureDescriptor = new x3dom.WebGPU.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
-        var depthTexture = context.device.createTexture( textureDescriptor );
-    }
-
-    {
-        const view = context.ctx3d.getCurrentTexture().createView();
-        let depthSlice;
-        let resolveTarget;
-        const clearValue = new x3dom.WebGPU.GPUColorDict( 0.5, 0.5, 0.5, 1.0 );
-        const loadOp = "clear";
-        const storeOp = "store";
-
-        var colorAttachments = [ new x3dom.WebGPU.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
-    }
-
-    {
-        const view = depthTexture.createView();
-        const depthClearValue = 1.0;
-        const depthLoadOp = "clear";
-        const depthStoreOp = "store";
-        let depthReadOnly;
-        const stencilClearValue = 0;
-        const stencilLoadOp = "clear";
-        const stencilStoreOp = "store";
-        let stencilReadOnly;
-
-        var depthStencilAttachment = new x3dom.WebGPU.GPURenderPassDepthStencilAttachment( view, depthClearValue, depthLoadOp, depthStoreOp, depthReadOnly, stencilClearValue, stencilLoadOp, stencilStoreOp, stencilReadOnly );
-
-        let occlusionQuerySet;
-        let timestampWrites;
-        let maxDrawCount;
-        let label;
-
-        var renderPassDescriptor = new x3dom.WebGPU.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
-    }
-
-    var commandEncoder = context.device.createCommandEncoder();
-
-    var renderPassEncoder = commandEncoder.beginRenderPass( renderPassDescriptor );
-    renderPassEncoder.executeBundles( [ renderBundle ] );
-    renderPassEncoder.end();
-    context.device.queue.submit( [ commandEncoder.finish() ] );
-*/
-    return shader;
+    return renderPassResource;
 };

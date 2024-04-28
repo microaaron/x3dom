@@ -718,7 +718,10 @@ x3dom.gfx_webgpu = ( function ()
         // Set Shader
         // shape._webgl.shader = this.cache.getDynamicShader(gl, viewarea, shape);
         // shape._webgl.shader = this.cache.getShaderByProperties(gl, drawable.properties);
-        shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).new();
+        if ( !shape._webgpu.shader || shape._webgpu.shader.id != shape.getShaderProperties( viewarea ).id )
+        {
+            shape._webgpu.shader = this.cache.getShaderByProperties( this, shape, shape.getShaderProperties( viewarea ) ).new();
+        }
         //shape._webgpu.shader.initVertexBuffers();
         //shape._webgpu.shader.initIndexBuffer();
 
@@ -2475,7 +2478,7 @@ x3dom.gfx_webgpu = ( function ()
             sp.transparency     = 0.0;
             sp.alphaCutoff      = 0.1;
         }*/
-        sp.uniformStorage.diffuseColor = mat._vf.diffuseColor.toGL();
+        sp.uniformStorage.diffuseColor      = mat._vf.diffuseColor.toGL();
         sp.uniformStorage.specularColor     = mat._vf.specularColor.toGL();
         sp.uniformStorage.emissiveColor     = mat._vf.emissiveColor.toGL();
         sp.uniformStorage.shininess         = mat._vf.shininess;

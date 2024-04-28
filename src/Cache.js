@@ -222,7 +222,7 @@ x3dom.Cache.prototype.getDynamicShader = function ( gl, viewarea, shape )
 x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, properties, pickMode, shadows )
 {
     // Get shaderID
-    var shaderID = properties.id;
+    var id = properties.id;
 
     if ( pickMode !== undefined && pickMode !== null )
     {
@@ -234,7 +234,7 @@ x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, propert
         shaderID += "S";
     }
 
-    if ( this.passResources[ shaderID ] === undefined )
+    if ( this.passResources[ id ] === undefined )
     {
         var program = null;
 
@@ -261,14 +261,15 @@ x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, propert
         else
         {
             //program = new x3dom.shader.DynamicShader( context, properties );
-            this.passResources[ shaderID ] = x3dom.shader.DynamicShader( context, properties );
+            this.passResources[ id ] = x3dom.shader.DynamicShader( context, properties );
+            this.passResources[ id ].id = id;
         }
 
         //this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( context, program, shaderID );
     }
 
     //return this.shaders[ shaderID ];
-    return this.passResources[ shaderID ];
+    return this.passResources[ id ];
 };
 
 /**
