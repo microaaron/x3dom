@@ -591,59 +591,15 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
         super( arg0, arg1 );
         if ( arg0 instanceof GPUDevice )
         {
-            /*this.bindingListArray = [];
-            this.bindGroupDescriptors = [];
-            this.uniformStorage = {};
-            this.bindGroups = [];*/
             this.vertices = {};
             this.vertexBuffers = [];
-            //this.assets = {};
-            //let renderPipeline;
-            //let renderPipelineDescriptor;
-            //let renderPipelineDescriptorUpdated;
-            /*Object.defineProperty( this, "device", {
-                get : function ()
-                {
-                    return arg;
-                },
-                enumerable   : true,
-                configurable : true
-            } );*/
-            //initRenderPipeline();
-            /*Object.defineProperty( this, `renderPipelineDescriptor`, {
-                get : function ()
-                {
-                    return renderPipelineDescriptor;
-                },
-                set : function ( descriptor )
-                {
-                    renderPipelineDescriptor = descriptor;
-                    renderPipelineDescriptorUpdated = true;
-                },
-                enumerable   : true,
-                configurable : true
-            } );
-            Object.defineProperty( this, `renderPipeline`, {
-                get : function ()
-                {
-                    if ( renderPipelineDescriptorUpdated )
-                    {
-                        renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
-                        renderPipelineDescriptorUpdated = false;
-                    }
-                    return renderPipeline;
-                },
-                enumerable   : true,
-                configurable : true
-            } );*/
         }
     }
 
     initRenderPipeline ( renderPipelineDescriptor = new x3dom.WebGPU.GPURenderPipelineDescriptor() )
     {
         let renderPipeline;
-        //let renderPipelineDescriptor;
-        let renderPipelineDescriptorUpdated = true;
+        let updated = true;
         Object.defineProperty( this, `renderPipelineDescriptor`, {
             get : function ()
             {
@@ -652,7 +608,7 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
             set : function ( descriptor )
             {
                 renderPipelineDescriptor = descriptor;
-                renderPipelineDescriptorUpdated = true;
+                updated = true;
             },
             enumerable   : true,
             configurable : true
@@ -660,10 +616,10 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
         Object.defineProperty( this, `renderPipeline`, {
             get : function ()
             {
-                if ( renderPipelineDescriptorUpdated )
+                if ( updated )
                 {
                     renderPipeline = this.device.createRenderPipeline( renderPipelineDescriptor );
-                    renderPipelineDescriptorUpdated = false;
+                    updated = false;
                 }
                 return renderPipeline;
             },
@@ -744,7 +700,10 @@ x3dom.WebGPU.RenderPassResource = class RenderPassResource extends x3dom.WebGPU.
     {
         for ( const vertexList of vertexListArray )
         {
-            this.initVertexBuffer( vertexListArray.indexOf( vertexList ), vertexList );
+            if ( vertexList )
+            {
+                this.initVertexBuffer( vertexListArray.indexOf( vertexList ), vertexList );
+            }
         }
     }
 

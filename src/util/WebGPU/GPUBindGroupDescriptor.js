@@ -8,7 +8,7 @@ x3dom.WebGPU.GPUBindGroupDescriptor = class GPUBindGroupDescriptor extends x3dom
     constructor ( layout, entries = [], label )
     {
         super( label );
-        this.layout = layout; //required GPUBindGroupLayout
+        this.layout = layout; //Required GPUBindGroupLayout
         this.entries = entries; //Required sequence<GPUBindGroupEntry>
     }
 
