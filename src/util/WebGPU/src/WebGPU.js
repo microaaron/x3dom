@@ -80,14 +80,14 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
     static BindingParamsList = class BindingParamsList extends Array
     {
-        addBindingParams ( name, wgslType, visibility, resourceLayoutObject, size/*Optional*/ )
+        addBindingParams ( name, wgslType, visibility, resourceLayoutObject//, size/*Optional*/ )
         {
             this.push( {
                 name                 : name,
                 wgslType             : wgslType,
                 visibility           : visibility,
                 resourceLayoutObject : resourceLayoutObject,
-                size                 : size//Optional;
+                //size                 : size//Optional;
             } );
             return this;
         }
@@ -120,7 +120,7 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
                     entry = entry;
 
-                    size = bindingParams.size;
+                    //size = bindingParams.size;
                 }() );
             }
 
@@ -353,7 +353,7 @@ x3dom.WebGPU.PassResource = class PassResource
                 {
                     if ( bindingData.entry.buffer )
                     {
-                        let size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
+                        let size = /*bindingData.size ? bindingData.size :*/ x3dom.WGSL.sizeOf( bindingData.wgslType );
                         let usage = GPUBufferUsage.COPY_DST;
                         switch ( bindingData.entry.buffer.type )
                         {
