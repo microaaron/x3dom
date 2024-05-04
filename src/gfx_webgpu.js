@@ -712,7 +712,7 @@ x3dom.gfx_webgpu = ( function ()
         textures = shape.getTextures();
         for ( t = 0; t < textures.length; ++t )
         {
-            shape._webgpu.texture.push( new x3dom.Texture( ctx3d, shape._nameSpace.doc, this.cache, textures[ t ] ) );
+            //shape._webgpu.texture.push( new x3dom.Texture( ctx3d, shape._nameSpace.doc, this.cache, textures[ t ] ) );
         }
 
         // Set Shader
@@ -732,6 +732,51 @@ x3dom.gfx_webgpu = ( function ()
         sp.vertices.position = new sp.assets.Positions( shape._webgpu.positions[ 0 ] );
         sp.vertices.normal = new sp.assets.Normals( shape._webgpu.normals[ 0 ] );
         sp.indexBuffer = shape._webgpu.indexes[ 0 ];
+        if ( shape.getShaderProperties( viewarea ).TEXTURED )
+        {
+            sp.vertices.texcoord = new sp.assets.Texcoords( shape._webgpu.texcoords[ 0 ] );
+            if ( !window.webgpuTexture )
+            {
+                var tempTexture = this.device.createTexture( {
+                    size   : [ 1, 1, 1 ],
+                    format : "rgba8unorm",
+                    usage  : GPUTextureUsage.TEXTURE_BINDING |
+                    GPUTextureUsage.COPY_DST |
+                    GPUTextureUsage.RENDER_ATTACHMENT
+                } );
+                window.webgpuTexture = tempTexture;
+                //sp.uniformStorage.texture = tempTexture;
+
+                var img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = textures[ 0 ]._nameSpace.getURL( textures[ 0 ]._vf.url[ 0 ] );
+                img.decode().then( ()=>
+                {
+                    createImageBitmap( img ).then( ( imageBitmap )=>
+                    {
+                        const texture = this.device.createTexture( {
+                            size   : [ imageBitmap.width, imageBitmap.height, 1 ],
+                            format : "rgba8unorm",
+                            usage  : GPUTextureUsage.TEXTURE_BINDING |
+                    GPUTextureUsage.COPY_DST |
+                    GPUTextureUsage.RENDER_ATTACHMENT
+                        } );
+                        this.device.queue.copyExternalImageToTexture( {
+                            source : imageBitmap
+                        }, {
+                            texture : texture
+                        },
+                        [ imageBitmap.width, imageBitmap.height ]
+                        );
+                        tempTexture.destroy();
+                        window.webgpuTexture = texture;
+                        //sp.uniformStorage.texture = texture;
+                    } );
+                } );
+            }
+            sp.uniformStorage.texture = window.webgpuTexture;
+        }
+
         /*
         shape._webgpu.buffers = [];
         shape._webgpu.dynamicFields = [];
@@ -2478,14 +2523,27 @@ x3dom.gfx_webgpu = ( function ()
             sp.transparency     = 0.0;
             sp.alphaCutoff      = 0.1;
         }*/
-        sp.uniformStorage.diffuseColor      = mat._vf.diffuseColor.toGL();
-        sp.uniformStorage.specularColor     = mat._vf.specularColor.toGL();
-        sp.uniformStorage.emissiveColor     = mat._vf.emissiveColor.toGL();
-        sp.uniformStorage.shininess         = mat._vf.shininess;
-        sp.uniformStorage.ambientIntensity  = mat._vf.ambientIntensity;
-        sp.uniformStorage.transparency      = mat._vf.transparency;
-        //sp.uniformStorage.environmentFactor = 0.0;
-        sp.uniformStorage.alphaCutoff       = s_app._vf.alphaClipThreshold;
+        if ( mat )
+        {
+            sp.uniformStorage.diffuseColor      = mat._vf.diffuseColor.toGL();
+            sp.uniformStorage.specularColor     = mat._vf.specularColor.toGL();
+            sp.uniformStorage.emissiveColor     = mat._vf.emissiveColor.toGL();
+            sp.uniformStorage.shininess         = mat._vf.shininess;
+            sp.uniformStorage.ambientIntensity  = mat._vf.ambientIntensity;
+            sp.uniformStorage.transparency      = mat._vf.transparency;
+            //sp.uniformStorage.environmentFactor = 0.0;
+            sp.uniformStorage.alphaCutoff       = s_app._vf.alphaClipThreshold;
+        }
+        else
+        {
+            sp.uniformStorage.diffuseColor     = [ 1.0, 1.0, 1.0 ];
+            sp.uniformStorage.specularColor    = [ 0.0, 0.0, 0.0 ];
+            sp.uniformStorage.emissiveColor    = [ 0.0, 0.0, 0.0 ];
+            sp.uniformStorage.shininess        = 0.0;
+            sp.uniformStorage.ambientIntensity = 1.0;
+            sp.uniformStorage.transparency     = 0.0;
+            sp.uniformStorage.alphaCutoff      = 0.1;
+        }
         /*
         // Look for user-defined shaders
         if ( shader )

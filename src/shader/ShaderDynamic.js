@@ -85,7 +85,20 @@ x3dom.shader.DynamicShader = function ( context, properties )
     }
 
     //Textures
+    if ( properties.TEXTURED )
+    {
+        vertexOutputList.add( `fragTexcoord`, `vec2<f32>` );
+        bindingParamsList0.addBindingParams( `diffuseMap`, `sampler`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUSamplerBindingLayout( `filtering` ), new x3dom.WebGPU.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) )
+            .addBindingParams( `texture`, `texture_2d<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUTextureBindingLayout( `float`, `2d` ) );
 
+        if ( !properties.SPHEREMAPPING )
+        {
+            if ( !properties.IS_PARTICLE )
+            {
+                vertexListArray.addVertexList( vertexListArray.newVertexParamsList().addVertexParams( `texcoord`, `vec2<f32>`, `float32x2` ).createVertexList() );
+            }
+        }
+    }
     //Lights & Fog
     if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
     {
@@ -370,14 +383,14 @@ var mat_mv: mat4x4<f32> = modelViewMatrix;
             }
             else
             {
-                vs_mainFunctionBodyCode += "var vertNormal:vec3<f32> = normal;\n";
+                vs_mainFunctionBodyCode += `var vertNormal:vec3<f32> = normal;\n`;
                 if ( properties.REQUIREBBOXNOR )
                 {
                     //vs_mainFunctionBodyCode += "vertNormal = vertNormal / bgPrecisionNorMax;\n";
                 }
                 if ( properties.POPGEOMETRY )
                 {
-                    vs_mainFunctionBodyCode += "vertNormal = 2.0*vertNormal - 1.0;\n";
+                    vs_mainFunctionBodyCode += `vertNormal = 2.0*vertNormal - 1.0;\n`;
                 }
             }
         }
@@ -393,6 +406,19 @@ var mat_mv: mat4x4<f32> = modelViewMatrix;
         vs_mainFunctionBodyCode += `fragColor = fragColor / bgPrecisionColMax;\n`;
       }*/
     }
+    //TexCoords
+    if ( ( properties.TEXTURED ) && !properties.SPHEREMAPPING )
+    {
+        if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
+        {
+            vs_mainFunctionBodyCode += `var vertTexCoord:vec2<f32> = vec2<f32>(0.0,0.0);\n`;
+        }
+        else
+        {
+            vs_mainFunctionBodyCode += `var vertTexCoord:vec2<f32> = texcoord;\n`;
+        }
+    }
+
     /*******************************************************************************
 * End of special Geometry switch
 ********************************************************************************/
@@ -402,6 +428,19 @@ var mat_mv: mat4x4<f32> = modelViewMatrix;
         vs_mainFunctionBodyCode += `vertexOutput.fragNormal = (mat_n * vec4(vertNormal, 0.0)).xyz;\n`;
     }
     //Textures
+    if ( properties.TEXTURED )
+    {
+        if ( properties.SPHEREMAPPING )
+        {
+        }
+        else if ( properties.TEXTRAFO )
+        {
+        }
+        else
+        {
+            vs_mainFunctionBodyCode += "vertexOutput.fragTexcoord = vertTexCoord;\n";
+        }
+    }
     //Lights & Fog
     if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
     {
@@ -448,7 +487,18 @@ var _occlusion: f32 = 1.0;
         fs_mainFunctionBodyCode += "color.a = 1.0;\n";
     }
 
-    if ( properties.LIGHTS )
+    if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
+    {
+    }
+    else if ( properties.TEXTURED )
+    {
+        //fs_mainFunctionBodyCode += "var texcoord:vec2<f32> = fragTexcoord;\n";
+    }
+    if ( properties.UNLIT )
+    {
+
+    }
+    else if ( properties.LIGHTS )
     {
         fs_mainFunctionBodyCode +=
 `var ambient: vec3<f32> = vec3(0.0, 0.0, 0.0);
@@ -522,6 +572,46 @@ specular = max(specular, vec3(0.0, 0.0, 0.0));
         }*/
 
         fs_mainFunctionBodyCode += "color = vec4<f32>(_emissiveColor + ((ambient + diffuse) * color.rgb + specular * _specularColor) * _occlusion,color.a);\n";
+    }
+    else
+    {
+        if ( properties.TEXTURED && ( properties.DIFFUSEMAP || properties.DIFFPLACEMENTMAP || properties.TEXT ) )
+        {
+            if ( properties.PIXELTEX )
+            {
+            }
+            else
+            {
+                if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
+                {
+                }
+                else
+                {
+                    fs_mainFunctionBodyCode += "var texCoord:vec2<f32> = fragTexcoord;\n";
+                }
+            }
+            fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texCoord.x,1-texCoord.y)));\n`;
+            //fs_mainFunctionBodyCode += "color.a = texColor.a;\n";
+            if ( properties.BLENDING || properties.IS_PARTICLE || properties.POINTPROPERTIES )
+            {
+            }
+            else
+            {
+                fs_mainFunctionBodyCode += "color = texColor;\n";
+            }
+        }
+    }
+
+    //Kill pixel
+    if ( properties.TEXT )
+    {
+    }
+    else if ( properties.ALPHAMASK )
+    {
+    }
+    else if ( +properties.ALPHATHRESHOLD > 0 )
+    {
+        fs_mainFunctionBodyCode += "if (color.a <= alphaCutoff) {discard;}\n";
     }
 
     //Output the gamma encoded result.
@@ -732,6 +822,39 @@ fn ${fragmentShaderModuleEntryPoint}(
                     this[ index * 3 ] = arguments[ 1 ];
                     this[ index * 3 + 1 ] = arguments[ 2 ];
                     this[ index * 3 + 2 ] = arguments[ 3 ];
+                    break;
+            }
+        };
+    };
+    renderPassResource.assets.Texcoords = class Texcoords extends Float32Array
+    {
+        constructor ( arg )
+        {
+            switch ( true )
+            {
+                case typeof arg === `number` || arg instanceof Number:
+                    super( arg * 2 );
+                    break;
+                case arg instanceof Array:
+                    super( arg );
+                    break;
+                default:
+                    super( arg );
+                    break;
+            }
+        }
+
+        setNormal = function ( index, value )
+        {
+            switch ( true )
+            {
+                case value instanceof Array:
+                    this[ index * 2 ] = value[ 0 ];
+                    this[ index * 2 + 1 ] = value[ 1 ];
+                    break;
+                case typeof value === `number` || value instanceof Number:
+                    this[ index * 2 ] = arguments[ 1 ];
+                    this[ index * 2 + 1 ] = arguments[ 2 ];
                     break;
             }
         };

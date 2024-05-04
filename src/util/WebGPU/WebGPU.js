@@ -80,14 +80,14 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
     static BindingParamsList = class BindingParamsList extends Array
     {
-        addBindingParams ( name, wgslType, visibility, resourceLayoutObject, size/*Optional*/ )
+        addBindingParams ( name, wgslType, visibility, resourceLayoutObject, addition/*Optional*/ )
         {
             this.push( {
                 name                 : name,
                 wgslType             : wgslType,
                 visibility           : visibility,
                 resourceLayoutObject : resourceLayoutObject,
-                size                 : size//Optional;
+                addition             : addition//Optional
             } );
             return this;
         }
@@ -112,7 +112,7 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
             {
                 var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
                 bindGroupLayoutDescriptor.entries.push( entry );
-                bindingList.push( new class BindingData
+                const bindingData = new class BindingData
                 {
                     name = bindingParams.name;
 
@@ -120,8 +120,17 @@ x3dom.WebGPU.BindingListArray = class BindingListArray extends Array
 
                     entry = entry;
 
-                    size = bindingParams.size;
-                }() );
+                    resourceDescriptor = bindingParams.addition;
+                }();
+                if ( entry.buffer ){}
+                else if ( entry.sampler )
+                {
+                    bindingData.samplerDescriptor = bindingParams.addition;
+                }
+                else if ( entry.texture ){}
+                else if ( entry.storageTexture ){}
+                else if ( entry.externalTexture ){}
+                bindingList.push( bindingData );
             }
 
             bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
@@ -353,7 +362,7 @@ x3dom.WebGPU.PassResource = class PassResource
                 {
                     if ( bindingData.entry.buffer )
                     {
-                        let size = bindingData.size ? bindingData.size : x3dom.WGSL.sizeOf( bindingData.wgslType );
+                        let size = x3dom.WGSL.sizeOf( bindingData.wgslType );
                         let usage = GPUBufferUsage.COPY_DST;
                         switch ( bindingData.entry.buffer.type )
                         {
@@ -377,18 +386,22 @@ x3dom.WebGPU.PassResource = class PassResource
                     }
                     else if ( bindingData.entry.sampler )
                     {
-                        //incomplete
+                        if ( bindingData.samplerDescriptor )
+                        {
+                            resource = device.createSampler( bindingData.samplerDescriptor );
+                        }
                     }
                     else if ( bindingData.entry.texture )
                     {
-                        //incomplete
+                        //do nothing
                     }
                     else if ( bindingData.entry.storageTexture )
                     {
                         //incomplete
                     }
                 }
-                this.entries[ binding ] = x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource );
+                const entry = x3dom.WebGPU.GPUBindGroupDescriptor.newEntry( binding, resource );
+                this.entries[ binding ] = entry;
                 //set properties
                 if ( bindingData.entry.buffer )
                 {
@@ -455,7 +468,7 @@ x3dom.WebGPU.PassResource = class PassResource
                         Object.defineProperty( passResource.uniformStorage, bindingData.name, {
                             get : function ()
                             {
-                                return resource.buffer;
+                                return entry.resource.buffer;
                             },
                             set : function ( value )
                             {
@@ -487,15 +500,15 @@ x3dom.WebGPU.PassResource = class PassResource
                                 {
                                     return;//unknow type;
                                 }
-                                if ( view.byteLength != resource.buffer.size )
+                                if ( view.byteLength != entry.resource.buffer.size )
                                 {
-                                    resource.buffer.destroy();
-                                    resource.setBuffer( device.createBuffer( new x3dom.WebGPU.GPUBufferDescriptor( view.byteLength, resource.buffer.usage, false, resource.buffer.label ) ) );
+                                    entry.resource.buffer.destroy();
+                                    entry.resource.setBuffer( device.createBuffer( new x3dom.WebGPU.GPUBufferDescriptor( view.byteLength, entry.resource.buffer.usage, false, entry.resource.buffer.label ) ) );
                                     //resource.setOffset(0);
                                     //resource.setSize(view.byteLength);
                                     updated = true;
                                 }
-                                device.queue.writeBuffer( resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
+                                device.queue.writeBuffer( entry.resource.buffer, 0, view.buffer, view.byteOffset, view.byteLength );
                             },
                             enumerable   : true,
                             configurable : true
@@ -508,11 +521,49 @@ x3dom.WebGPU.PassResource = class PassResource
                 }
                 else if ( bindingData.entry.sampler )
                 {
-                    //incomplete
+                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                        get : function ()
+                        {
+                            return entry.resource;
+                        },
+                        set : function ( value )
+                        {
+                            switch ( true )
+                            {
+                                case value instanceof GPUSampler:
+                                    entry.setResource( value );
+                                    break;
+                                default:
+                                    entry.setResource( device.createSampler( value ) );
+                                    break;
+                            }
+                        },
+                        enumerable   : true,
+                        configurable : true
+                    } );
                 }
                 else if ( bindingData.entry.texture )
                 {
-                    //incomplete
+                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                        get : function ()
+                        {
+                            return entry.resource;
+                        },
+                        set : function ( value )
+                        {
+                            switch ( true )
+                            {
+                                case value instanceof GPUTextureView:
+                                    entry.setResource( value );
+                                    break;
+                                case value instanceof GPUTexture:
+                                    entry.setResource( value.createView() );
+                                    break;
+                            }
+                        },
+                        enumerable   : true,
+                        configurable : true
+                    } );
                 }
                 else if ( bindingData.entry.storageTexture )
                 {

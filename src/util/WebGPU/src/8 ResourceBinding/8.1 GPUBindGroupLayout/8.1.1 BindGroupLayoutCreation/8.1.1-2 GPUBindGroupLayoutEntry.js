@@ -30,10 +30,6 @@ x3dom.WebGPU.GPUBindGroupLayoutEntry = class GPUBindGroupLayoutEntry
         {
             this.externalTexture = resourceLayoutObject;
         }
-        else if ( resourceLayoutObject instanceof x3dom.WebGPU.GPUExternalTextureBindingLayout )
-        {
-            this.externalTexture = resourceLayoutObject;
-        }
         //e.g. {buffer:{...}}
         else if ( resourceLayoutObject instanceof Object )
         {
