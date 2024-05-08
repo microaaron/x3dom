@@ -294,8 +294,8 @@ x3dom.registerNodeType(
                 else if ( this._zNear != znear || this._zFar != zfar )
                 {
                     var div = znear - zfar;
-                    this._projMatrix._22 = ( znear + zfar ) / div;
-                    this._projMatrix._23 = 2 * znear * zfar / div;
+                    this._projMatrix._22 = zfar / div;
+                    this._projMatrix._23 = znear * zfar / div;
                 }
                 else if ( this._lastAspect != aspect )
                 {
