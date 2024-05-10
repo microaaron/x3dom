@@ -289,17 +289,19 @@ x3dom.registerNodeType(
 
                 if ( this._projMatrix == null )
                 {
-                    this._projMatrix = x3dom.fields.SFMatrix4f.perspective( fovy, aspect, znear, zfar );
+                    this._projMatrix = new x3dom.fields.SFMatrix4f.Perspective( fovy, aspect, znear, zfar );
                 }
                 else if ( this._zNear != znear || this._zFar != zfar )
                 {
-                    var div = znear - zfar;
+                    /*var div = znear - zfar;
                     this._projMatrix._22 = zfar / div;
-                    this._projMatrix._23 = znear * zfar / div;
+                    this._projMatrix._23 = znear * zfar / div;*/
+                    this._projMatrix.setDistances( znear, zfar );
                 }
                 else if ( this._lastAspect != aspect )
                 {
-                    this._projMatrix._00 = ( 1 / Math.tan( fovy / 2 ) ) / aspect;
+                    //this._projMatrix._00 = ( 1 / Math.tan( fovy / 2 ) ) / aspect;
+                    this._projMatrix.setAspect( aspect );
                     this._lastAspect = aspect;
                 }
 

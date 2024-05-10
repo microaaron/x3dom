@@ -330,6 +330,72 @@ x3dom.fields.SFMatrix4f.perspective = function ( fov, aspect, near, far )
         0, 0, -1, 0
     );
 };
+x3dom.fields.SFMatrix4f.Perspective = class Perspective extends x3dom.fields.SFMatrix4f
+{
+    //Normalized device coordinates X:[-1~1] Y:[-1~1] Z:[0~1]
+    constructor ( fov, aspect, near, far )
+    {
+        var f = 1 / Math.tan( fov / 2 );
+        if ( far )
+        {
+            var m_22 = far / ( near - far );
+            var m_23 = near * far / ( near - far );
+        }
+        else
+        {
+            var m_22 = -1;
+            var m_23 = -near;
+        }
+        super(
+            f / aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, m_22, m_23,
+            0, 0, -1, 0
+        );
+        this.aspect = aspect;
+        this.nearDistance = near;
+        this.farDistance = far;
+    }
+
+    setDistances ( near, far )
+    {
+        this.nearDistance = near;
+        this.farDistance = far;
+        if ( far )
+        {
+            this._22 = far / ( near - far );
+            this._23 = near * far / ( near - far );
+        }
+        else
+        {
+            this._22 = -1;
+            this._23 = -near;
+        }
+    }
+
+    setNearDistance ( near )
+    {
+        setDistances( near, this.farDistance );
+    }
+
+    setFarDistance ( far )
+    {
+        setDistances( this.nearDistance, far );
+    }
+
+    setFieldOfView ( fov )
+    {
+        var f = 1 / Math.tan( fov / 2 );
+        this._00 = f / this.aspect;
+        this._11 = f;
+    }
+
+    setAspect ( aspect )
+    {
+        this.aspect = aspect;
+        this._00 = this._11 / aspect;
+    }
+};
 
 /**
  * Returns a new orthogonal projection matrix.
