@@ -1,34 +1,34 @@
 x3dom.shader.DynamicShader = function ( context, properties )
 {
-    var bindingListArray = new x3dom.WebGPU.BindingListArray();
-    var vertexListArray = new x3dom.WebGPU.VertexListArray();
+    var bindingListArray = new easygpu.BindingListArray();
+    var vertexListArray = new easygpu.VertexListArray();
 
-    var vertexOutputList = new x3dom.WebGPU.ShaderModuleInputOutputList();
-    var fragmentOutputList = new x3dom.WebGPU.ShaderModuleInputOutputList();
+    var vertexOutputList = new easygpu.ShaderModuleInputOutputList();
+    var fragmentOutputList = new easygpu.ShaderModuleInputOutputList();
 
     var bindingParamsList0 = bindingListArray.newBindingParamsList()
-        .addBindingParams( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `modelViewProjectionMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `modelViewProjectionMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        //.addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        //.addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        //.addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `modelMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `modelViewMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `modelViewProjectionMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `modelViewMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `modelViewProjectionMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `isVR`, `u32`, GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        //.addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
 
-        .addBindingParams( `diffuseColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `specularColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        .addBindingParams( `diffuseColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `specularColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
+        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
 
     var bindingParamsList1 = bindingListArray.newBindingParamsList()
-        .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
-        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+        .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
+        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
     //Positions
     //var vertexParamsList0 = vertexListArray.newVertexParamsList();
     if ( properties.POSCOMPONENTS == 3 )
@@ -51,8 +51,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
         else
         {
             vertexOutputList.add( `fragNormal`, `vec3<f32>` );
-            bindingParamsList0.addBindingParams( `normalMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `normalMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+            bindingParamsList0.addBindingParams( `normalMatrix`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `normalMatrix2`, `mat4x4<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
 
             if ( properties.NORCOMPONENTS == 2 )
             {
@@ -88,8 +88,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
     if ( properties.TEXTURED )
     {
         vertexOutputList.add( `fragTexcoord`, `vec2<f32>` );
-        bindingParamsList0.addBindingParams( `diffuseMap`, `sampler`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUSamplerBindingLayout( `filtering` ), new x3dom.WebGPU.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) )
-            .addBindingParams( `texture`, `texture_2d<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUTextureBindingLayout( `float`, `2d` ) );
+        bindingParamsList0.addBindingParams( `diffuseMap`, `sampler`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUSamplerBindingLayout( `filtering` ), new easygpu.webgpu.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) )
+            .addBindingParams( `texture`, `texture_2d<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUTextureBindingLayout( `float`, `2d` ) );
 
         if ( !properties.SPHEREMAPPING )
         {
@@ -102,8 +102,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
     //Lights & Fog
     if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES || properties.POINTPROPERTIES )
     {
-        bindingParamsList1.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-            .addBindingParams( `isOrthoView`, `u32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        bindingParamsList1.addBindingParams( `eyePosition`, `vec3<f32>`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+            .addBindingParams( `isOrthoView`, `u32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
         vertexOutputList.add( `fragPosition`, `vec4<f32>` );
         vertexOutputList.add( `fragPositionWS`, `vec4<f32>` );
         if ( properties.FOG )
@@ -117,7 +117,7 @@ x3dom.shader.DynamicShader = function ( context, properties )
     fragmentShaderModuleDeclarationCode = ``;
 
     //Material
-    bindingParamsList0.addBindingParams( `tonemappingOperator`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+    bindingParamsList0.addBindingParams( `tonemappingOperator`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
     fragmentShaderModuleDeclarationCode +=
 `fn tonemapReinhard(color: vec3<f32>)->vec3<f32>{
   return color / (color + vec3(1.0));
@@ -169,7 +169,7 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
     // same as vertex shader but with fragPositionWS for fogNoise (w/ or w/out lights)
     /*if ( properties.LIGHTS || properties.FOG || properties.CLIPPLANES )
     {
-        bindingParamsList0.addBindingParams( `isOrthoView`, `f32`, GPUShaderStage.VERTEX, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+        bindingParamsList0.addBindingParams( `isOrthoView`, `f32`, GPUShaderStage.VERTEX, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
     }*/
 
     //Lights
@@ -194,24 +194,24 @@ struct Lights {
 }
 `;
 
-    bindingParamsList1.addBindingParams( `lights`, `Lights`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `read-only-storage` ) );
+    bindingParamsList1.addBindingParams( `lights`, `Lights`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `read-only-storage` ) );
 
     if ( properties.LIGHTS )
     {
         /*for ( var l = 0; l < properties.LIGHTS; l++ )
         {
-            bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Location`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Direction`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Color`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Attenuation`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Radius`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_Intensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_AmbientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) )
-                .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new x3dom.WebGPU.GPUBufferBindingLayout( `uniform` ) );
+            bindingParamsList0.addBindingParams( `light${l}_On`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Type`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Location`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Direction`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Color`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Attenuation`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Radius`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_Intensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_AmbientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_BeamWidth`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
+                .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
         }*/
         var lighting =
 `fn lighting(lType: u32,
@@ -669,7 +669,7 @@ fn ${fragmentShaderModuleEntryPoint}(
   ${fs_mainFunctionBodyCode}
 }`;
 
-    var renderPassResource = new x3dom.WebGPU.RenderPassResource( context.device );
+    var renderPassResource = new easygpu.RenderPassResource( context.device );
     renderPassResource.bindingListArray = bindingListArray;
     renderPassResource.vertexListArray = vertexListArray;
     renderPassResource.assets.Lights = class Lights extends DataView
@@ -874,44 +874,44 @@ fn ${fragmentShaderModuleEntryPoint}(
         //layout: GPUPipelineLayout
         {
             const bindGroupLayouts = bindingListArray.getBindGroupLayouts( context.device );
-            var layout = context.device.createPipelineLayout( new x3dom.WebGPU.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
+            var layout = context.device.createPipelineLayout( new easygpu.webgpu.GPUPipelineLayoutDescriptor( bindGroupLayouts ) );
         }
         //vertex: GPUVertexState
         {
-            const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
+            const module = context.device.createShaderModule( new easygpu.webgpu.GPUShaderModuleDescriptor( vertexShaderModuleCode ) );
             const entryPoint = vertexShaderModuleEntryPoint;
             const constants = undefined;
             const buffers = vertexListArray.vertexBufferLayouts;
-            var vertex = new x3dom.WebGPU.GPUVertexState( module, entryPoint, constants, buffers );
+            var vertex = new easygpu.webgpu.GPUVertexState( module, entryPoint, constants, buffers );
         }
         //fragment: GPUFragmentState
         {
-            const module = context.device.createShaderModule( new x3dom.WebGPU.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
+            const module = context.device.createShaderModule( new easygpu.webgpu.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
             const entryPoint = fragmentShaderModuleEntryPoint;
             const constants = undefined;
-            const targets = [ x3dom.WebGPU.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
-            var fragment = new x3dom.WebGPU.GPUFragmentState( module, entryPoint, constants, targets );
+            const targets = [ easygpu.webgpu.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
+            var fragment = new easygpu.webgpu.GPUFragmentState( module, entryPoint, constants, targets );
         }
         //primitive: GPUPrimitiveState
         {
             const stripIndexFormat = undefined;
             const frontFace = "ccw";
             const cullMode = "back";
-            var primitive = new x3dom.WebGPU.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
+            var primitive = new easygpu.webgpu.GPUPrimitiveState( "triangle-list", stripIndexFormat, frontFace, cullMode/*, unclippedDepth*/ );
         }
         //depthStencil: GPUDepthStencilState
         {
             const format = "depth32float-stencil8";
             const depthWriteEnabled = true;
             const depthCompare = "less";
-            var depthStencil = new x3dom.WebGPU.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
+            var depthStencil = new easygpu.webgpu.GPUDepthStencilState( format, depthWriteEnabled, depthCompare/*, stencilFront, stencilBack, stencilReadMask, stencilWriteMask, depthBias, depthBiasSlopeScale, depthBiasClamp*/ );
         }
         //multisample: GPUMultisampleState
         {
             const count = 1;
-            var multisample = new x3dom.WebGPU.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
+            var multisample = new easygpu.webgpu.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
         }
-        newRenderPassResource.initRenderPipeline( new x3dom.WebGPU.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
+        newRenderPassResource.initRenderPipeline( new easygpu.webgpu.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
         newRenderPassResource.initBindGroups( [ bindingListArray[ 0 ] ] );
         newRenderPassResource.initVertexBuffers();
         newRenderPassResource.initIndexBuffer();
