@@ -279,7 +279,7 @@ x3dom.WebGPU.PassResource = class PassResource
         {
             this.bindingListArray;
             this.bindGroupDescriptors = [];
-            this.uniformStorage = {};
+            this.bindGroupResources = {};
             this.bindGroups = [];
             this.assets = {};
             Object.defineProperty( this, `device`, {
@@ -465,7 +465,7 @@ x3dom.WebGPU.PassResource = class PassResource
                                     break;
                             }
                         } )( bindingData.wgslType );
-                        Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                        Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                             get : function ()
                             {
                                 return entry.resource.buffer;
@@ -521,7 +521,7 @@ x3dom.WebGPU.PassResource = class PassResource
                 }
                 else if ( bindingData.entry.sampler )
                 {
-                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                    Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                         get : function ()
                         {
                             return entry.resource;
@@ -544,7 +544,7 @@ x3dom.WebGPU.PassResource = class PassResource
                 }
                 else if ( bindingData.entry.texture )
                 {
-                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                    Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                         get : function ()
                         {
                             return entry.resource;
@@ -615,7 +615,7 @@ x3dom.WebGPU.PassResource = class PassResource
 
     copyUniformStoragePropertyFromPassResource ( passResource, name )
     {
-        Object.defineProperty( this.uniformStorage, name, Object.getOwnPropertyDescriptor( passResource.uniformStorage, name ) );
+        Object.defineProperty( this.bindGroupResources, name, Object.getOwnPropertyDescriptor( passResource.bindGroupResources, name ) );
     }
 
     copy ( override )

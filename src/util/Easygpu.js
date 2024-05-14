@@ -1,8 +1,8 @@
-/**
+/** 
  * EASYGPU 0.0.1 alpha
- * Build : 2
- * Revision: 142ec66ac8f10627fdc5b7deecc9863cead23a3e
- * Date: Fri May 10 16:53:06 2024 +0800
+ * Build : 4
+ * Revision: 797226413ab39dac2ff640b845be45f6c8965eae
+ * Date: Mon May 13 00:21:35 2024 +0800
  */
 /**
  * @file easygpucore.js
@@ -89,14 +89,13 @@ easygpu.BindingListArray = class BindingListArray extends Array
 
     static BindingParamsList = class BindingParamsList extends Array
     {
-        addBindingParams ( name, wgslType, visibility, resourceLayoutObject, addition/*Optional*/ )
+        addBindingParams ( name, wgslType, visibility, resourceLayoutObject )
         {
             this.push( {
                 name                 : name,
                 wgslType             : wgslType,
                 visibility           : visibility,
-                resourceLayoutObject : resourceLayoutObject,
-                addition             : addition//Optional
+                resourceLayoutObject : resourceLayoutObject
             } );
             return this;
         }
@@ -121,25 +120,14 @@ easygpu.BindingListArray = class BindingListArray extends Array
             {
                 var entry = bindGroupLayoutDescriptor.newEntry( bindGroupLayoutDescriptor.entries.length, bindingParams.visibility, bindingParams.resourceLayoutObject );
                 bindGroupLayoutDescriptor.entries.push( entry );
-                const bindingData = new class BindingData
+                bindingList.push( new class BindingData
                 {
                     name = bindingParams.name;
 
                     wgslType = bindingParams.wgslType;
 
                     entry = entry;
-
-                    resourceDescriptor = bindingParams.addition;
-                }();
-                if ( entry.buffer ){}
-                else if ( entry.sampler )
-                {
-                    bindingData.samplerDescriptor = bindingParams.addition;
-                }
-                else if ( entry.texture ){}
-                else if ( entry.storageTexture ){}
-                else if ( entry.externalTexture ){}
-                bindingList.push( bindingData );
+                }() );
             }
 
             bindingList.bindGroupLayoutDescriptor = bindGroupLayoutDescriptor;
@@ -288,7 +276,7 @@ easygpu.PassResource = class PassResource
         {
             this.bindingListArray;
             this.bindGroupDescriptors = [];
-            this.uniformStorage = {};
+            this.bindGroupResources = {};
             this.bindGroups = [];
             this.assets = {};
             Object.defineProperty( this, `device`, {
@@ -393,21 +381,18 @@ easygpu.PassResource = class PassResource
                         size = undefined;
                         resource = new easygpu.webgpu.GPUBufferBinding( buffer, offset, size );
                     }
-                    else if ( bindingData.entry.sampler )
-                    {
-                        if ( bindingData.samplerDescriptor )
-                        {
-                            resource = device.createSampler( bindingData.samplerDescriptor );
-                        }
-                    }
-                    else if ( bindingData.entry.texture )
+                    /*else if ( bindingData.entry.sampler )
                     {
                         //do nothing
                     }
-                    else if ( bindingData.entry.storageTexture )
+                    else if ( bindingData.entry.texture || bindingData.entry.storageTexture )
                     {
-                        //incomplete
+                        //do nothing
                     }
+                    else if(bindingData.entry.externalTexture)
+                    {
+                        //do nothing
+                    }*/
                 }
                 const entry = easygpu.webgpu.GPUBindGroupDescriptor.newEntry( binding, resource );
                 this.entries[ binding ] = entry;
@@ -474,7 +459,7 @@ easygpu.PassResource = class PassResource
                                     break;
                             }
                         } )( bindingData.wgslType );
-                        Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                        Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                             get : function ()
                             {
                                 return entry.resource.buffer;
@@ -530,7 +515,7 @@ easygpu.PassResource = class PassResource
                 }
                 else if ( bindingData.entry.sampler )
                 {
-                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                    Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                         get : function ()
                         {
                             return entry.resource;
@@ -551,9 +536,9 @@ easygpu.PassResource = class PassResource
                         configurable : true
                     } );
                 }
-                else if ( bindingData.entry.texture )
+                else if ( bindingData.entry.texture || bindingData.entry.storageTexture )
                 {
-                    Object.defineProperty( passResource.uniformStorage, bindingData.name, {
+                    Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
                         get : function ()
                         {
                             return entry.resource;
@@ -574,9 +559,25 @@ easygpu.PassResource = class PassResource
                         configurable : true
                     } );
                 }
-                else if ( bindingData.entry.storageTexture )
+                else if ( bindingData.entry.externalTexture )
                 {
-                    //incomplete
+                    Object.defineProperty( passResource.bindGroupResources, bindingData.name, {
+                        get : function ()
+                        {
+                            return entry.resource;
+                        },
+                        set : function ( value )
+                        {
+                            switch ( true )
+                            {
+                                case value instanceof GPUExternalTexture:
+                                    entry.setResource( value );
+                                    break;
+                            }
+                        },
+                        enumerable   : true,
+                        configurable : true
+                    } );
                 }
                 updated = true;
             }
@@ -622,9 +623,9 @@ easygpu.PassResource = class PassResource
         }
     }
 
-    copyUniformStoragePropertyFromPassResource ( passResource, name )
+    copyBindGroupResourcesPropertyFromPassResource ( passResource, name )
     {
-        Object.defineProperty( this.uniformStorage, name, Object.getOwnPropertyDescriptor( passResource.uniformStorage, name ) );
+        Object.defineProperty( this.bindGroupResources, name, Object.getOwnPropertyDescriptor( passResource.bindGroupResources, name ) );
     }
 
     copy ( override )

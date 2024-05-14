@@ -88,7 +88,7 @@ x3dom.shader.DynamicShader = function ( context, properties )
     if ( properties.TEXTURED )
     {
         vertexOutputList.add( `fragTexcoord`, `vec2<f32>` );
-        bindingParamsList0.addBindingParams( `diffuseMap`, `sampler`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUSamplerBindingLayout( `filtering` ), new easygpu.webgpu.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) )
+        bindingParamsList0.addBindingParams( `diffuseMap`, `sampler`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUSamplerBindingLayout( `filtering` ) )
             .addBindingParams( `texture`, `texture_2d<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUTextureBindingLayout( `float`, `2d` ) );
 
         if ( !properties.SPHEREMAPPING )
@@ -866,7 +866,7 @@ fn ${fragmentShaderModuleEntryPoint}(
     {
         var newRenderPassResource = renderPassResource.copy( {
             bindGroupDescriptors : [ , renderPassResource.bindGroupDescriptors[ 1 ] ],
-            uniformStorage       : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( renderPassResource.uniformStorage ) ),
+            bindGroupResources   : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( renderPassResource.bindGroupResources ) ),
             bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( renderPassResource.bindGroups, 1 ) ),
             vertexBuffers        : [],
             vertices             : {}

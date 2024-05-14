@@ -745,7 +745,7 @@ x3dom.gfx_webgpu = ( function ()
                     GPUTextureUsage.RENDER_ATTACHMENT
                 } );
                 window.webgpuTexture = tempTexture;
-                //sp.uniformStorage.texture = tempTexture;
+                //sp.bindGroupResources.texture = tempTexture;
 
                 var img = new Image();
                 img.crossOrigin = "anonymous";
@@ -770,12 +770,13 @@ x3dom.gfx_webgpu = ( function ()
                         );
                         tempTexture.destroy();
                         window.webgpuTexture = texture;
-                        //sp.uniformStorage.texture = texture;
+                        //sp.bindGroupResources.texture = texture;
                     } );
                 } );
             }
-            sp.uniformStorage.texture = window.webgpuTexture;
+            sp.bindGroupResources.texture = window.webgpuTexture;
         }
+        sp.bindGroupResources.diffuseMap = this.device.createSampler( new easygpu.webgpu.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) );
 
         /*
         shape._webgpu.buffers = [];
@@ -2525,24 +2526,24 @@ x3dom.gfx_webgpu = ( function ()
         }*/
         if ( mat )
         {
-            sp.uniformStorage.diffuseColor      = mat._vf.diffuseColor.toGL();
-            sp.uniformStorage.specularColor     = mat._vf.specularColor.toGL();
-            sp.uniformStorage.emissiveColor     = mat._vf.emissiveColor.toGL();
-            sp.uniformStorage.shininess         = mat._vf.shininess;
-            sp.uniformStorage.ambientIntensity  = mat._vf.ambientIntensity;
-            sp.uniformStorage.transparency      = mat._vf.transparency;
-            //sp.uniformStorage.environmentFactor = 0.0;
-            sp.uniformStorage.alphaCutoff       = s_app._vf.alphaClipThreshold;
+            sp.bindGroupResources.diffuseColor      = mat._vf.diffuseColor.toGL();
+            sp.bindGroupResources.specularColor     = mat._vf.specularColor.toGL();
+            sp.bindGroupResources.emissiveColor     = mat._vf.emissiveColor.toGL();
+            sp.bindGroupResources.shininess         = mat._vf.shininess;
+            sp.bindGroupResources.ambientIntensity  = mat._vf.ambientIntensity;
+            sp.bindGroupResources.transparency      = mat._vf.transparency;
+            //sp.bindGroupResources.environmentFactor = 0.0;
+            sp.bindGroupResources.alphaCutoff       = s_app._vf.alphaClipThreshold;
         }
         else
         {
-            sp.uniformStorage.diffuseColor     = [ 1.0, 1.0, 1.0 ];
-            sp.uniformStorage.specularColor    = [ 0.0, 0.0, 0.0 ];
-            sp.uniformStorage.emissiveColor    = [ 0.0, 0.0, 0.0 ];
-            sp.uniformStorage.shininess        = 0.0;
-            sp.uniformStorage.ambientIntensity = 1.0;
-            sp.uniformStorage.transparency     = 0.0;
-            sp.uniformStorage.alphaCutoff      = 0.1;
+            sp.bindGroupResources.diffuseColor     = [ 1.0, 1.0, 1.0 ];
+            sp.bindGroupResources.specularColor    = [ 0.0, 0.0, 0.0 ];
+            sp.bindGroupResources.emissiveColor    = [ 0.0, 0.0, 0.0 ];
+            sp.bindGroupResources.shininess        = 0.0;
+            sp.bindGroupResources.ambientIntensity = 1.0;
+            sp.bindGroupResources.transparency     = 0.0;
+            sp.bindGroupResources.alphaCutoff      = 0.1;
         }
         /*
         // Look for user-defined shaders
@@ -2655,7 +2656,7 @@ x3dom.gfx_webgpu = ( function ()
             sp[ "light" + numLights + "_CutOffAngle" ] = 0.0;
             sp[ "light" + numLights + "_ShadowIntensity" ] = 0.0;
         }*/
-        //sp.uniformStorage.numberOfLights = 1;
+        //sp.bindGroupResources.numberOfLights = 1;
         var lights = new sp.assets.Lights( 1 );
         //lights.setNumber( 1 );
         lights.setType( 0, 0 );
@@ -2670,7 +2671,7 @@ x3dom.gfx_webgpu = ( function ()
         lights.setBeamWidth( 0, 0.0 );
         lights.setCutOffAngle( 0, 0.0 );
         lights.setShadowIntensity( 0, 0.0 );
-        sp.uniformStorage.lights = lights;
+        sp.bindGroupResources.lights = lights;
         /*
         // Set ClipPlanes
         if ( shape._clipPlanes )
@@ -2829,23 +2830,23 @@ x3dom.gfx_webgpu = ( function ()
         var model_view = mat_view.mult( transform );
         var model_view_inv = model_view.inverse();
 
-        sp.uniformStorage.screenWidth = this.canvas.width;
+        sp.bindGroupResources.screenWidth = this.canvas.width;
 
-        sp.uniformStorage.isOrthoView = ( mat_proj._33 == 1 ) ? 1.0 : 0.0;
+        sp.bindGroupResources.isOrthoView = ( mat_proj._33 == 1 ) ? 1.0 : 0.0;
 
-        sp.uniformStorage.modelMatrix = transform.toGL();
-        sp.uniformStorage.modelViewMatrix = model_view.toGL();
-        sp.uniformStorage.viewMatrix = mat_view.toGL();
+        sp.bindGroupResources.modelMatrix = transform.toGL();
+        sp.bindGroupResources.modelViewMatrix = model_view.toGL();
+        sp.bindGroupResources.viewMatrix = mat_view.toGL();
 
-        sp.uniformStorage.normalMatrix = model_view_inv.transpose().toGL();
-        sp.uniformStorage.modelViewMatrixInverse = model_view_inv.toGL();
+        sp.bindGroupResources.normalMatrix = model_view_inv.transpose().toGL();
+        sp.bindGroupResources.modelViewMatrixInverse = model_view_inv.toGL();
 
-        sp.uniformStorage.modelViewProjectionMatrix = mat_scene.mult( transform ).toGL();
-        sp.uniformStorage.modelViewProjectionInverseMatrix = mat_scene.mult( transform ).inverse().toGL();
+        sp.bindGroupResources.modelViewProjectionMatrix = mat_scene.mult( transform ).toGL();
+        sp.bindGroupResources.modelViewProjectionInverseMatrix = mat_scene.mult( transform ).inverse().toGL();
 
-        sp.uniformStorage.viewMatrixInverse = mat_view.inverse().toGL();
+        sp.bindGroupResources.viewMatrixInverse = mat_view.inverse().toGL();
 
-        sp.uniformStorage.cameraPosWS = mat_view.inverse().e3().toGL();
+        sp.bindGroupResources.cameraPosWS = mat_view.inverse().e3().toGL();
 
         this.setTonemappingOperator( viewarea, sp );
 
