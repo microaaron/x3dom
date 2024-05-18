@@ -1,8 +1,8 @@
 /** 
  * EASYGPU 0.0.1 alpha
- * Build : 10
- * Revision: ffc26506ecf7bcfda6e34d30450c1b4dc0bc1b49
- * Date: Fri May 17 19:01:08 2024 +0800
+ * Build : 11
+ * Revision: 28e6b8b15b699d2f2839e3d99e7a572655b24600
+ * Date: Sat May 18 08:40:25 2024 +0800
  */
 /**
  * @file easygpucore.js
@@ -15,9 +15,9 @@ var easygpu = {
 };
 easygpu.about = {
     version  : "0.0.1 alpha",
-    build    : "10",
-    revision : "ffc26506ecf7bcfda6e34d30450c1b4dc0bc1b49",
-    date     : "Fri May 17 19:01:08 2024 +0800"
+    build    : "11",
+    revision : "28e6b8b15b699d2f2839e3d99e7a572655b24600",
+    date     : "Sat May 18 08:40:25 2024 +0800"
 };
 easygpu.BindingListArray = class BindingListArray extends Array
 {
@@ -1117,6 +1117,29 @@ easygpu.webgpu.GPUFeatureName = class GPUFeatureName
     }
 };
 /**
+ * @file GPUBufferMapState.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUBufferMapState = class GPUBufferMapState
+{
+    unmapped = "unmapped";
+
+    pending = "pending";
+
+    mapped = "mapped";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUBufferMapState";
+    }
+};
+/**
  * @file GPUBufferDescriptor.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.02
@@ -1192,6 +1215,27 @@ easygpu.webgpu.GPUBufferUsage = class GPUBufferUsage
     get [ Symbol.toStringTag ] ()
     {
         return "GPUBufferUsage";
+    }
+};
+/**
+ * @file GPUMapMode.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUMapMode = class GPUMapMode
+{
+    READ = 0x0001;
+
+    WRITE = 0x0002;
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUMapMode";
     }
 };
 /**
@@ -4482,11 +4526,11 @@ easygpu.webgpu.GPUDeviceLostReason = class GPUDeviceLostReason
     }
 };
 /**
- * @file GPUDeviceLostReason.js
+ * @file GPUErrorFilter.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.05
  */
-easygpu.webgpu.GPUDeviceLostReason = class GPUDeviceLostReason
+easygpu.webgpu.GPUErrorFilter = class GPUErrorFilter
 {
     validation = "validation";
 
@@ -4501,7 +4545,7 @@ easygpu.webgpu.GPUDeviceLostReason = class GPUDeviceLostReason
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUDeviceLostReason";
+        return "GPUErrorFilter";
     }
 };
 /**
