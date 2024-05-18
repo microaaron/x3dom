@@ -51,7 +51,7 @@ for ( var str of array )
 {
     str = str.trim();
     var str2 = str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
-    dst += ( "new" + str2 + "\(XXX\)\{return new x3dom.WebGPU.XXX\(XXX\)\;\}\n" );
+    dst += ( "static new" + str2 + "\(XXX\)\{return new easygpu.webgpu.XXX\(XXX\)\;\}\n" );
 }
 console.log( dst );
 prompt( dst, dst );
@@ -64,7 +64,7 @@ for ( var str of array )
 {
     str = str.trim();
     var str2 = str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
-    dst += ( "getAvailable" + str2 + "s\(\)\{return new x3dom.WebGPU.XXX\(\)\;\}\n" );
+    dst += ( "static getAvailable" + str2 + "s\(\)\{return new easygpu.webgpu.XXX\(\)\;\}\n" );
 }
 console.log( dst );
 prompt( dst, dst );
