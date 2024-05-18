@@ -1,8 +1,8 @@
 /** 
  * EASYGPU 0.0.1 alpha
- * Build : 4
- * Revision: 797226413ab39dac2ff640b845be45f6c8965eae
- * Date: Mon May 13 00:21:35 2024 +0800
+ * Build : 10
+ * Revision: ffc26506ecf7bcfda6e34d30450c1b4dc0bc1b49
+ * Date: Fri May 17 19:01:08 2024 +0800
  */
 /**
  * @file easygpucore.js
@@ -12,6 +12,12 @@
 var easygpu = {
     webgpu : {},
     wgsl   : {}
+};
+easygpu.about = {
+    version  : "0.0.1 alpha",
+    build    : "10",
+    revision : "ffc26506ecf7bcfda6e34d30450c1b4dc0bc1b49",
+    date     : "Fri May 17 19:01:08 2024 +0800"
 };
 easygpu.BindingListArray = class BindingListArray extends Array
 {
@@ -947,6 +953,168 @@ easygpu.webgpu.GPUObjectDescriptorBase = class GPUObjectDescriptorBase
     {
         this.label = label;
     }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUObjectDescriptorBase";
+    }
+};
+/**
+ * @file GPURequestAdapterOptions.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPURequestAdapterOptions = class GPURequestAdapterOptions
+{
+    constructor ( powerPreference, forceFallbackAdapter )
+    {
+        this.powerPreference = powerPreference;//Optional;
+        this.forceFallbackAdapter = forceFallbackAdapter;//Optional; boolean; undefined = false
+    }
+
+    setPowerPreference ( powerPreference ){this.powerPreference = powerPreference;}
+
+    setForceFallbackAdapter ( forceFallbackAdapter ){this.forceFallbackAdapter = forceFallbackAdapter;}
+
+    static getAvailablePowerPreferences (){return new easygpu.webgpu.GPUPowerPreference();}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPURequestAdapterOptions";
+    }
+};
+easygpu.webgpu.GPURequestAdapterOptions.prototype.getAvailablePowerPreferences = easygpu.webgpu.GPURequestAdapterOptions.getAvailablePowerPreferences;
+/**
+ * @file GPUPowerPreference.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUPowerPreference = class GPUPowerPreference
+{
+    low_power = "low-power";
+
+    high_performance = "high-performance";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUPowerPreference";
+    }
+};
+/**
+ * @file GPUDeviceDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUDeviceDescriptor = class GPUDeviceDescriptor
+{
+    constructor ( requiredFeatures = [], requiredLimits = {}, defaultQueue = {} )
+    {
+        this.requiredFeatures = requiredFeatures;//Optional; sequence<GPUFeatureName>; undefined = []
+        this.requiredLimits = requiredLimits;//Optional; record<DOMString, GPUSize64>; undefined = {}
+        this.defaultQueue = defaultQueue;//Optional; GPUQueueDescriptor; undefined = {}
+    }
+
+    setRequiredFeatures ( requiredFeatures ){this.requiredFeatures = requiredFeatures;}
+
+    setRequiredLimits ( requiredLimits ){this.requiredLimits = requiredLimits;}
+
+    setDefaultQueue ( defaultQueue ){this.defaultQueue = defaultQueue;}
+
+    static getAvailableRequiredFeatures (){return new easygpu.webgpu.GPUFeatureName();}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUDeviceDescriptor";
+    }
+};
+easygpu.webgpu.GPUDeviceDescriptor.prototype.getAvailableRequiredFeatures = easygpu.webgpu.GPUDeviceDescriptor.getAvailableRequiredFeatures;
+/**
+ * @file GPUFeatureName.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUFeatureName = class GPUFeatureName
+{
+    depth_clip_control = "depth-clip-control";
+
+    depth32float_stencil8 = "depth32float-stencil8";
+
+    texture_compression_bc = "texture-compression-bc";
+
+    texture_compression_etc2 = "texture-compression-etc2";
+
+    texture_compression_astc = "texture-compression-astc";
+
+    timestamp_query = "timestamp-query";
+
+    indirect_first_instance = "indirect-first-instance";
+
+    shader_f16 = "shader-f16";
+
+    rg11b10ufloat_renderable = "rg11b10ufloat-renderable";
+
+    bgra8unorm_storage = "bgra8unorm-storage";
+
+    float32_filterable = "float32-filterable";
+
+    constructor ( device )
+    {
+        if ( !device.features.has( "depth-clip-control" ) )
+        {
+            delete this.depth_clip_control;
+        }
+        if ( !device.features.has( "depth32float-stencil8" ) )
+        {
+            delete this.thisdepth32float_stencil8;
+        }
+        if ( !device.features.has( "texture-compression-bc" ) )
+        {
+            delete this.texture_compression_bc;
+        }
+        if ( !device.features.has( "texture-compression-etc2" ) )
+        {
+            delete this.texture_compression_etc2;
+        }
+        if ( !device.features.has( "texture-compression-astc" ) )
+        {
+            delete this.texture_compression_astc;
+        }
+        if ( !device.features.has( "timestamp-query" ) )
+        {
+            delete this.timestamp_query;
+        }
+        if ( !device.features.has( "indirect-first-instance" ) )
+        {
+            delete this.indirect_first_instance;
+        }
+        if ( !device.features.has( "shader-f16" ) )
+        {
+            delete this.shader_f16;
+        }
+        if ( !device.features.has( "rg11b10ufloat-renderable" ) )
+        {
+            delete this.rg11b10ufloat_renderable;
+        }
+        if ( !device.features.has( "bgra8unorm-storage" ) )
+        {
+            delete this.bgra8unorm_storage;
+        }
+        if ( !device.features.has( "float32-filterable" ) )
+        {
+            delete this.float32_filterable;
+        }
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUFeatureName";
+    }
 };
 /**
  * @file GPUBufferDescriptor.js
@@ -1472,6 +1640,29 @@ easygpu.webgpu.GPUTextureFormat = class GPUTextureFormat
     get [ Symbol.toStringTag ] ()
     {
         return "GPUTextureFormat";
+    }
+};
+/**
+ * @file GPUExternalTextureDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUExternalTextureDescriptor = class GPUExternalTextureDescriptor extends easygpu.webgpu.GPUObjectDescriptorBase
+{
+    constructor ( source, colorSpace, label )
+    {
+        super( label );
+        this.source = source; //Required (HTMLVideoElement or VideoFrame);
+        this.colorSpace = colorSpace; //Optional; PredefinedColorSpace; undefined = "srgb"
+    }
+
+    setSource ( source ){this.source = source;}
+
+    setColorSpace ( colorSpace ){this.colorSpace = colorSpace;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUExternalTextureDescriptor";
     }
 };
 /**
@@ -2282,6 +2473,94 @@ easygpu.webgpu.GPUShaderModuleDescriptor = class GPUShaderModuleDescriptor exten
     }
 };
 /**
+ * @file GPUShaderModuleCompilationHint.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.03
+ */
+easygpu.webgpu.GPUShaderModuleCompilationHint = class GPUShaderModuleCompilationHint
+{
+    constructor ( entryPoint, layout )
+    {
+        this.entryPoint = entryPoint; //Required USVString;
+        this.layout = layout;//GPUPipelineLayout or GPUAutoLayoutMode;
+    }
+
+    setEntryPoint ( entryPoint ){this.entryPoint = entryPoint;}
+
+    setLayout ( layout ){this.layout = layout;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUShaderModuleCompilationHint";
+    }
+};
+/**
+ * @file GPUCompilationMessageType.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUCompilationMessageType = class GPUCompilationMessageType
+{
+    error = "error";
+
+    warning = "warning";
+
+    info = "info";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUCompilationMessageType";
+    }
+};
+/**
+ * @file GPUPipelineErrorInit.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUPipelineErrorInit = class GPUPipelineErrorInit
+{
+    constructor ( reason )
+    {
+        this.reason = reason; //Required GPUPipelineErrorReason
+    }
+
+    setReason ( reason )
+    {
+        this.reason = reason;
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUPipelineErrorInit";
+    }
+};
+/**
+ * @file GPUPipelineErrorReason.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUPipelineErrorReason = class GPUPipelineErrorReason
+{
+    validation = "validation";
+
+    internal = "internal";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUPipelineErrorReason";
+    }
+};
+/**
  * @file GPUAutoLayoutMode.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.01
@@ -2310,7 +2589,7 @@ easygpu.webgpu.GPUPipelineDescriptorBase = class GPUPipelineDescriptorBase exten
     constructor ( layout = "auto", label )
     {
         super( label );
-        this.layout = layout;
+        this.layout = layout;//Required (GPUPipelineLayout or GPUAutoLayoutMode)
     }
 
     setLayout ( layout )
@@ -2375,6 +2654,29 @@ easygpu.webgpu.GPUProgrammableStage = class GPUProgrammableStage
     }
 };
 easygpu.webgpu.GPUProgrammableStage.prototype.newConstants = easygpu.webgpu.GPUProgrammableStage.newConstants;
+/**
+ * @file GPUComputePipelineDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUComputePipelineDescriptor = class GPUComputePipelineDescriptor extends easygpu.webgpu.GPUPipelineDescriptorBase
+{
+    constructor ( layout, compute, label )
+    {
+        super( layout, label );
+        this.compute = compute;//Required GPUProgrammableStage
+    }
+
+    setCompute ( compute ){this.compute = compute;}
+
+    static newCompute ( module, entryPoint, constants ){return new easygpu.webgpu.GPUProgrammableStage( module, entryPoint, constants );}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUComputePipelineDescriptor";
+    }
+};
+easygpu.webgpu.GPUComputePipelineDescriptor.prototype.newCompute = easygpu.webgpu.GPUComputePipelineDescriptor.newCompute;
 /**
  * @file GPURenderPipelineDescriptor.js
  * @author microaaron(github.com/microaaron)
@@ -3418,6 +3720,209 @@ easygpu.webgpu.GPUVertexAttribute = class GPUVertexAttribute
 };
 easygpu.webgpu.GPUVertexAttribute.prototype.getAvailableFormats = easygpu.webgpu.GPUVertexAttribute.getAvailableFormats;
 /**
+ * @file GPUImageDataLayout.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUImageDataLayout = class GPUImageDataLayout
+{
+    constructor ( offset, bytesPerRow, rowsPerImage )
+    {
+        this.offset = offset;//Optional; GPUSize64; undefined = 0
+        this.bytesPerRow = bytesPerRow;//Optional
+        this.rowsPerImage = rowsPerImage;//Optional
+    }
+
+    setOffset ( offset ){this.offset = offset;}
+
+    setBytesPerRow ( bytesPerRow ){this.bytesPerRow = bytesPerRow;}
+
+    setRowsPerImage ( rowsPerImage ){this.rowsPerImage = rowsPerImage;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUImageDataLayout";
+    }
+};
+/**
+ * @file GPUImageCopyBuffer.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUImageCopyBuffer = class GPUImageCopyBuffer extends easygpu.webgpu.GPUImageDataLayout
+{
+    constructor ( offset, bytesPerRow, rowsPerImage, buffer )
+    {
+        super( offset, bytesPerRow, rowsPerImage );
+        this.buffer = buffer; //Required GPUBuffer
+    }
+
+    setBuffer ( buffer )
+    {
+        this.buffer = buffer;
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUImageCopyBuffer";
+    }
+};
+/**
+ * @file GPUImageCopyTexture.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUImageCopyTexture = class GPUImageCopyTexture
+{
+    constructor ( texture, mipLevel, origin = {}, aspect )
+    {
+        this.texture = texture;//Required GPUTexture
+        this.mipLevel = mipLevel;//Optional; GPUIntegerCoordinate; undefined = 0
+        this.origin = origin;//Optional; GPUOrigin3D; undefined = {}
+        this.aspect = aspect;//Optional; GPUTextureAspect; undefined = "all"
+    }
+
+    setTexture ( texture ){this.texture = texture;}
+
+    setMipLevel ( mipLevel ){this.mipLevel = mipLevel;}
+
+    setOrigin ( origin ){this.origin = origin;}
+
+    setAspect ( aspect ){this.aspect = aspect;}
+
+    static getAvailableAspects (){return new easygpu.webgpu.GPUTextureAspect();}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUImageCopyTexture";
+    }
+};
+easygpu.webgpu.GPUImageCopyTexture.prototype.getAvailableAspects = easygpu.webgpu.GPUImageCopyTexture.getAvailableAspects;
+/**
+ * @file GPUImageCopyTextureTagged.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUImageCopyTextureTagged = class GPUImageCopyTextureTagged extends easygpu.webgpu.GPUImageCopyTexture
+{
+    constructor ( texture, mipLevel, origin = {}, aspect, colorSpace, premultipliedAlpha )
+    {
+        super( texture, mipLevel, origin = {}, aspect );
+        this.colorSpace = colorSpace;//Optional; PredefinedColorSpace; undefined = "srgb"
+        this.premultipliedAlpha = premultipliedAlpha;//Optional; boolean; undefined = false
+    }
+
+    setColorSpace ( colorSpace ){this.colorSpace = colorSpace;}
+
+    setPremultipliedAlpha ( premultipliedAlpha ){this.premultipliedAlpha = premultipliedAlpha;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUImageCopyTextureTagged";
+    }
+};
+/**
+ * @file GPUImageCopyExternalImage.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUImageCopyExternalImage = class GPUImageCopyExternalImage
+{
+    constructor ( source, origin = {}, flipY )
+    {
+        this.source = source;//Required GPUImageCopyExternalImageSource (ImageBitmap or ImageData or HTMLImageElement or HTMLVideoElement or VideoFrame or HTMLCanvasElement or OffscreenCanvas)
+        this.origin = origin;//Optional; GPUOrigin2D; undefined = {}
+        this.flipY = flipY;//Optional; boolean; undefined = false
+    }
+
+    setSource ( source ){this.source = source;}
+
+    setOrigin ( origin ){this.origin = origin;}
+
+    setFlipY ( flipY ){this.flipY = flipY;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUImageCopyExternalImage";
+    }
+};
+/**
+ * @file GPUCommandBufferDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUCommandBufferDescriptor = class GPUCommandBufferDescriptor extends easygpu.webgpu.GPUObjectDescriptorBase
+{
+    constructor ( label )
+    {
+        super( label );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUCommandBufferDescriptor";
+    }
+};
+/**
+ * @file GPUCommandEncoderDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUCommandEncoderDescriptor = class GPUCommandEncoderDescriptor extends easygpu.webgpu.GPUObjectDescriptorBase
+{
+    constructor ( label )
+    {
+        super( label );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUCommandEncoderDescriptor";
+    }
+};
+/**
+ * @file GPUComputePassTimestampWrites.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUComputePassTimestampWrites = class GPUComputePassTimestampWrites
+{
+    constructor ( querySet, beginningOfPassWriteIndex, endOfPassWriteIndex )
+    {
+        this.querySet = querySet;//Required GPUQuerySet
+        this.beginningOfPassWriteIndex = beginningOfPassWriteIndex;//GPUSize32
+        this.endOfPassWriteIndex = endOfPassWriteIndex;//GPUSize32
+    }
+
+    setQuerySet ( querySet ){this.querySet = querySet;}
+
+    setBeginningOfPassWriteIndex ( beginningOfPassWriteIndex ){this.beginningOfPassWriteIndex = beginningOfPassWriteIndex;}
+
+    setEndOfPassWriteIndex ( endOfPassWriteIndex ){this.endOfPassWriteIndex = endOfPassWriteIndex;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUComputePassTimestampWrites";
+    }
+};
+/**
+ * @file GPUComputePassDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUComputePassDescriptor = class GPUComputePassDescriptor extends easygpu.webgpu.GPUObjectDescriptorBase
+{
+    constructor ( label )
+    {
+        super( label );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUComputePassDescriptor";
+    }
+};
+/**
  * @file GPURenderPassTimestampWrites.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.02
@@ -3816,6 +4321,23 @@ easygpu.webgpu.GPURenderBundleEncoderDescriptor = class GPURenderBundleEncoderDe
     }
 };
 /**
+ * @file GPUQueueDescriptor.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUQueueDescriptor = class GPUQueueDescriptor extends easygpu.webgpu.GPUObjectDescriptorBase
+{
+    constructor ( label )
+    {
+        super( label );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUQueueDescriptor";
+    }
+};
+/**
  * @file GPUQuerySetDescriptor.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.02
@@ -3872,6 +4394,145 @@ easygpu.webgpu.GPUQueryType = class GPUQueryType
     }
 };
 /**
+ * @file GPUCanvasAlphaMode.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUCanvasAlphaMode = class GPUCanvasAlphaMode
+{
+    opaque = "lopaque";
+
+    premultiplied = "premultiplied";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUCanvasAlphaMode";
+    }
+};
+/**
+ * @file GPUCanvasConfiguration.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUCanvasConfiguration = class GPUCanvasConfiguration
+{
+    constructor ( device, format, usage, viewFormats, colorSpace, alphaMode )
+    {
+        this.device = device;//Required GPUDevice
+        this.format = format;//Required GPUTextureFormat
+        this.usage = usage;//Optional; GPUTextureUsageFlags; undefined = 0x10(GPUTextureUsage.RENDER_ATTACHMENT)
+        this.viewFormats = viewFormats;//Optional; sequence<GPUTextureFormat>; undefined = [];
+        this.colorSpace = colorSpace;//Optional; PredefinedColorSpace; undefined = "srgb"
+        this.alphaMode = alphaMode;//Optional; GPUCanvasAlphaMode; undefined = "opaque";
+    }
+
+    setDevice ( device ){this.device = device;}
+
+    setFormat ( format ){this.format = format;}
+
+    setUsage ( usage ){this.usage = usage;}
+
+    setViewFormats ( viewFormats ){this.viewFormats = viewFormats;}
+
+    setColorSpace ( colorSpace ){this.colorSpace = colorSpace;}
+
+    setAlphaMode ( alphaMode ){this.alphaMode = alphaMode;}
+
+    static getAvailableFormats (){return new easygpu.webgpu.GPUTextureFormat();}
+
+    static getAvailableUsages (){return new easygpu.webgpu.GPUTextureUsageFlags();}
+
+    static getAvailableViewFormats (){return new easygpu.webgpu.GPUTextureFormat();}
+
+    static getAvailableAlphaModes (){return new easygpu.webgpu.GPUCanvasAlphaMode();}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUCanvasConfiguration";
+    }
+};
+easygpu.webgpu.GPUCanvasConfiguration.prototype.getAvailableFormats = easygpu.webgpu.GPUCanvasConfiguration.getAvailableFormats;
+easygpu.webgpu.GPUCanvasConfiguration.prototype.getAvailableUsages = easygpu.webgpu.GPUCanvasConfiguration.getAvailableUsages;
+easygpu.webgpu.GPUCanvasConfiguration.prototype.getAvailableViewFormats = easygpu.webgpu.GPUCanvasConfiguration.getAvailableViewFormats;
+easygpu.webgpu.GPUCanvasConfiguration.prototype.getAvailableAlphaModes = easygpu.webgpu.GPUCanvasConfiguration.getAvailableAlphaModes;
+/**
+ * @file GPUDeviceLostReason.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUDeviceLostReason = class GPUDeviceLostReason
+{
+    unknown = "unknown";
+
+    destroyed = "destroyed";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUDeviceLostReason";
+    }
+};
+/**
+ * @file GPUDeviceLostReason.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUDeviceLostReason = class GPUDeviceLostReason
+{
+    validation = "validation";
+
+    out_of_memory = "out-of-memory";
+
+    internal = "internal";
+
+    constructor ()
+    {
+        Object.freeze( this );
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUDeviceLostReason";
+    }
+};
+/**
+ * @file GPUUncapturedErrorEventInit.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.05
+ */
+easygpu.webgpu.GPUUncapturedErrorEventInit = class GPUUncapturedErrorEventInit
+{
+    constructor ( bubbles, cancelable, composed, error )
+    {
+        this.bubbles = bubbles;//Optional; boolean; undefined = false;
+        this.cancelable = cancelable;//Optional; boolean; undefined = false;
+        this.composed = composed;//Optional; boolean; undefined = false;
+        this.error = error;//Required GPUError
+    }
+
+    setBubbles ( bubbles ){this.bubbles = bubbles;}
+
+    setCancelable ( cancelable ){this.cancelable = cancelable;}
+
+    setComposed ( composed ){this.composed = composed;}
+
+    setError ( error ){this.error = error;}
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUUncapturedErrorEventInit";
+    }
+};
+/**
  * @file GPUColorDict.js
  * @author microaaron(github.com/microaaron)
  * @date 2024.02
@@ -3909,6 +4570,68 @@ easygpu.webgpu.GPUColorDict = class GPUColorDict
     get [ Symbol.toStringTag ] ()
     {
         return "GPUColorDict";
+    }
+};
+/**
+ * @file GPUOrigin2DDict.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.02
+ */
+easygpu.webgpu.GPUOrigin2DDict = class GPUOrigin2DDict
+{
+    constructor ( x, y )
+    {
+        this.x = x; //Required GPUIntegerCoordinate
+        this.y = y; //Required GPUIntegerCoordinate
+    }
+
+    setX ( x )
+    {
+        this.x = x;
+    }
+
+    setY ( y )
+    {
+        this.y = y;
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUOrigin2DDict";
+    }
+};
+/**
+ * @file GPUOrigin3DDict.js
+ * @author microaaron(github.com/microaaron)
+ * @date 2024.02
+ */
+easygpu.webgpu.GPUOrigin3DDict = class GPUOrigin3DDict
+{
+    constructor ( x, y, z )
+    {
+        this.x = x; //Required GPUIntegerCoordinate
+        this.y = y; //Required GPUIntegerCoordinate
+        this.z = z; //Required GPUIntegerCoordinate
+    }
+
+    setX ( x )
+    {
+        this.x = x;
+    }
+
+    setY ( y )
+    {
+        this.y = y;
+    }
+
+    setZ ( z )
+    {
+        this.z = z;
+    }
+
+    get [ Symbol.toStringTag ] ()
+    {
+        return "GPUOrigin3DDict";
     }
 };
 /**
