@@ -76,7 +76,9 @@ async function concatVersions()
             version[ packageName ] = version[ packageName ].replace( "__X3DOM_REVISION__", REVISION );
             version[ packageName ] = version[ packageName ].replace( "__X3DOM_DATE__", DATE );
         }
-        version[ packageName + "_MODULE"] =version[ packageName ]+"export default x3dom;\nexport {x3dom};\n";
+        version[ packageName + "_MODULE"] = `${version[packageName]}
+export default x3dom;
+export { x3dom };`;
         lastPackageName = packageName;
     }
 
