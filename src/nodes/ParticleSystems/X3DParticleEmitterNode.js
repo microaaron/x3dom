@@ -7,47 +7,37 @@
  *
  */
 
-/* ### VolumeEmitter ### */
+/* ### X3DParticleEmitterNode ### */
 x3dom.registerNodeType(
-    "VolumeEmitter",
+    "X3DParticleEmitterNode",
     "ParticleSystems",
-    class VolumeEmitter extends x3dom.nodeTypes.X3DParticleEmitterNode
+    class X3DParticleEmitterNode extends x3dom.nodeTypes.X3DNode
     {
       /**
-       * Constructor for VolumeEmitter
-       * @constructs x3dom.nodeTypes.VolumeEmitter
+       * Constructor for X3DParticleEmitterNode
+       * @constructs x3dom.nodeTypes.X3DParticleEmitterNode
        * @x3d 4.0
        * @component ParticleSystems
        * @status full
-       * @extends x3dom.nodeTypes.X3DParticleEmitterNode
+       * @extends x3dom.nodeTypes.X3DNode
        * @param {Object} [ctx=null] - context object, containing initial settings like namespace
-       * @classdesc A VolumeEmitter node emits particles from random positions on the surface of a volume, which then propagate either inside or outside the given closed geometry volume.
+       * @classdesc The X3DParticleEmitterNode abstract type represents any node that is an emitter of particles. The shape and distribution of particles is dependent on the type of the concrete node.
        */
       constructor ( ctx )
       {
           super( ctx );
           
-          //this.addField_MFInt32( ctx, "set_coordIndex", [] );//I don't know what it is.
-          
-          this.addField_SFNode( "coord", x3dom.nodeTypes.X3DCoordinateNode );
-          
-          this.addField_SFVec3f( ctx, "direction", 0, 1, 0 );
-          
-          //this.addField_SFFloat( ctx, "mass", 0 );
+          this.addField_SFFloat( ctx, "mass", 0 );
           
           //this.addField_SFNode( "metadata", x3dom.nodeTypes.X3DMetadataObject );
           
-          //this.addField_SFBool( ctx, "on", true );
+          this.addField_SFBool( ctx, "on", true );
           
-          //this.addField_SFFloat( ctx, "speed", 0 );
+          this.addField_SFFloat( ctx, "speed", 0 );
           
-          //this.addField_SFFloat( ctx, "surfaceArea", 0 );
+          this.addField_SFFloat( ctx, "surfaceArea", 0 );
           
-          //this.addField_SFFloat( ctx, "variation", 0.25 );
-          
-          this.addField_MFInt32( ctx, "coordIndex", [-1] );
-          
-          this.addField_SFBool( ctx, "interna", true );
+          this.addField_SFFloat( ctx, "variation", 0.25 );
       }
       /*
       nodeChanged ()
