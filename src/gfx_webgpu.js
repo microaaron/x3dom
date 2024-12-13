@@ -117,7 +117,7 @@ x3dom.gfx_webgpu = ( function ()
                 throw Error( "Couldn't request WebGPU adapter." );
             }
 
-            var adapterInfo = await adapter.requestAdapterInfo();
+            var adapterInfo = adapter.info;
             x3dom.debug.logInfo( "adapter found\n" +
                                 ( adapterInfo.vendor == "" ? "" : "vendor: " + adapterInfo.vendor + ", " ) +
                                 ( adapterInfo.architecture == "" ? "" : "architecture: " + adapterInfo.architecture + ", " ) +
