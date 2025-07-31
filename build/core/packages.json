@@ -11,7 +11,7 @@
             "Bindable.js",
             "NodeNameSpace.js",
             "NodeNameSpaceProtos.js",
-            "gfx_webgl.js",
+            "gfx_webgpu.js",
             "SSAO.js",
             "Runtime.js",
             "Main.js",
@@ -43,7 +43,8 @@
             "VRControllerManager.js",
             "json/JSONParser.js",
             "json/PrototypeExpander.js",
-            "protos/ProtoDeclaration.js"
+            "protos/ProtoDeclaration.js",
+            "Easygpu.js"
         ],
         "src/shader/" :
         [

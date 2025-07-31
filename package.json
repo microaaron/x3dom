@@ -19,7 +19,7 @@
     "url": "git+https://github.com/x3dom/x3dom.git"
   },
   "keywords": [
-    "webgl",
+    "webgpu",
     "x3d",
     "gltf",
     "html",

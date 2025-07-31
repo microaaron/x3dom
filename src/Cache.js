@@ -18,6 +18,7 @@ x3dom.Cache = function ()
 {
     this.textures = [];
     this.shaders = [];
+    this.passResources = {};
 };
 
 /**
@@ -212,16 +213,16 @@ x3dom.Cache.prototype.getDynamicShader = function ( gl, viewarea, shape )
 /**
  * Returns a dynamic generated shader program by properties
  *
- * @param gl
+ * @param context
  * @param shape
  * @param properties
  * @param pickMode
  * @param shadows
  */
-x3dom.Cache.prototype.getShaderByProperties = function ( gl, shape, properties, pickMode, shadows )
+x3dom.Cache.prototype.getShaderByProperties = function ( context, shape, properties, pickMode, shadows )
 {
     // Get shaderID
-    var shaderID = properties.id;
+    var id = properties.id;
 
     if ( pickMode !== undefined && pickMode !== null )
     {
@@ -233,25 +234,25 @@ x3dom.Cache.prototype.getShaderByProperties = function ( gl, shape, properties, 
         shaderID += "S";
     }
 
-    if ( this.shaders[ shaderID ] === undefined )
+    if ( this.passResources[ id ] === undefined )
     {
         var program = null;
 
         if ( pickMode !== undefined && pickMode !== null )
         {
-            program = new x3dom.shader.DynamicShaderPicking( gl, properties, pickMode );
+            program = new x3dom.shader.DynamicShaderPicking( context, properties, pickMode );
         }
         else if ( shadows !== undefined && shadows !== null )
         {
-            program = new x3dom.shader.DynamicShadowShader( gl, properties );
+            program = new x3dom.shader.DynamicShadowShader( context, properties );
         }
         else if ( properties.CSHADER != -1 )
         {
-            program = new x3dom.shader.ComposedShader( gl, shape );
+            program = new x3dom.shader.ComposedShader( context, shape );
         }
         else if ( properties.KHR_MATERIAL_COMMONS != null && properties.KHR_MATERIAL_COMMONS != 0 )
         {
-            program = new x3dom.shader.KHRMaterialCommonsShader( gl, properties );
+            program = new x3dom.shader.KHRMaterialCommonsShader( context, properties );
         }
         else if ( properties.EMPTY_SHADER != null && properties.EMPTY_SHADER != 0 )
         {
@@ -259,13 +260,16 @@ x3dom.Cache.prototype.getShaderByProperties = function ( gl, shape, properties, 
         }
         else
         {
-            program = new x3dom.shader.DynamicShader( gl, properties );
+            //program = new x3dom.shader.DynamicShader( context, properties );
+            this.passResources[ id ] = x3dom.shader.DynamicShader( context, properties );
+            this.passResources[ id ].id = id;
         }
 
-        this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( gl, program, shaderID );
+        //this.shaders[ shaderID ] = x3dom.Utils.wrapProgram( context, program, shaderID );
     }
 
-    return this.shaders[ shaderID ];
+    //return this.shaders[ shaderID ];
+    return this.passResources[ id ];
 };
 
 /**
