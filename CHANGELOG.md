@@ -3,6 +3,8 @@
 ## Version 1.8.4-dev
 
 * Features
+  * draft X3D 4.1 FontLibrary support for custom fonts
+  * full support for HAnimDisplacer
   * ImageTexture colorSpaceConversion field
   * support for glTF extensions:
     * KHR_lights_punctual
@@ -13,6 +15,9 @@
     * MSFT_texture_dds
   * field values from metadata for non-standard nodes
 * Improvements
+  * Extrusion: fix for two point spines, smooth closed spine and xs 
+  * hooks for HAnim in grouping node traversal
+  * defaults for outputOnly fields (in Protos)
   * improve IS field name processing in Protos
   * isBound and bindTime output for bindable nodes
   * generate module builds (x3dom-modules.js etc.)
@@ -25,6 +30,7 @@
   * more accurate startTime update
   * tune PhysicalMaterial for compatible light intensity
 * Bugfixes
+  * fix Rectangle2D size updates
   * fix fitAll for OrthoViewpoint
   * fix nav. type field updates
   * fix mipmaps for compressed dds
