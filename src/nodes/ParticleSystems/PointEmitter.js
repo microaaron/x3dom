@@ -13,7 +13,7 @@ x3dom.registerNodeType(
     "ParticleSystems",
     class PointEmitter extends x3dom.nodeTypes.X3DParticleEmitterNode
     {
-      /**
+        /**
        * Constructor for PointEmitter
        * @constructs x3dom.nodeTypes.PointEmitter
        * @x3d 4.0
@@ -23,11 +23,11 @@ x3dom.registerNodeType(
        * @param {Object} [ctx=null] - context object, containing initial settings like namespace
        * @classdesc The PointEmitter node is an emitter that generates particles from the point in space specified by the position field. Particles are emitted in the specified direction and speed.
        */
-      constructor ( ctx )
-      {
-          super( ctx );
-          
-          /**
+        constructor ( ctx )
+        {
+            super( ctx );
+
+            /**
            * direction
            * @var {x3dom.fields.SFVec3f} direction
            * @memberof x3dom.nodeTypes.PointEmitter
@@ -36,23 +36,23 @@ x3dom.registerNodeType(
            * @field x3d
            * @instance
            */
-          this.addField_SFVec3f( ctx, "direction", 0, 1, 0 );
-          
-          //this.addField_SFFloat( ctx, "mass", 0 );
-          
-          //this.addField_SFNode( "metadata", x3dom.nodeTypes.X3DMetadataObject );
-          
-          //this.addField_SFBool( ctx, "on", true );
-          
-          this.addField_SFVec3f( ctx, "position", 0, 0, 0 );
-          
-          //this.addField_SFFloat( ctx, "speed", 0 );
-          
-          //this.addField_SFFloat( ctx, "surfaceArea", 0 );
-          
-          //this.addField_SFFloat( ctx, "variation", 0.25 );
-      }
-      /*
+            this.addField_SFVec3f( ctx, "direction", 0, 1, 0 );
+
+            //this.addField_SFFloat( ctx, "mass", 0 );
+
+            //this.addField_SFNode( "metadata", x3dom.nodeTypes.X3DMetadataObject );
+
+            //this.addField_SFBool( ctx, "on", true );
+
+            this.addField_SFVec3f( ctx, "position", 0, 0, 0 );
+
+            //this.addField_SFFloat( ctx, "speed", 0 );
+
+            //this.addField_SFFloat( ctx, "surfaceArea", 0 );
+
+            //this.addField_SFFloat( ctx, "variation", 0.25 );
+        }
+        /*
       nodeChanged ()
       {
           super.nodeChanged();

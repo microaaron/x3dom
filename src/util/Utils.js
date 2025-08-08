@@ -65,152 +65,204 @@ x3dom.Utils.isNumber = function ( n )
 /*****************************************************************************
 *
 *****************************************************************************/
-x3dom.Utils.createTexture2D = function ( gl, doc, src, bgnd, crossOrigin, scale, genMipMaps, flipY, tex )
+x3dom.Utils.createTexture2D = function ( ctx3d, doc, src, bgnd, crossOrigin, scale, genMipMaps, flipY, tex )
 {
-    flipY = flipY || false;
+    return new Promise( ( resolve, reject )=>
+    {
+        flipY = flipY || false;
 
-    var texture = gl.createTexture();
+        var device = ctx3d.getConfiguration().device;
+        //var texture = ctx3d.createTexture();
 
-    //Create a black 4 pixel texture to prevent 'texture not complete' warning
-    var data = new Uint8Array( [ 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255 ] );
+        //Create a black 4 pixel texture to prevent 'texture not complete' warning
+        /*var data = new Uint8Array( [ 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255 ] );
     gl.bindTexture( gl.TEXTURE_2D, texture );
     gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, data );
     if ( genMipMaps )
     {
         gl.generateMipmap( gl.TEXTURE_2D );
     }
-    gl.bindTexture( gl.TEXTURE_2D, null );
+    gl.bindTexture( gl.TEXTURE_2D, null );*/
 
-    texture.ready = false;
-    var urlIndex = 0;
+        //Create a black 1 pixel texture to prevent 'texture not complete' warning
 
-    if ( src == null || src == "" )
-    {return texture;}
-
-    var image = new Image();
-
-    switch ( crossOrigin.toLowerCase() )
+        /*var texture = device.createTexture( {
+        size   : [ 1, 1, 1 ],
+        format : "rgba8unorm",
+        usage  : GPUTextureUsage.TEXTURE_BINDING |
+                        GPUTextureUsage.COPY_DST |
+                        GPUTextureUsage.RENDER_ATTACHMENT
+    } );
+    device.queue.writeTexture(
+        { texture: texture },  //destination
+        new Uint8Array( [ 0, 0, 0, 255 ] ),  //data
+        { bytesPerRow: 4 * 4 },  //dataLayout
+        [ 1, 1 ] //size
+    );*/
+        /*if ( genMipMaps )
     {
-        case "anonymous": {
-            image.crossOrigin = "anonymous";
-        } break;
-        case "use-credentials": {
-            image.crossOrigin = "use-credentials";
-        } break;
-        case "none": {
-            //this is needed to omit the default case, if default is none, erase this and the default case
-        } break;
-        default: {
-            if ( x3dom.Utils.forbiddenBySOP( src ) )
-            {
+        gl.generateMipmap( gl.TEXTURE_2D );
+    }*/
+
+        //texture.ready = false;
+        var urlIndex = 0;
+
+        if ( src == null || src == "" )
+        {return texture;}
+
+        var image = new Image();
+
+        switch ( crossOrigin.toLowerCase() )
+        {
+            case "anonymous": {
                 image.crossOrigin = "anonymous";
+            } break;
+            case "use-credentials": {
+                image.crossOrigin = "use-credentials";
+            } break;
+            case "none": {
+            //this is needed to omit the default case, if default is none, erase this and the default case
+            } break;
+            default: {
+                if ( x3dom.Utils.forbiddenBySOP( src ) )
+                {
+                    image.crossOrigin = "anonymous";
+                }
             }
         }
-    }
 
-    var requestImageWithChannelCount = function ()
-    {
-        if ( tex && tex.getOrigChannelCount() === 0 )
+        var requestImageWithChannelCount = function ()
         {
-            var xhr = new XMLHttpRequest();
-            xhr.open( "GET", src );
-
-            xhr.onloadstart = function ()
+            if ( tex && tex.getOrigChannelCount() === 0 )
             {
-                xhr.responseType = "arraybuffer";
-            };
+                var xhr = new XMLHttpRequest();
+                xhr.open( "GET", src );
 
-            xhr.onload = function ()
-            {
-                var mimeType  = xhr.getResponseHeader( "Content-Type" ),
-                    imageData = new Uint8Array( xhr.response ),
-                    channelcount = x3dom.Utils.detectChannelCount( imageData, mimeType );
-
-                if ( channelcount )
+                xhr.onloadstart = function ()
                 {
-                    tex.setOrigChannelCount( channelcount );
+                    xhr.responseType = "arraybuffer";
+                };
+
+                xhr.onload = function ()
+                {
+                    var mimeType  = xhr.getResponseHeader( "Content-Type" ),
+                        imageData = new Uint8Array( xhr.response ),
+                        channelcount = x3dom.Utils.detectChannelCount( imageData, mimeType );
+
+                    if ( channelcount )
+                    {
+                        tex.setOrigChannelCount( channelcount );
+                    }
+
+                    image.src = x3dom.Utils.arrayBufferToObjectURL( imageData, mimeType );
+                };
+
+                xhr.onerror = function ()
+                {
+                    x3dom.debug.logError( "[Utils|createTexture2D] Can't http request: " + src );
+                    // always try to load, to trigger image.onerror if unsuccessful
+                    image.src = src;
+                };
+
+                x3dom.RequestManager.addRequest( xhr );
+            }
+            else
+            {
+                image.src = src;
+            }
+
+            doc.incrementDownloads();
+        };
+
+        requestImageWithChannelCount();
+
+        image.onload = function ()
+        {
+            image.decode().then( ()=>
+            {
+            //texture.originalWidth  = image.width;
+            //texture.originalHeight = image.height;
+
+                //texture.destroy();
+
+                if ( scale )
+                {image = x3dom.Utils.scaleImage( image );}
+
+                if ( bgnd == true || flipY == true )
+                {
+                    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
+                }
+                //gl.bindTexture( gl.TEXTURE_2D, texture );
+                if ( tex && tex._vf.colorSpaceConversion == false )
+                {
+                    gl.pixelStorei( gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE );
+                }
+                //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+                //gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image );
+                texture = device.createTexture( {
+                    size   : [ image.width, image.height, 1 ],
+                    format : "rgba8unorm",
+                    usage  : GPUTextureUsage.TEXTURE_BINDING |
+                            GPUTextureUsage.COPY_DST |
+                            GPUTextureUsage.RENDER_ATTACHMENT
+                } );
+                device.queue.copyExternalImageToTexture( {
+                    source : image
+                }, {
+                    texture : texture
+                },
+                [ image.width, image.height ]
+                );
+
+                texture.originalWidth  = image.width;
+                texture.originalHeight = image.height;
+
+                if ( genMipMaps )
+                {
+                    gl.generateMipmap( gl.TEXTURE_2D );
+                }
+                //gl.bindTexture( gl.TEXTURE_2D, null );
+                if ( bgnd == true || flipY == true )
+                {
+                    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, false );
                 }
 
-                image.src = x3dom.Utils.arrayBufferToObjectURL( imageData, mimeType );
-            };
+                //Save image size
+                //texture.width  = image.width;
+                //texture.height = image.height;
+                texture.ready = true;
 
-            xhr.onerror = function ()
+                doc.decrementDownloads();
+                doc.needRender = true;
+                resolve( texture );
+            } );
+        };
+
+        image.onerror = function ( error )
+        {
+            x3dom.Utils.tryDDSLoading( texture, gl, doc, src, genMipMaps, flipY, tex ).then( function ()
             {
-                x3dom.debug.logError( "[Utils|createTexture2D] Can't http request: " + src );
-                // always try to load, to trigger image.onerror if unsuccessful
-                image.src = src;
-            };
-
-            x3dom.RequestManager.addRequest( xhr );
-        }
-        else
-        {
-            image.src = src;
-        }
-
-        doc.incrementDownloads();
-    };
-
-    requestImageWithChannelCount();
-
-    image.onload = function ()
-    {
-        texture.originalWidth  = image.width;
-        texture.originalHeight = image.height;
-
-        if ( scale )
-        {image = x3dom.Utils.scaleImage( image );}
-
-        if ( bgnd == true || flipY == true )
-        {
-            gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
-        }
-        gl.bindTexture( gl.TEXTURE_2D, texture );
-        if ( tex && tex._vf.colorSpaceConversion == false )
-        {
-            gl.pixelStorei( gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE );
-        }
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-        gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image );
-        if ( genMipMaps )
-        {
-            gl.generateMipmap( gl.TEXTURE_2D );
-        }
-        gl.bindTexture( gl.TEXTURE_2D, null );
-        if ( bgnd == true || flipY == true )
-        {
-            gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, false );
-        }
-
-        //Save image size
-        texture.width  = image.width;
-        texture.height = image.height;
-        texture.ready = true;
-
-        doc.decrementDownloads();
-        doc.needRender = true;
-    };
-
-    image.onerror = function ( error )
-    {
-        x3dom.Utils.tryDDSLoading( texture, gl, doc, src, genMipMaps, flipY, tex ).then( function ()
-        {
-            doc.decrementDownloads();
-            doc.needRender = true;
-        }, function ()
-        {
-            x3dom.debug.logError( "[Utils|createTexture2D] Can't load Image: " + src );
-            doc.decrementDownloads();
-            urlIndex++;
-            if ( tex && urlIndex < tex._vf.url.length )
+                doc.decrementDownloads();
+                doc.needRender = true;
+            }, function ()
             {
-                src = tex._nameSpace.getURL( tex._vf.url[ urlIndex ] );
-                requestImageWithChannelCount();
-            }
-        } );
-    };
+                x3dom.debug.logError( "[Utils|createTexture2D] Can't load Image: " + src );
+                doc.decrementDownloads();
+                urlIndex++;
+                if ( tex && urlIndex < tex._vf.url.length )
+                {
+                    src = tex._nameSpace.getURL( tex._vf.url[ urlIndex ] );
+                    requestImageWithChannelCount();
+                }
+                else
+                {
+                    reject();
+                }
+            } );
+        };
 
-    return texture;
+    //return texture;
+    } );
 };
 
 x3dom.Utils.tryDDSLoading = function ( texture, gl, doc, src, genMipMaps, flipY, tex )
@@ -1586,4 +1638,182 @@ x3dom.Utils.forbiddenBySOP = function ( uri_string )
     Host = Host || document.location.host;
     Scheme = Scheme || document.location.protocol;
     return !( Port === originPort && Host === document.location.host && Scheme === document.location.protocol );
+};
+
+x3dom.Utils.EventEmitter = class EventEmitter
+{
+    constructor ( arg )
+    {
+        this.events = new Map();
+        switch ( true )
+        {
+            case arguments.length == 1:
+                switch ( true )
+                {
+                    case arg instanceof Array:
+                        this.addEvents( arg );
+                        break;
+                    default:
+                        this.addEvent( arg );
+                        break;
+                }
+                break;
+            case arguments.length > 1:
+                Array.prototype.forEach.call( arguments, arg=>this.addEvent( arg ) );
+                break;
+        }
+    }
+
+    addEvent ( eventName )
+    {
+        if ( arguments.length != 0 )
+        {
+            if ( !( this.events.get( eventName ) instanceof Map ) )
+            {
+                this.events.set( eventName, new Map() );
+            }
+            else
+            {
+                x3dom.debug.logWarning( `Add event (${eventName}) failed. Event (${eventName}) already exists.` );
+            }
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Add event failed. No argument.` );
+        }
+    }
+
+    addEvents ( eventNames )
+    {
+        switch ( true )
+        {
+            case arguments.length == 1:
+                if ( eventNames instanceof Array )
+                {
+                    eventNames.forEach( eventName=>this.addEvent( eventName ) );
+                }
+                else
+                {
+                    x3dom.debug.logWarning( `Add events (${eventName}) failed. Events should be an instance of Array.` );
+                }
+                break;
+            case arguments.length > 1:
+                Array.prototype.forEach.call( arguments, arg=>this.addEvent( arg ) );
+                break;
+        }
+    }
+
+    clearEventCallbacks ( eventName )
+    {
+        if ( arguments.length != 0 )
+        {
+            const eventCallbacks = this.events.get( eventName );
+            if ( eventCallbacks instanceof Map )
+            {
+                eventCallbacks.clear();
+            }
+            else
+            {
+                x3dom.debug.logWarning( `Clear callbacks of event (${eventName}) failed. Event (${eventName}) doesn't exists.` );
+            }
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Clear callbacks failed. No argument.` );
+        }
+    }
+
+    deleteEvent ( eventName )
+    {
+        if ( arguments.length != 0 )
+        {
+            if ( this.events.get( eventName ) instanceof Map )
+            {
+                this.events.delete( eventName );
+            }
+            else
+            {
+                x3dom.debug.logWarning( `Delete event (${eventName}) failed. Event (${eventName}) doesn't exists.` );
+            }
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Delete event failed. No argument.` );
+        }
+    }
+
+    deleteEvents ( eventNames )
+    {
+        switch ( true )
+        {
+            case arguments.length == 1:
+                if ( eventNames instanceof Array )
+                {
+                    eventNames.forEach( eventName=>this.deleteEvent( eventName ) );
+                }
+                else
+                {
+                    x3dom.debug.logWarning( `Delete events (${eventName}) failed. Events should be an instance of Array.` );
+                }
+                break;
+            case arguments.length > 1:
+                Array.prototype.forEach.call( arguments, arg=>this.deleteEvent( arg ) );
+                break;
+        }
+    }
+
+    publish ( eventName, data )
+    {
+        const eventCallbacks = this.events.get( eventName );
+        if ( eventCallbacks instanceof Map )
+        {
+            eventCallbacks.forEach( ( times, callback )=>
+            {
+                callback( data, times );
+                if ( times > 0 )
+                {
+                    times > 1 ? eventCallbacks.set( callback, times - 1 ) : eventCallbacks.delete( callback );/*this.unsubscribe( eventName, callback )*/;
+                }
+            } );
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Publish event (${eventName}) failed. Event (${eventName}) doesn't exist.` );
+        }
+    }
+
+    subscribe ( eventName, callback, times )
+    {
+        const eventCallbacks = this.events.get( eventName );
+        if ( eventCallbacks instanceof Map )
+        {
+            if ( callback instanceof Function )
+            {
+                const t = parseInt( times );
+                eventCallbacks.set( callback, t > 0 ? t : 0 );
+                return ()=>this.unsubscribe( eventName, callback );
+            }
+            else
+            {
+                x3dom.debug.logWarning( `Subscribe event (${eventName}) failed. Callback should be an instance of Function.` );
+            }
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Subscribe event (${eventName}) failed. Event (${eventName}) doesn't exist.` );
+        }
+    }
+
+    unsubscribe ( eventName, callback )
+    {
+        const eventCallbacks = this.events.get( eventName );
+        if ( eventCallbacks instanceof Map )
+        {
+            eventCallbacks.delete( callback );
+        }
+        else
+        {
+            x3dom.debug.logWarning( `Unsubscribe event (${eventName}) failed. Event (${eventName}) doesn't exist.` );
+        }
+    }
 };

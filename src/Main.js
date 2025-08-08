@@ -182,7 +182,7 @@ x3dom.userAgentFeature = {
                 x3dom.runtime.noBackendFound();
             }
 
-            x3dcanvas.load( x3ds[ i ], i, settings );
+            x3dcanvas.load( x3ds[ i ], settings );
 
             // show or hide statistics based on param/x3d attribute settings
             if ( settings.getProperty( "showStat" ) === "true" )

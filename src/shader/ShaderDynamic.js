@@ -669,10 +669,10 @@ fn ${fragmentShaderModuleEntryPoint}(
   ${fs_mainFunctionBodyCode}
 }`;
 
-    var renderPassResource = new easygpu.RenderPassResource( context.device );
-    renderPassResource.bindingListArray = bindingListArray;
-    renderPassResource.vertexListArray = vertexListArray;
-    renderPassResource.assets.Lights = class Lights extends DataView
+    var renderPassEncoderResource = new easygpu.RenderPassEncoderResource( context.device );
+    renderPassEncoderResource.bindingListArray = bindingListArray;
+    renderPassEncoderResource.vertexListArray = vertexListArray;
+    renderPassEncoderResource.assets.Lights = class Lights extends DataView
     {
         stride = 7 * 16;
 
@@ -756,7 +756,7 @@ fn ${fragmentShaderModuleEntryPoint}(
         };
     };
 
-    renderPassResource.assets.Positions = class Positions extends Float32Array
+    renderPassEncoderResource.assets.Positions = class Positions extends Float32Array
     {
         constructor ( arg )
         {
@@ -791,7 +791,7 @@ fn ${fragmentShaderModuleEntryPoint}(
             }
         };
     };
-    renderPassResource.assets.Normals = class Normals extends Float32Array
+    renderPassEncoderResource.assets.Normals = class Normals extends Float32Array
     {
         constructor ( arg )
         {
@@ -826,7 +826,7 @@ fn ${fragmentShaderModuleEntryPoint}(
             }
         };
     };
-    renderPassResource.assets.Texcoords = class Texcoords extends Float32Array
+    renderPassEncoderResource.assets.Texcoords = class Texcoords extends Float32Array
     {
         constructor ( arg )
         {
@@ -860,14 +860,14 @@ fn ${fragmentShaderModuleEntryPoint}(
         };
     };
 
-    renderPassResource.initBindGroups( [ , bindingListArray[ 1 ] ] );
+    renderPassEncoderResource.initBindGroups( [ , bindingListArray[ 1 ] ] );
 
-    renderPassResource.new = ()=>
+    renderPassEncoderResource.new = ()=>
     {
-        var newRenderPassResource = renderPassResource.copy( {
-            bindGroupDescriptors : [ , renderPassResource.bindGroupDescriptors[ 1 ] ],
-            bindGroupResources   : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( renderPassResource.bindGroupResources ) ),
-            bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( renderPassResource.bindGroups, 1 ) ),
+        var newRenderPassEncoderResource = renderPassEncoderResource.copy( {
+            bindGroupDescriptors : [ , renderPassEncoderResource.bindGroupDescriptors[ 1 ] ],
+            bindGroupResources   : Object.defineProperties( {}, Object.getOwnPropertyDescriptors( renderPassEncoderResource.bindGroupResources ) ),
+            bindGroups           : Object.defineProperty( [], 1, Object.getOwnPropertyDescriptor( renderPassEncoderResource.bindGroups, 1 ) ),
             vertexBuffers        : [],
             vertices             : {}
         } );
@@ -911,11 +911,11 @@ fn ${fragmentShaderModuleEntryPoint}(
             const count = 1;
             var multisample = new easygpu.webgpu.GPUMultisampleState( count/*, mask, alphaToCoverageEnabled*/ );
         }
-        newRenderPassResource.initRenderPipeline( new easygpu.webgpu.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
-        newRenderPassResource.initBindGroups( [ bindingListArray[ 0 ] ] );
-        newRenderPassResource.initVertexBuffers();
-        newRenderPassResource.initIndexBuffer();
-        return newRenderPassResource;
+        newRenderPassEncoderResource.initRenderPipeline( new easygpu.webgpu.GPURenderPipelineDescriptor( layout, vertex, fragment, primitive, depthStencil, multisample/*, label*/ ) );
+        newRenderPassEncoderResource.initBindGroups( [ bindingListArray[ 0 ] ] );
+        newRenderPassEncoderResource.initVertexBuffers();
+        newRenderPassEncoderResource.initIndexBuffer();
+        return newRenderPassEncoderResource;
     };
-    return renderPassResource;
+    return renderPassEncoderResource;
 };

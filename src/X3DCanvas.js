@@ -1384,10 +1384,9 @@ x3dom.X3DCanvas.prototype.mainloop = function ( timestamp, xrFrame )
 
 /** Loads the given @p uri.
  * @param uri can be a uri or an X3D node
- * @param sceneElemPos
  * @param settings properties
  */
-x3dom.X3DCanvas.prototype.load = function ( uri, sceneElemPos, settings )
+x3dom.X3DCanvas.prototype.load = function ( x3dElem, settings )
 {
     this.doc = new x3dom.X3DDocument( this.canvas, this.gl, settings );
 
@@ -1426,7 +1425,9 @@ x3dom.X3DCanvas.prototype.load = function ( uri, sceneElemPos, settings )
         alert( "Failed to load X3D document" );
     };
 
-    this.doc.load( uri, sceneElemPos );
+    //this.doc.load( uri );
+    this.doc._setup( x3dElem );
+    this.doc.onload();
 };
 
 //------------------------------------------------------------------------------

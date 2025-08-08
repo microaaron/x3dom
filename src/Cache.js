@@ -24,7 +24,7 @@ x3dom.Cache = function ()
 /**
  * Returns a Texture 2D
  *
- * @param gl
+ * @param ctx3d
  * @param doc
  * @param url
  * @param bgnd
@@ -34,14 +34,39 @@ x3dom.Cache = function ()
  *
  * @returns {*}
  */
-x3dom.Cache.prototype.getTexture2D = function ( gl, doc, url, bgnd, crossOrigin, scale, genMipMaps, flipY, tex )
+x3dom.Cache.prototype.getTexture2D = function ( ctx3d, doc, url, bgnd, crossOrigin, scale, genMipMaps, flipY, tex )
 {
     var textureIdentifier = url;
 
     if ( this.textures[ textureIdentifier ] === undefined )
     {
-        this.textures[ textureIdentifier ] = x3dom.Utils.createTexture2D(
-            gl, doc, url, bgnd, crossOrigin, scale, genMipMaps, flipY, tex );
+        //Create a black 1 pixel texture to prevent 'texture not complete' warning
+        var device = ctx3d.getConfiguration().device;
+        var texture = device.createTexture( {
+            size   : [ 1, 1, 1 ],
+            format : "rgba8unorm",
+            usage  : GPUTextureUsage.TEXTURE_BINDING |
+                            GPUTextureUsage.COPY_DST |
+                            GPUTextureUsage.RENDER_ATTACHMENT
+        } );
+        device.queue.writeTexture(
+            { texture: texture },  //destination
+            new Uint8Array( [ 0, 0, 0, 255 ] ),  //data
+            { bytesPerRow: 4 * 4 },  //dataLayout
+            [ 1, 1 ] //size
+        );
+        //texture.ready = false;
+        texture.eventEmitter = new x3dom.Utils.EventEmitter( [ `update` ] );
+        this.textures[ textureIdentifier ] = texture;
+
+        //this.textures[ textureIdentifier ] = x3dom.Utils.createTexture2D( ctx3d, doc, url, bgnd, crossOrigin, scale, genMipMaps, flipY, tex );
+        x3dom.Utils.createTexture2D( ctx3d, doc, url, bgnd, crossOrigin, scale, genMipMaps, flipY, tex ).then( ( newTexture )=>
+        {
+            newTexture.eventEmitter = new x3dom.Utils.EventEmitter( [ `update` ] );
+            this.textures[ textureIdentifier ] = newTexture;
+            texture.eventEmitter.publish( `update`, newTexture );
+            texture.destroy();
+        }, ()=>{} );
     }
 
     return this.textures[ textureIdentifier ];

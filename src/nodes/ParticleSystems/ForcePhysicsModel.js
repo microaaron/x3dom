@@ -13,7 +13,7 @@ x3dom.registerNodeType(
     "ParticleSystems",
     class ForcePhysicsModel extends x3dom.nodeTypes.X3DParticlePhysicsModelNode
     {
-      /**
+        /**
        * Constructor for ForcePhysicsModel
        * @constructs x3dom.nodeTypes.ForcePhysicsModel
        * @x3d 4.0
@@ -23,17 +23,17 @@ x3dom.registerNodeType(
        * @param {Object} [ctx=null] - context object, containing initial settings like namespace
        * @classdesc The ForcePhysicsModel node specifies a physics model that applies a constant force value to the particles. Force may act in any given direction vector at any strength.
        */
-      constructor ( ctx )
-      {
-          super( ctx );
-          
-          //this.addField_SFBool( ctx, "enabled", true );
-          
-          this.addField_SFVec3f( ctx, "force", 0, -9.8, 0 );
-          
-          //this.addField_SFNode( "metadata", x3dom.nodeTypes.X3DMetadataObject );
-      }
-      /*
+        constructor ( ctx )
+        {
+            super( ctx );
+
+            //this.addField_SFBool( ctx, "enabled", true );
+
+            this.addField_SFVec3f( ctx, "force", 0, -9.8, 0 );
+
+            //this.addField_SFNode( "metadata", x3dom.nodeTypes.X3DMetadataObject );
+        }
+        /*
       nodeChanged ()
       {
           super.nodeChanged();

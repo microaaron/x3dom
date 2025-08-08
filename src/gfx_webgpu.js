@@ -48,6 +48,77 @@ x3dom.gfx_webgpu = ( function ()
                 TEXCOORD_1 : 8,
                 ID         : 9
             };
+
+        this.renderPassResource = new class RenderPassResource
+        {
+            constructor ( x3dContext )
+            {
+                this.x3dContext = x3dContext;
+                this.initDepthTextureDescriptor();
+                this.initRenderPassDescriptor();
+            }
+
+            initRenderPassDescriptor ()
+            {
+                {
+                    let view;// = this.ctx3d.getCurrentTexture().createView();
+                    let depthSlice;
+                    let resolveTarget;
+                    const clearValue = new easygpu.webgpu.GPUColorDict( 1.0, 1.0, 1.0, 1.0 );
+                    const loadOp = "clear";
+                    const storeOp = "store";
+
+                    var colorAttachments = [ new easygpu.webgpu.GPURenderPassColorAttachment( view, depthSlice, resolveTarget, clearValue, loadOp, storeOp ) ];
+                }
+                {
+                    let view;// = this.depthTexture.createView();
+                    const depthClearValue = 1.0;
+                    const depthLoadOp = "clear";
+                    const depthStoreOp = "store";
+                    let depthReadOnly;
+                    const stencilClearValue = 0;
+                    const stencilLoadOp = "clear";
+                    const stencilStoreOp = "store";
+                    let stencilReadOnly;
+
+                    var depthStencilAttachment = new easygpu.webgpu.GPURenderPassDepthStencilAttachment( view, depthClearValue, depthLoadOp, depthStoreOp, depthReadOnly, stencilClearValue, stencilLoadOp, stencilStoreOp, stencilReadOnly );
+                }
+                {
+                    let occlusionQuerySet;
+                    let timestampWrites;
+                    let maxDrawCount;
+                    let label;
+
+                    this.renderPassDescriptor = new easygpu.webgpu.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
+                }
+            }
+
+            initDepthTextureDescriptor ( size = new easygpu.webgpu.GPUExtent3DDict( this.x3dContext.ctx3d.getCurrentTexture().width, this.x3dContext.ctx3d.getCurrentTexture().height ), mipLevelCount, sampleCount, dimension, format = "depth32float-stencil8", usage = GPUTextureUsage.RENDER_ATTACHMENT, viewFormats, label )
+            {
+                this.depthTextureDescriptor = new easygpu.webgpu.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
+                return this.depthTextureDescriptor;
+            }
+
+            /*setupDepthTexture(){
+            this.depthTexture = x3dContext.device.createTexture( this.setupDepthTextureDescriptor() );
+          }*/
+            updateDepthTexture ()
+            {
+                const ctx3dTexture = this.x3dContext.ctx3d.getCurrentTexture();
+                const depthTexture = this.depthTexture;
+                if ( depthTexture instanceof GPUTexture )
+                {
+                    if ( depthTexture.width === ctx3dTexture.width && depthTexture.height === ctx3dTexture.height )
+                    {
+                        return;
+                    }
+                    depthTexture.destroy();
+                }
+                const newSize = new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height );
+                this.depthTexture = this.x3dContext.device.createTexture( Object.assign( this.depthTextureDescriptor, {size: newSize} ) );
+                this.renderPassDescriptor.depthStencilAttachment.view = this.depthTexture.createView();
+            }
+        }( this );
     }
 
     /**
@@ -118,11 +189,11 @@ x3dom.gfx_webgpu = ( function ()
             }
 
             var adapterInfo = adapter.info;
-            x3dom.debug.logInfo( "adapter found\n" +
-                                ( adapterInfo.vendor == "" ? "" : "vendor: " + adapterInfo.vendor + ", " ) +
-                                ( adapterInfo.architecture == "" ? "" : "architecture: " + adapterInfo.architecture + ", " ) +
-                                ( adapterInfo.device == "" ? "" : "device: " + adapterInfo.device + ", " ) +
-                                ( adapterInfo.description == "" ? "" : "description: " + adapterInfo.description + ", " ) );
+            x3dom.debug.logInfo( `adapter found${adapterInfo.vendor == `` ? `` : `
+vendor: ${adapterInfo.vendor}`}${adapterInfo.architecture == `` ? `` : `
+architecture: ${adapterInfo.architecture}`}${adapterInfo.device == `` ? `` : `
+device: ${adapterInfo.device}`}${adapterInfo.description == `` ? `` : `
+description: ${adapterInfo.description}`}` );
             var limits = {};
             for ( var limit in adapter.limits )
             {
@@ -676,6 +747,9 @@ x3dom.gfx_webgpu = ( function ()
             };  // shape._cleanupGLObjects()
         }
 
+        if(shape._webgpu){
+          return;
+        }
         shape._webgpu = {
             positions           : geoNode._mesh._positions,
             normals             : geoNode._mesh._normals,
@@ -712,7 +786,7 @@ x3dom.gfx_webgpu = ( function ()
         textures = shape.getTextures();
         for ( t = 0; t < textures.length; ++t )
         {
-            //shape._webgpu.texture.push( new x3dom.Texture( ctx3d, shape._nameSpace.doc, this.cache, textures[ t ] ) );
+            shape._webgpu.texture.push( new x3dom.Texture( ctx3d, shape._nameSpace.doc, this.cache, textures[ t ] ) );
         }
 
         // Set Shader
@@ -732,7 +806,7 @@ x3dom.gfx_webgpu = ( function ()
         sp.vertices.position = new sp.assets.Positions( shape._webgpu.positions[ 0 ] );
         sp.vertices.normal = new sp.assets.Normals( shape._webgpu.normals[ 0 ] );
         sp.indexBuffer = shape._webgpu.indexes[ 0 ];
-        if ( shape.getShaderProperties( viewarea ).TEXTURED )
+        /*if ( shape.getShaderProperties( viewarea ).TEXTURED )
         {
             sp.vertices.texcoord = new sp.assets.Texcoords( shape._webgpu.texcoords[ 0 ] );
             if ( !window.webgpuTexture )
@@ -777,7 +851,21 @@ x3dom.gfx_webgpu = ( function ()
             sp.bindGroupResources.texture = window.webgpuTexture;
         }
         sp.bindGroupResources.diffuseMap = this.device.createSampler( new easygpu.webgpu.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) );
+*/
 
+        if ( shape.getShaderProperties( viewarea ).TEXTURED )
+        {
+            sp.vertices.texcoord = new sp.assets.Texcoords( shape._webgpu.texcoords[ 0 ] );
+            var texture = shape._webgpu.texture[ 0 ];
+            /*( function subscribeUpdateTexture ( texture )
+            {
+                texture.eventEmitter.subscribe( `updateTexture`, ( newTexture )=>subscribeUpdateTexture( newTexture ) );
+                sp.bindGroupResources.texture = texture.texture;
+            } )( texture );*/
+            sp.bindGroupResources.texture = texture.texture;
+            texture.eventEmitter.subscribe( `updateTexture`, ( newTexture )=>sp.bindGroupResources.texture = newTexture );
+            sp.bindGroupResources.diffuseMap = this.device.createSampler( new easygpu.webgpu.GPUSamplerDescriptor( "clamp-to-edge", "clamp-to-edge", "clamp-to-edge", "linear", "linear", "linear", 0, 32, undefined, 16 ) );
+        }
         /*
         shape._webgpu.buffers = [];
         shape._webgpu.dynamicFields = [];
@@ -3251,11 +3339,11 @@ x3dom.gfx_webgpu = ( function ()
                 }
             }*/
         {
-            const colorFormats = [ this.ctx3d.getCurrentTexture().format/*navigator.gpu.getPreferredCanvasFormat()*/ ];
-            const depthStencilFormat = "depth32float-stencil8";
+            const colorFormats = [ this.ctx3d.getCurrentTexture().format];
+            const depthStencilFormat = this.renderPassResource.depthTexture.format;//"depth32float-stencil8";
             const sampleCount = 1;
             var renderBundleEncoderDescriptor = new easygpu.webgpu.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
-            var renderBundleEncoder = this.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
+                    var renderBundleEncoder = this.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
             renderBundleEncoder.setPipeline( sp.renderPipeline );
             for ( var bindGroup of sp.bindGroups )
             {
@@ -3268,7 +3356,6 @@ x3dom.gfx_webgpu = ( function ()
             renderBundleEncoder.setIndexBuffer( sp.indexBuffer, sp.indexFormat );
             renderBundleEncoder.drawIndexed( s_gpu.indexes[ 0 ].length );
 
-            //renderBundleEncoder .draw(cubeVertexCount, 1, 0, 0);
             var renderBundle = renderBundleEncoder.finish();
         }
         /*{
@@ -3285,6 +3372,7 @@ x3dom.gfx_webgpu = ( function ()
             var depthTexture = this.device.createTexture( textureDescriptor );
         }*/
 
+        /*
         {
             const view = this.ctx3d.getCurrentTexture().createView();
             let depthSlice;
@@ -3315,12 +3403,26 @@ x3dom.gfx_webgpu = ( function ()
             let label;
 
             var renderPassDescriptor = new easygpu.webgpu.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
-        }
+        }*/
 
         var commandEncoder = this.device.createCommandEncoder();
 
-        var renderPassEncoder = commandEncoder.beginRenderPass( renderPassDescriptor );
+        var renderPassEncoder = commandEncoder.beginRenderPass( this.renderPassResource.renderPassDescriptor );
         renderPassEncoder.executeBundles( [ renderBundle ] );
+
+        /*renderPassEncoder.setPipeline( sp.renderPipeline );
+        for ( var bindGroup of sp.bindGroups )
+        {
+            renderPassEncoder.setBindGroup( sp.bindGroups.indexOf( bindGroup ), bindGroup );
+        }
+        for ( var vertexBuffer of sp.vertexBuffers )
+        {
+            renderPassEncoder.setVertexBuffer( sp.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
+        }
+        renderPassEncoder.setIndexBuffer( sp.indexBuffer, sp.indexFormat );
+        renderPassEncoder.drawIndexed( s_gpu.indexes[ 0 ].length );
+        */
+
         renderPassEncoder.end();
         this.device.queue.submit( [ commandEncoder.finish() ] );
 
@@ -4016,7 +4118,7 @@ x3dom.gfx_webgpu = ( function ()
         {
             return;
         }
-
+        /*
         {
             const size = new easygpu.webgpu.GPUExtent3DDict( this.canvas.width, this.canvas.height );
             let mipLevelCount;
@@ -4060,11 +4162,29 @@ x3dom.gfx_webgpu = ( function ()
             let label;
 
             var renderPassDescriptor = new easygpu.webgpu.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
-        }
+        }*/
+
+        var renderPassDescriptor = this.renderPassResource.renderPassDescriptor;
+        renderPassDescriptor.colorAttachments[ 0 ].view = this.ctx3d.getCurrentTexture().createView();
+        renderPassDescriptor.colorAttachments[ 0 ].loadOp = "clear";
+        renderPassDescriptor.colorAttachments[ 0 ].storeOp = "store";
+        this.renderPassResource.updateDepthTexture();
+        renderPassDescriptor.depthStencilAttachment.depthLoadOp = "clear";
+        renderPassDescriptor.depthStencilAttachment.depthStoreOp = "store";
+        renderPassDescriptor.depthStencilAttachment.stencilLoadOp = "clear";
+        renderPassDescriptor.depthStencilAttachment.stencilStoreOp = "store";
+
         var commandEncoder = this.device.createCommandEncoder();
         var renderPassEncoder = commandEncoder.beginRenderPass( renderPassDescriptor );
         renderPassEncoder.end();
         this.device.queue.submit( [ commandEncoder.finish() ] );
+
+        renderPassDescriptor.colorAttachments[ 0 ].loadOp = "load";
+        renderPassDescriptor.colorAttachments[ 0 ].storeOp = "store";
+        renderPassDescriptor.depthStencilAttachment.depthLoadOp = "load";
+        renderPassDescriptor.depthStencilAttachment.depthStoreOp = "store";
+        renderPassDescriptor.depthStencilAttachment.stencilLoadOp = "load";
+        renderPassDescriptor.depthStencilAttachment.stencilStoreOp = "store";
 
         var rentex = viewarea._doc._nodeBag.renderTextures;
         var rt_tex,

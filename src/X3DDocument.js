@@ -103,22 +103,22 @@ x3dom.findScene = function ( x3dElem )
     return null;
 };
 
-x3dom.X3DDocument.prototype._setup = function ( sceneDoc )
+x3dom.X3DDocument.prototype._setup = function ( x3dElem )
 {
-    var doc = this;
+    //var doc = this;
+    this._x3dElem = x3dElem;
 
-    // sceneDoc is the X3D element here...
-    var sceneElem = x3dom.findScene( sceneDoc );
+    var sceneElem = x3dom.findScene( x3dElem );
 
     this.X3DMutationObserver.observe( document, { attributes: false, attributeOldValue: false, childList: true, subtree: true } );
-    this.mutationObserver.observe( sceneDoc, { attributes: false, attributeOldValue: false, childList: true, subtree: false } );
+    this.mutationObserver.observe( x3dElem, { attributes: false, attributeOldValue: false, childList: true, subtree: false } );
     this.mutationObserver.observe( sceneElem, { attributes: true, attributeOldValue: true, childList: true, subtree: true } );
 
     // create and add BindableBag that holds all bindable stacks
     this._bindableBag = new x3dom.BindableBag( this );
 
     // create and add the NodeNameSpace
-    var nameSpace = new x3dom.NodeNameSpace( "scene", doc );
+    var nameSpace = new x3dom.NodeNameSpace( "scene", this );
 
     var scene = nameSpace.setupTree( sceneElem );
 

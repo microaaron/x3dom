@@ -98,7 +98,7 @@ async function build()
 
     const versions = await concatVersions();
 
-    console.log( "> Minify x3dom.js ..." );
+    /*console.log( "> Minify x3dom.js ..." );
 
     versions[ "BASIC_MIN" ] = (await terser.minify( versions[ "BASIC" ], terser_options )).code;
 
@@ -120,13 +120,13 @@ async function build()
 
     console.log( "> Minify x3dom-physics-module.js ..." );
 
-    versions[ "PHYSICS_MODULE_MIN" ] = (await terser.minify( versions[ "PHYSICS_MODULE" ], terser_options )).code;
+    versions[ "PHYSICS_MODULE_MIN" ] = (await terser.minify( versions[ "PHYSICS_MODULE" ], terser_options )).code;*/
 
     console.log( "> Write x3dom.debug.js ..." );
 
     fs.writeFileSync( DIST_FOLDER + "x3dom.debug.js", HEADER + versions[ "BASIC" ] );
 
-    console.log( "> Write x3dom-module.debug.js ..." );
+    /*console.log( "> Write x3dom-module.debug.js ..." );
 
     fs.writeFileSync( DIST_FOLDER + "x3dom-module.debug.js", HEADER + versions[ "BASIC_MODULE" ] );
 
@@ -168,7 +168,7 @@ async function build()
 
     console.log( "> Write x3dom-physics-module.js ..." );
 
-    fs.writeFileSync( DIST_FOLDER + "x3dom-physics-module.js", HEADER + versions[ "PHYSICS_MODULE_MIN" ] );
+    fs.writeFileSync( DIST_FOLDER + "x3dom-physics-module.js", HEADER + versions[ "PHYSICS_MODULE_MIN" ] );*/
 
     console.log( "> Write VERSION ..." );
 

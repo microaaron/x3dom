@@ -51,28 +51,49 @@ function startDashVideo ( recurl, texturediv )
 /**
  * Texture
  *
- * @param gl
+ * @param ctx3d
  * @param doc
  * @param cache
  * @param node
  * @constructor
  */
-x3dom.Texture = function ( gl, doc, cache, node )
+x3dom.Texture = function ( ctx3d, doc, cache, node )
 {
-    this.gl = gl;
+    this.ctx3d = ctx3d;
     this.doc = doc;
     this.cache = cache;
     this.node = node;
 
     this.samplerName = "diffuseMap";
-    this.type = gl.TEXTURE_2D;
+    /*this.type = gl.TEXTURE_2D;
     this.format = gl.RGBA;
     this.magFilter = gl.LINEAR;
     this.minFilter = gl.LINEAR;
     this.wrapS = gl.REPEAT;
     this.wrapT = gl.REPEAT;
-    this.genMipMaps = false;
+    this.genMipMaps = false;*/
+    this.textureDescriptor = new easygpu.webgpu.GPUTextureDescriptor();
+    this.textureDescriptor.setSize( [ 1, 1, 1 ] );
+    this.textureDescriptor.setMipLevelCount( 1 );
+    this.textureDescriptor.setSampleCount( 1 );
+    this.textureDescriptor.setDimension( `2d` );
+    this.textureDescriptor.setFormat( ctx3d.getConfiguration().format );
+    this.textureDescriptor.setUsage( GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT );
     this.texture = null;
+
+    this.samplerDescriptor = new easygpu.webgpu.GPUSamplerDescriptor();
+    //this.samplerDescriptor.setAddressModeU(`clamp-to-edge`);
+    //this.samplerDescriptor.setAddressModeV(`clamp-to-edge`);
+    //this.samplerDescriptor.setAddressModeW(`clamp-to-edge`);
+    this.samplerDescriptor.setMagFilter( `linear` );
+    this.samplerDescriptor.setMinFilter( `linear` );
+    this.samplerDescriptor.setMipmapFilter( `linear` );
+    //this.samplerDescriptor.setLodMinClamp(0);
+    //this.samplerDescriptor.setLodMaxClamp(32);
+    //this.samplerDescriptor.setCompare();
+    //this.samplerDescriptor.setMaxAnisotropy(1);
+    this.sampler = null;
+
     this.ready = false;
     this.anisotropicDegree = 1.0;
 
@@ -82,6 +103,8 @@ x3dom.Texture = function ( gl, doc, cache, node )
     var suffix = "mpd";
 
     this.node._x3domTexture = this;
+
+    this.eventEmitter = new x3dom.Utils.EventEmitter( [ `updateTexture` ] );
 
     if ( x3dom.isa( tex, x3dom.nodeTypes.MovieTexture ) )
     {
@@ -191,7 +214,7 @@ x3dom.Texture.prototype.setPixel = function ( x, y, pixel, update )
  */
 x3dom.Texture.prototype.updateTexture = function ()
 {
-    var gl = this.gl;
+    var ctx3d = this.ctx3d;
     var doc = this.doc;
     var tex = this.node;
 
@@ -205,7 +228,8 @@ x3dom.Texture.prototype.updateTexture = function ()
     }
     else
     {
-        this.type = gl.TEXTURE_2D;
+        //this.type = ctx3d.TEXTURE_2D;
+        this.textureDescriptor.setDimension( `2d` );
     }
 
     // Set texture format
@@ -214,22 +238,27 @@ x3dom.Texture.prototype.updateTexture = function ()
         switch ( tex._vf.image.comp )
         {
             case 1:
-                this.format = gl.LUMINANCE;
+                //this.format = gl.LUMINANCE;
+                this.textureDescriptor.setFormat( `r8unorm` );
                 break;
             case 2:
-                this.format = gl.LUMINANCE_ALPHA;
+                //this.format = gl.LUMINANCE_ALPHA;
+                this.textureDescriptor.setFormat( `rg8unorm` );
                 break;
             case 3:
-                this.format = gl.RGB;
-                break;
+                //this.format = gl.RGB;
+                //this.textureDescriptor.setFormat(`rgba8unorm`);
+                //break;
             case 4:
-                this.format = gl.RGBA;
+                //this.format = gl.RGBA;
+                this.textureDescriptor.setFormat( `rgba8unorm` );
                 break;
         }
     }
     else
     {
-        this.format = gl.RGBA;
+        //this.format = gl.RGBA;
+        this.textureDescriptor.setFormat( `rgba8unorm` );
     }
 
     // Set texture min, mag, wrapS and wrapT
@@ -285,28 +314,36 @@ x3dom.Texture.prototype.updateTexture = function ()
     {
         if ( tex._vf.repeatS == false )
         {
-            this.wrapS = gl.CLAMP_TO_EDGE;
+            //this.wrapS = gl.CLAMP_TO_EDGE;
+            this.samplerDescriptor.setAddressModeU( `clamp-to-edge` );
         }
         else
         {
-            this.wrapS = gl.REPEAT;
+            //this.wrapS = gl.REPEAT;
+            this.samplerDescriptor.setAddressModeU( `repeat` );
         }
 
         if ( tex._vf.repeatT == false )
         {
-            this.wrapT = gl.CLAMP_TO_EDGE;
+            //this.wrapT = gl.CLAMP_TO_EDGE;
+            this.samplerDescriptor.setAddressModeV( `clamp-to-edge` );
         }
         else
         {
-            this.wrapT = gl.REPEAT;
+            //this.wrapT = gl.REPEAT;
+            this.samplerDescriptor.setAddressModeV( `repeat` );
         }
 
         if ( this.samplerName == "displacementMap" )
         {
-            this.wrapS = gl.CLAMP_TO_EDGE;
-            this.wrapT = gl.CLAMP_TO_EDGE;
-            this.minFilter = gl.NEAREST;
-            this.magFilter = gl.NEAREST;
+            //this.wrapS = gl.CLAMP_TO_EDGE;
+            //this.wrapT = gl.CLAMP_TO_EDGE;
+            //this.minFilter = gl.NEAREST;
+            //this.magFilter = gl.NEAREST;
+            this.samplerDescriptor.setAddressModeU( `clamp-to-edge` );
+            this.samplerDescriptor.setAddressModeV( `clamp-to-edge` );
+            this.samplerDescriptor.setMagFilter( `nearest` );
+            this.samplerDescriptor.setMinFilter( `nearest` );
         }
     }
 
@@ -528,8 +565,17 @@ x3dom.Texture.prototype.updateTexture = function ()
     }
     else
     {
-        this.texture = this.cache.getTexture2D( gl, doc, tex._nameSpace.getURL( tex._vf.url[ 0 ] ),
+        var texture = this.cache.getTexture2D( ctx3d, doc, tex._nameSpace.getURL( tex._vf.url[ 0 ] ),
             false, tex._vf.crossOrigin, tex._vf.scale, this.genMipMaps, tex._vf.flipY, tex );
+        var that = this;
+        //var callback = newTexture=>subscribeUpdate( newTexture );
+        ( function subscribeUpdate ( texture )
+        {
+            texture.eventEmitter.subscribe( `update`, subscribeUpdate, 1 );
+            that.texture = texture;
+            that.eventEmitter.publish( `updateTexture`, texture );
+        } )( texture );
+        //subscribeUpdate( texture );
     }
 };
 
