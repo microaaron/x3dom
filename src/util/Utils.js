@@ -206,12 +206,9 @@ x3dom.Utils.createTexture2D = function ( ctx3d, doc, src, bgnd, crossOrigin, sca
                             GPUTextureUsage.COPY_DST |
                             GPUTextureUsage.RENDER_ATTACHMENT
                 } );
-                device.queue.copyExternalImageToTexture( {
-                    source : image
-                }, {
-                    texture : texture
-                },
-                [ image.width, image.height ]
+                device.queue.copyExternalImageToTexture(new easygpu.webgpu.GPUCopyExternalImageSourceInfo(image,new easygpu.webgpu.GPUOrigin2DDict(0,0),flipY),
+                    new easygpu.webgpu.GPUCopyExternalImageDestInfo(texture,undefined,{x:0,y:0},"all","srgb",true),
+                    new easygpu.webgpu.GPUExtent3DDict(image.width, image.height, 1)
                 );
 
                 texture.originalWidth  = image.width;

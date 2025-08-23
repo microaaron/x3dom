@@ -1,8 +1,8 @@
 /** 
  * EASYGPU 0.0.1 alpha
- * Build : 15
- * Revision: b5449e48280a11253a624f827d7fb96eeac0421b
- * Date: Mon Feb 24 02:58:50 2025 +0800
+ * Build : 16
+ * Revision: 5ad1d9a4cb8b18b136b82ce5900e746efd5cf4f4
+ * Date: Mon Feb 24 03:21:21 2025 +0800
  */
 /**
  * @file easygpucore.js
@@ -15,9 +15,9 @@ var easygpu = {
 };
 easygpu.about = {
     version  : "0.0.1 alpha",
-    build    : "15",
-    revision : "b5449e48280a11253a624f827d7fb96eeac0421b",
-    date     : "Mon Feb 24 02:58:50 2025 +0800"
+    build    : "16",
+    revision : "5ad1d9a4cb8b18b136b82ce5900e746efd5cf4f4",
+    date     : "Mon Feb 24 03:21:21 2025 +0800"
 };
 easygpu.BindingListArray = class BindingListArray extends Array
 {
@@ -3794,11 +3794,11 @@ easygpu.webgpu.GPUVertexAttribute = class GPUVertexAttribute
 };
 easygpu.webgpu.GPUVertexAttribute.prototype.getAvailableFormats = easygpu.webgpu.GPUVertexAttribute.getAvailableFormats;
 /**
- * @file GPUImageDataLayout.js
+ * @file GPUTexelCopyBufferLayout.js
  * @author microaaron(github.com/microaaron)
- * @date 2024.05
+ * @date 2025.08
  */
-easygpu.webgpu.GPUImageDataLayout = class GPUImageDataLayout
+easygpu.webgpu.GPUTexelCopyBufferLayout = class GPUTexelCopyBufferLayout
 {
     constructor ( offset, bytesPerRow, rowsPerImage )
     {
@@ -3815,15 +3815,15 @@ easygpu.webgpu.GPUImageDataLayout = class GPUImageDataLayout
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUImageDataLayout";
+        return "GPUTexelCopyBufferLayout";
     }
 };
 /**
- * @file GPUImageCopyBuffer.js
+ * @file GPUTexelCopyBufferInfo.js
  * @author microaaron(github.com/microaaron)
- * @date 2024.05
+ * @date 2025.08
  */
-easygpu.webgpu.GPUImageCopyBuffer = class GPUImageCopyBuffer extends easygpu.webgpu.GPUImageDataLayout
+easygpu.webgpu.GPUTexelCopyBufferInfo = class GPUTexelCopyBufferInfo extends easygpu.webgpu.GPUTexelCopyBufferLayout
 {
     constructor ( offset, bytesPerRow, rowsPerImage, buffer )
     {
@@ -3838,15 +3838,15 @@ easygpu.webgpu.GPUImageCopyBuffer = class GPUImageCopyBuffer extends easygpu.web
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUImageCopyBuffer";
+        return "GPUTexelCopyBufferInfo";
     }
 };
 /**
- * @file GPUImageCopyTexture.js
+ * @file GPUTexelCopyTextureInfo.js
  * @author microaaron(github.com/microaaron)
- * @date 2024.05
+ * @date 2025.08
  */
-easygpu.webgpu.GPUImageCopyTexture = class GPUImageCopyTexture
+easygpu.webgpu.GPUTexelCopyTextureInfo = class GPUTexelCopyTextureInfo
 {
     constructor ( texture, mipLevel, origin = {}, aspect )
     {
@@ -3868,16 +3868,16 @@ easygpu.webgpu.GPUImageCopyTexture = class GPUImageCopyTexture
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUImageCopyTexture";
+        return "GPUTexelCopyTextureInfo";
     }
 };
-easygpu.webgpu.GPUImageCopyTexture.prototype.getAvailableAspects = easygpu.webgpu.GPUImageCopyTexture.getAvailableAspects;
+easygpu.webgpu.GPUTexelCopyTextureInfo.prototype.getAvailableAspects = easygpu.webgpu.GPUTexelCopyTextureInfo.getAvailableAspects;
 /**
- * @file GPUImageCopyTextureTagged.js
+ * @file GPUCopyExternalImageDestInfo.js
  * @author microaaron(github.com/microaaron)
- * @date 2024.05
+ * @date 2025.08
  */
-easygpu.webgpu.GPUImageCopyTextureTagged = class GPUImageCopyTextureTagged extends easygpu.webgpu.GPUImageCopyTexture
+easygpu.webgpu.GPUCopyExternalImageDestInfo = class GPUCopyExternalImageDestInfo extends easygpu.webgpu.GPUTexelCopyTextureInfo
 {
     constructor ( texture, mipLevel, origin = {}, aspect, colorSpace, premultipliedAlpha )
     {
@@ -3892,19 +3892,19 @@ easygpu.webgpu.GPUImageCopyTextureTagged = class GPUImageCopyTextureTagged exten
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUImageCopyTextureTagged";
+        return "GPUCopyExternalImageDestInfo";
     }
 };
 /**
- * @file GPUImageCopyExternalImage.js
+ * @file GPUCopyExternalImageSourceInfo.js
  * @author microaaron(github.com/microaaron)
- * @date 2024.05
+ * @date 2025.08
  */
-easygpu.webgpu.GPUImageCopyExternalImage = class GPUImageCopyExternalImage
+easygpu.webgpu.GPUCopyExternalImageSourceInfo = class GPUCopyExternalImageSourceInfo
 {
     constructor ( source, origin = {}, flipY )
     {
-        this.source = source;//Required GPUImageCopyExternalImageSource (ImageBitmap or ImageData or HTMLImageElement or HTMLVideoElement or VideoFrame or HTMLCanvasElement or OffscreenCanvas)
+        this.source = source;//Required GPUCopyExternalImageSource (ImageBitmap or ImageData or HTMLImageElement or HTMLVideoElement or VideoFrame or HTMLCanvasElement or OffscreenCanvas)
         this.origin = origin;//Optional; GPUOrigin2D; undefined = {}
         this.flipY = flipY;//Optional; boolean; undefined = false
     }
@@ -3917,7 +3917,7 @@ easygpu.webgpu.GPUImageCopyExternalImage = class GPUImageCopyExternalImage
 
     get [ Symbol.toStringTag ] ()
     {
-        return "GPUImageCopyExternalImage";
+        return "GPUCopyExternalImageSourceInfo";
     }
 };
 /**

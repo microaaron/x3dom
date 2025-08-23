@@ -265,7 +265,8 @@ specular: ptr<function, vec3<f32>>){
   *ambient  += lColor * ambientFactor * attentuation * spot;
   *diffuse  += lColor * diffuseFactor * attentuation * spot;
   *specular += lColor * specularFactor * attentuation * spot;
-}`;
+}
+`;
         fragmentShaderModuleDeclarationCode += lighting;
     }
 
@@ -486,13 +487,33 @@ var _occlusion: f32 = 1.0;
     {
         fs_mainFunctionBodyCode += "color.a = 1.0;\n";
     }
+    
+    if ( properties.PBR_MATERIAL && properties.ISROUGHNESSMETALLIC )
+    {
+      
+    }
+    
+    if ( properties.SEPARATEBACKMAT )
+    {
+      
+    }
+    
+    if ( properties.VERTEXCOLOR )
+    {
+      
+    }
 
     if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
     {
+      
     }
     else if ( properties.TEXTURED )
     {
-        //fs_mainFunctionBodyCode += "var texcoord:vec2<f32> = fragTexcoord;\n";
+        fs_mainFunctionBodyCode += `var texcoord:vec2<f32> = fragTexcoord;\n`;
+        if ( properties.MULTITEXCOORD )
+        {
+          
+        }
     }
     if ( properties.UNLIT )
     {
@@ -512,6 +533,9 @@ if ( isOrthoView > 0 ) {
   eye = -fragPosition.xyz;
 }
 `;
+        if ( properties.NORMALMAP )
+        {
+        }
         if ( properties.NORMALMAP && properties.NORMALSPACE == "OBJECT" )
         {
             fs_mainFunctionBodyCode += "var normal: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);\n";
@@ -520,6 +544,7 @@ if ( isOrthoView > 0 ) {
         {
             fs_mainFunctionBodyCode += "var normal: vec3<f32> = normalize(fragNormal);\n";
         }
+        //Solid
         if ( !properties.SOLID || properties.TWOSIDEDMAT )
         {
             fs_mainFunctionBodyCode +=
@@ -527,6 +552,156 @@ if ( isOrthoView > 0 ) {
   normal *= -1.0;
 }
 `;
+        }
+        
+        if ( properties.TEXTURED )
+        {
+          //Normalmap
+          if ( properties.NORMALMAP )
+          {
+            
+          }
+          if ( properties.CUBEMAP )
+          {
+            
+          }
+          else if ( properties.DIFFPLACEMENTMAP )
+          {
+            
+          }
+          else if ( properties.DIFFUSEMAP || properties.TEXT )
+          {
+            if ( properties.PIXELTEX )
+            {
+              if ( properties.DIFFUSEMAPCHANNEL )
+              {
+                
+              }
+              else
+              {
+                
+              }
+            }
+            else
+            {
+              if ( properties.DIFFUSEMAPCHANNEL )
+              {
+                
+              }
+              else
+              {
+                //shader += 'texColor = ' + x3dom.shader.decodeGamma( properties, 'texture2D(diffuseMap, vec2(texcoord.x, 1.0 - texcoord.y))" ) + ";\n';
+                fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texcoord.x,1-texcoord.y)));\n`;
+              }
+            }
+          }
+          if ( properties.ALPHAMODE == "OPAQUE" )
+          {
+            
+          }
+          if ( properties.BLENDING && ( properties.DIFFUSEMAP || properties.TEXT || properties.DIFFPLACEMENTMAP || properties.CUBEMAP ) )
+          {
+            if ( properties.CUBEMAP && properties.CSSHADER )
+            {
+              
+            }
+            else
+            {
+              
+            }
+          }
+          else if ( !properties.BLENDING && ( properties.DIFFUSEMAP || properties.TEXT || properties.DIFFPLACEMENTMAP || properties.CUBEMAP ) )
+          {
+            fs_mainFunctionBodyCode += `color = texColor;\n`;
+          }
+          if ( properties.SHINMAP )
+          {
+            
+          }
+          //Specularmap
+          if ( properties.SPECMAP )
+          {
+            
+          }
+          //Emissivemap
+          if ( properties.EMISSIVEMAP )
+          {
+            if ( properties.EMISSIVEMAPCHANNEL )
+            {
+              if ( properties.PBR_MATERIAL )
+              {
+                
+              }
+              else
+              {
+                
+              }
+            }
+            else{
+              if ( properties.PBR_MATERIAL )
+              {
+                
+              }
+              else{
+                
+              }
+            }
+          }
+          //Specularmap
+          if ( properties.ROUGHNESSMETALLICMAP )
+          {
+            if ( properties.ROUGHNESSMETALLICMAPCHANNEL )
+            {
+              
+            }
+            else
+            {
+              
+            }
+          }
+          if ( properties.SPECULARGLOSSINESSMAP )
+          {
+            if ( properties.SPECULARGLOSSINESSMAPCHANNEL )
+            {
+              
+            }
+            else
+            {
+              
+            }
+          }
+          //Specularmap
+          if ( properties.OCCLUSIONROUGHNESSMETALLICMAP )
+          {
+            if ( properties.OCCLUSIONROUGHNESSMETALLICMAPCHANNEL )
+            {
+              
+            }
+            else
+            {
+              
+            }
+          }
+          //Specularmap
+          if ( properties.OCCLUSIONMAP )
+          {
+            if ( properties.OCCLUSIONMAPCHANNEL )
+            {
+              
+            }
+            else
+            {
+              
+            }
+          }
+        }
+        if ( properties.PBR_MATERIAL && properties.ISROUGHNESSMETALLIC )
+        {
+          
+        }
+        else if ( properties.PBR_MATERIAL && properties.SPECULARGLOSSINESSMAP )
+        {
+          
         }
 
         //Calculate lights
@@ -587,7 +762,7 @@ specular = max(specular, vec3(0.0, 0.0, 0.0));
                 }
                 else
                 {
-                    fs_mainFunctionBodyCode += "var texCoord:vec2<f32> = fragTexcoord;\n";
+                    fs_mainFunctionBodyCode += `var texCoord:vec2<f32> = fragTexcoord;\n`;
                 }
             }
             fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texCoord.x,1-texCoord.y)));\n`;
@@ -597,7 +772,7 @@ specular = max(specular, vec3(0.0, 0.0, 0.0));
             }
             else
             {
-                fs_mainFunctionBodyCode += "color = texColor;\n";
+                fs_mainFunctionBodyCode += `color = texColor;\n`;
             }
         }
     }
@@ -611,7 +786,7 @@ specular = max(specular, vec3(0.0, 0.0, 0.0));
     }
     else if ( +properties.ALPHATHRESHOLD > 0 )
     {
-        fs_mainFunctionBodyCode += "if (color.a <= alphaCutoff) {discard;}\n";
+        fs_mainFunctionBodyCode += `if (color.a <= alphaCutoff) {discard;}\n`;
     }
 
     //Output the gamma encoded result.

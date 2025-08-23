@@ -805,7 +805,19 @@ description: ${adapterInfo.description}`}` );
 
         sp.vertices.position = new sp.assets.Positions( shape._webgpu.positions[ 0 ] );
         sp.vertices.normal = new sp.assets.Normals( shape._webgpu.normals[ 0 ] );
-        sp.indexBuffer = shape._webgpu.indexes[ 0 ];
+        //sp.indexBuffer = shape._webgpu.indexes[ 0 ];
+        if(shape._webgpu.indexes[ 0 ].length>0)
+        {
+          if ( shape._webgpu.positions[ 0 ].length / 3 > 65535 )
+          {
+            sp.indexBuffer = new Uint32Array( shape._webgpu.indexes[ 0 ] );
+          }
+          else
+          {
+            sp.indexBuffer = new Uint16Array( shape._webgpu.indexes[ 0 ] );
+          }
+        }
+        
         /*if ( shape.getShaderProperties( viewarea ).TEXTURED )
         {
             sp.vertices.texcoord = new sp.assets.Texcoords( shape._webgpu.texcoords[ 0 ] );
@@ -3353,8 +3365,13 @@ description: ${adapterInfo.description}`}` );
             {
                 renderBundleEncoder.setVertexBuffer( sp.vertexBuffers.indexOf( vertexBuffer ), vertexBuffer );
             }
-            renderBundleEncoder.setIndexBuffer( sp.indexBuffer, sp.indexFormat );
-            renderBundleEncoder.drawIndexed( s_gpu.indexes[ 0 ].length );
+            if(sp.indexBuffer instanceof GPUBuffer){
+              renderBundleEncoder.setIndexBuffer( sp.indexBuffer, sp.indexFormat );
+              renderBundleEncoder.drawIndexed( s_gpu.indexes[ 0 ].length );
+            }else{
+              renderBundleEncoder.draw(s_gpu.positions[0].length/3);
+            }
+            
 
             var renderBundle = renderBundleEncoder.finish();
         }
