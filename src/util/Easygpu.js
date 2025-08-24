@@ -1,8 +1,8 @@
 /** 
  * EASYGPU 0.0.1 alpha
- * Build : 16
- * Revision: 5ad1d9a4cb8b18b136b82ce5900e746efd5cf4f4
- * Date: Mon Feb 24 03:21:21 2025 +0800
+ * Build : 17
+ * Revision: 94ac6b30ab709a306a9123fa3473c81744e47f39
+ * Date: Sun Aug 24 07:32:38 2025 +0800
  */
 /**
  * @file easygpucore.js
@@ -15,9 +15,9 @@ var easygpu = {
 };
 easygpu.about = {
     version  : "0.0.1 alpha",
-    build    : "16",
-    revision : "5ad1d9a4cb8b18b136b82ce5900e746efd5cf4f4",
-    date     : "Mon Feb 24 03:21:21 2025 +0800"
+    build    : "17",
+    revision : "94ac6b30ab709a306a9123fa3473c81744e47f39",
+    date     : "Sun Aug 24 07:32:38 2025 +0800"
 };
 easygpu.BindingListArray = class BindingListArray extends Array
 {
@@ -3848,7 +3848,7 @@ easygpu.webgpu.GPUTexelCopyBufferInfo = class GPUTexelCopyBufferInfo extends eas
  */
 easygpu.webgpu.GPUTexelCopyTextureInfo = class GPUTexelCopyTextureInfo
 {
-    constructor ( texture, mipLevel, origin = {}, aspect )
+    constructor ( texture, mipLevel, origin = new easygpu.webgpu.GPUOrigin2DDict(), aspect )
     {
         this.texture = texture;//Required GPUTexture
         this.mipLevel = mipLevel;//Optional; GPUIntegerCoordinate; undefined = 0
@@ -3879,9 +3879,9 @@ easygpu.webgpu.GPUTexelCopyTextureInfo.prototype.getAvailableAspects = easygpu.w
  */
 easygpu.webgpu.GPUCopyExternalImageDestInfo = class GPUCopyExternalImageDestInfo extends easygpu.webgpu.GPUTexelCopyTextureInfo
 {
-    constructor ( texture, mipLevel, origin = {}, aspect, colorSpace, premultipliedAlpha )
+    constructor ( texture, mipLevel, origin, aspect, colorSpace, premultipliedAlpha )
     {
-        super( texture, mipLevel, origin = {}, aspect );
+        super( texture, mipLevel, origin, aspect );
         this.colorSpace = colorSpace;//Optional; PredefinedColorSpace; undefined = "srgb"
         this.premultipliedAlpha = premultipliedAlpha;//Optional; boolean; undefined = false
     }
@@ -3902,7 +3902,7 @@ easygpu.webgpu.GPUCopyExternalImageDestInfo = class GPUCopyExternalImageDestInfo
  */
 easygpu.webgpu.GPUCopyExternalImageSourceInfo = class GPUCopyExternalImageSourceInfo
 {
-    constructor ( source, origin = {}, flipY )
+    constructor ( source, origin = new easygpu.webgpu.GPUOrigin2DDict(), flipY )
     {
         this.source = source;//Required GPUCopyExternalImageSource (ImageBitmap or ImageData or HTMLImageElement or HTMLVideoElement or VideoFrame or HTMLCanvasElement or OffscreenCanvas)
         this.origin = origin;//Optional; GPUOrigin2D; undefined = {}
