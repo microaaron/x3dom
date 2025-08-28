@@ -270,57 +270,6 @@ specular: ptr<function, vec3<f32>>){
         fragmentShaderModuleDeclarationCode += lighting;
     }
 
-    if ( properties.GAMMACORRECTION === "none" )
-    {
-    // do not emit any declaration. 1.0 shall behave 'as without gamma'.
-    }
-    else if ( properties.GAMMACORRECTION === "fastlinear" )
-    {
-    // This is a slightly optimized gamma correction
-    // which uses a gamma of 2.0 instead of 2.2. Gamma 2.0 is less costly
-    // to encode in terms of cycles as sqrt() is usually optimized
-    // in hardware.
-        fragmentShaderModuleDeclarationCode +=
-`fn gammaEncodeVec4(color: vec4<f32>)->vec4<f32>{
-  var tmp: vec4<f32> = sqrt(color);
-  return vec4<f32>(tmp.rgb, color.a);
-};
-fn gammaDecodeVec4(color: vec4<f32>)->vec4<f32>{
-  var tmp: vec4<f32> = color * color;
-  return vec4<f32>(tmp.rgb, color.a);
-};
-fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
-  return sqrt(color);
-};
-fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
-  return (color * color);
-};
-`;
-    }
-    else
-    {
-    // The preferred implementation compensating for a gamma of 2.2, which closely
-    // follows sRGB; alpha remains linear
-    // minor opt: 1.0 / 2.2 = 0.4545454545454545
-        fragmentShaderModuleDeclarationCode +=
-`var<private> gammaEncode4Vector: vec4<f32> = vec4<f32>(0.4545454545454545, 0.4545454545454545, 0.4545454545454545, 1.0);
-var<private> gammaDecode4Vector: vec4<f32> = vec4<f32>(2.2, 2.2, 2.2, 1.0);
-fn gammaEncodeVec4(color: vec4<f32>)->vec4<f32>{
-  return pow(abs(color), gammaEncode4Vector);
-};
-fn gammaDecodeVec4(color: vec4<f32>)->vec4<f32>{
-  return pow(abs(color), gammaDecode4Vector);
-};
-var<private> gammaEncode3Vector: vec3<f32> = vec3<f32>(0.4545454545454545, 0.4545454545454545, 0.4545454545454545);
-var<private> gammaDecode3Vector: vec3<f32> = vec3<f32>(2.2, 2.2, 2.2);
-fn gammaEncodeVec3(color: vec3<f32>)->vec3<f32>{
-  return pow(abs(color), gammaEncode3Vector);
-};
-fn gammaDecodeVec3(color: vec3<f32>)->vec3<f32>{
-  return pow(abs(color), gammaDecode3Vector);
-};`;
-    }
-
     bindingListArray.addBindingList( bindingParamsList0.createBindingList() ).addBindingList( bindingParamsList1.createBindingList() );
     var bindingCodes = bindingListArray.createShaderModuleBindingCodes();
     var vertexInputCode = vertexListArray.createShaderModuleVertexInputCode();
@@ -591,7 +540,8 @@ if ( isOrthoView > 0 ) {
               else
               {
                 //shader += 'texColor = ' + x3dom.shader.decodeGamma( properties, 'texture2D(diffuseMap, vec2(texcoord.x, 1.0 - texcoord.y))" ) + ";\n';
-                fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texcoord.x,1-texcoord.y)));\n`;
+                //fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texcoord.x,1-texcoord.y)));\n`;
+                fs_mainFunctionBodyCode += `texColor = textureSample(texture, diffuseMap, vec2<f32>(texcoord.x,1-texcoord.y));\n`;
               }
             }
           }
@@ -765,7 +715,8 @@ specular = max(specular, vec3(0.0, 0.0, 0.0));
                     fs_mainFunctionBodyCode += `var texCoord:vec2<f32> = fragTexcoord;\n`;
                 }
             }
-            fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texCoord.x,1-texCoord.y)));\n`;
+            //fs_mainFunctionBodyCode += `texColor = gammaDecodeVec4 (textureSample(texture, diffuseMap, vec2<f32>(texCoord.x,1-texCoord.y)));\n`;
+            fs_mainFunctionBodyCode += `texColor = textureSample(texture, diffuseMap, vec2<f32>(texCoord.x,1-texCoord.y));\n`;
             //fs_mainFunctionBodyCode += "color.a = texColor.a;\n";
             if ( properties.BLENDING || properties.IS_PARTICLE || properties.POINTPROPERTIES )
             {
@@ -801,10 +752,10 @@ if(tonemappingOperator == 3.0) {
   color = vec4<f32>(tonemapeFilmic(color.rgb),color.a);
 }
 `;
-    if ( properties.GAMMACORRECTION !== "none" )
+    /*if ( properties.GAMMACORRECTION !== "none" )
     {
         fs_mainFunctionBodyCode += `color = gammaEncodeVec4(color);\n`;
-    }
+    }*/
     fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = color;\n`;
     //fs_mainFunctionBodyCode += `fragmentOutput.fragColor0 = vec4<f32>(lights[0].intensity,lights[0].intensity,lights[0].intensity,1.0);\n`;
     fs_mainFunctionBodyCode += `return fragmentOutput;`;
@@ -849,86 +800,117 @@ fn ${fragmentShaderModuleEntryPoint}(
     renderPassEncoderResource.vertexListArray = vertexListArray;
     renderPassEncoderResource.assets.Lights = class Lights extends DataView
     {
-        stride = 7 * 16;
+        //   offset ╎ memory layout
+        //          ╎ ┌── Light ───────────── size(112) ─┐
+        //        0 ╎ │ on : u32                size(4)  │
+        //        4 ╎ │ type : u32              size(4)  │
+        //        8 ╎ │ -- alignment padding -- size(8)  │
+        //       16 ╎ │ location : vec3<f32>    size(12) │
+        //       28 ╎ │ -- alignment padding -- size(4)  │
+        //       32 ╎ │ direction : vec3<f32>   size(12) │
+        //       44 ╎ │ -- alignment padding -- size(4)  │
+        //       48 ╎ │ color : vec3<f32>       size(12) │
+        //       60 ╎ │ -- alignment padding -- size(4)  │
+        //       64 ╎ │ attenuation : vec3<f32> size(12) │
+        //       76 ╎ │ radius : f32            size(4)  │
+        //       80 ╎ │ intensity : f32         size(4)  │
+        //       84 ╎ │ ambientIntensity : f32  size(4)  │
+        //       88 ╎ │ beamWidth : f32         size(4)  │
+        //       92 ╎ │ cutOffAngle : f32       size(4)  │
+        //       96 ╎ │ shadowIntensity : f32   size(4)  │
+        //      100 ╎ │ -- alignment padding -- size(12) │
+        //          ╎ └──────────────────────────────────┘
+        //
+        //   offset ╎ memory layout
+        //          ╎ ┌── Lights ── size(16+number*112) ─┐
+        //        0 ╎ │ number : u32             size(4) │
+        //        4 ╎ │ -- alignment padding -- size(12) │
+        //       16 ╎ │ Light_0                size(112) │
+        //      128 ╎ │ Light_1                size(112) │╭╮
+        //          ╎ ╰─┬────────────────────────────────╰╯│
+        // 16+n*112 ╎   │ Light_n                size(112) │┐
+        //          ╎   ╰──────────────────────────────────╰╯
+
+        static offset = 16;
+        static stride = 112;
 
         constructor ( number )
         {
-            super( new ArrayBuffer( 16 + number * 7 * 16 ) );
-            this.setNumber( number );
+            //At least one light size. ref: https://www.w3.org/TR/webgpu/#minimum-buffer-binding-size
+            super( new ArrayBuffer( Lights.offset + Math.max(number,1) * Lights.stride ) );
+            this.setUint32( 0, number, true );
         }
 
-        setNumber = function ( value )
+        getLight( index )
         {
-            this.setUint32( 0, value, true );
-        };
-
-        setOn = function ( index, value )
-        {
-            this.setUint32( 16 + index * this.stride, value, true );
-        };
-
-        setType = function ( index, value )
-        {
-            this.setUint32( 16 + index * this.stride + 4, value, true );
-        };
-
-        setLocation = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 16, value[ 0 ], true );
-            this.setFloat32( 16 + index * this.stride + 16 + 4, value[ 1 ], true );
-            this.setFloat32( 16 + index * this.stride + 16 + 8, value[ 2 ], true );
-        };
-
-        setDirection = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 32, value[ 0 ], true );
-            this.setFloat32( 16 + index * this.stride + 32 + 4, value[ 1 ], true );
-            this.setFloat32( 16 + index * this.stride + 32 + 8, value[ 2 ], true );
-        };
-
-        setColor = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 48, value[ 0 ], true );
-            this.setFloat32( 16 + index * this.stride + 48 + 4, value[ 1 ], true );
-            this.setFloat32( 16 + index * this.stride + 48 + 8, value[ 2 ], true );
-        };
-
-        setAttenuation = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 64, value[ 0 ], true );
-            this.setFloat32( 16 + index * this.stride + 64 + 4, value[ 1 ], true );
-            this.setFloat32( 16 + index * this.stride + 64 + 8, value[ 2 ], true );
-        };
-
-        setRadius = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 76, value, true );
-        };
-
-        setIntensity = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 80, value, true );
-        };
-
-        setAmbientIntensity = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 84, value, true );
-        };
-
-        setBeamWidth = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 88, value, true );
-        };
-
-        setCutOffAngle = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 92, value, true );
-        };
-
-        setShadowIntensity = function ( index, value )
-        {
-            this.setFloat32( 16 + index * this.stride + 96, value, true );
-        };
+          return new class Light extends DataView
+          {
+            constructor ( lights,index )
+            {
+              super( lights.buffer,Lights.offset + index * Lights.stride, Lights.stride );
+            }
+            
+            setOn = function ( value )
+            {
+                this.setUint32( 0, value?1:0, true );
+            };
+            
+            setType = function ( value )
+            {
+                this.setUint32( 4, value, true );
+            };
+            
+            setLocation = function ( value )
+            {
+                (new Float32Array(this.buffer,this.byteOffset+16,3)).set(value);
+            };
+            
+            setDirection = function ( value )
+            {
+                (new Float32Array(this.buffer,this.byteOffset+32,3)).set(value);
+            };
+            
+            setColor = function ( value )
+            {
+                (new Float32Array(this.buffer,this.byteOffset+48,3)).set(value);
+            };
+            
+            setAttenuation = function ( value )
+            {
+                (new Float32Array(this.buffer,this.byteOffset+64,3)).set(value);
+            };
+            
+            setRadius = function ( value )
+            {
+                this.setFloat32( 76, value, true );
+            };
+            
+            setIntensity = function ( value )
+            {
+                this.setFloat32( 80, value, true );
+            };
+            
+            setAmbientIntensity = function ( value )
+            {
+                this.setFloat32( 84, value, true );
+            };
+            
+            setBeamWidth = function ( value )
+            {
+                this.setFloat32( 88, value, true );
+            };
+            
+            setCutOffAngle = function ( value )
+            {
+                this.setFloat32( 92, value, true );
+            };
+            
+            setShadowIntensity = function ( value )
+            {
+                this.setFloat32( 96, value, true );
+            };
+          }(this,index);
+        }
     };
 
     renderPassEncoderResource.assets.Positions = class Positions extends Float32Array
@@ -1064,7 +1046,7 @@ fn ${fragmentShaderModuleEntryPoint}(
             const module = context.device.createShaderModule( new easygpu.webgpu.GPUShaderModuleDescriptor( fragmentShaderModuleCode ) );
             const entryPoint = fragmentShaderModuleEntryPoint;
             const constants = undefined;
-            const targets = [ easygpu.webgpu.GPUFragmentState.newTarget( navigator.gpu.getPreferredCanvasFormat()/*, blend, writeMask*/ ) ];
+            const targets = [ easygpu.webgpu.GPUFragmentState.newTarget( /*`rgba8unorm-srgb`*/`${navigator.gpu.getPreferredCanvasFormat()}-srgb`/*, blend, writeMask*/ ) ];
             var fragment = new easygpu.webgpu.GPUFragmentState( module, entryPoint, constants, targets );
         }
         //primitive: GPUPrimitiveState

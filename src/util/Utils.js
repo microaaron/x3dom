@@ -201,12 +201,13 @@ x3dom.Utils.createTexture2D = function ( ctx3d, doc, src, bgnd, crossOrigin, sca
                 //gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image );
                 texture = device.createTexture( {
                     size   : [ image.width, image.height, 1 ],
-                    format : "rgba8unorm",
+                    format : `rgba8unorm-srgb`,
                     usage  : GPUTextureUsage.TEXTURE_BINDING |
                             GPUTextureUsage.COPY_DST |
                             GPUTextureUsage.RENDER_ATTACHMENT
                 } );
-                device.queue.copyExternalImageToTexture(new easygpu.webgpu.GPUCopyExternalImageSourceInfo(image,new easygpu.webgpu.GPUOrigin2DDict(0,0),flipY),
+                device.queue.copyExternalImageToTexture(
+                    new easygpu.webgpu.GPUCopyExternalImageSourceInfo(image,new easygpu.webgpu.GPUOrigin2DDict(0,0),flipY),
                     new easygpu.webgpu.GPUCopyExternalImageDestInfo(texture,undefined,{x:0,y:0},"all","srgb",true),
                     new easygpu.webgpu.GPUExtent3DDict(image.width, image.height, 1)
                 );

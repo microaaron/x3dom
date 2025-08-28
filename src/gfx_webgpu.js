@@ -54,10 +54,55 @@ x3dom.gfx_webgpu = ( function ()
             constructor ( x3dContext )
             {
                 this.x3dContext = x3dContext;
-                this.initDepthTextureDescriptor();
+                //this.colorTextureDescriptor = new easygpu.webgpu.GPUTextureDescriptor( new easygpu.webgpu.GPUExtent3DDict( x3dContext.ctx3d.getCurrentTexture().width, x3dContext.ctx3d.getCurrentTexture().height )/*size*/, undefined/*mipLevelCount*/, undefined/*sampleCount*/, undefined/*dimension*/, `bgra8unorm-srgb`/*format*/, GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC/*usage*/, undefined/*viewFormats*/, undefined/*label*/ );
+                //this.initDepthTextureDescriptor();
+                this.depthTextureDescriptor = new easygpu.webgpu.GPUTextureDescriptor( new easygpu.webgpu.GPUExtent3DDict( x3dContext.ctx3d.getCurrentTexture().width, x3dContext.ctx3d.getCurrentTexture().height )/*size*/, undefined/*mipLevelCount*/, undefined/*sampleCount*/, undefined/*dimension*/, `depth32float-stencil8`/*format*/, GPUTextureUsage.RENDER_ATTACHMENT/*usage*/, undefined/*viewFormats*/, undefined/*label*/ );
                 this.initRenderPassDescriptor();
             }
-
+            
+            /*initDepthTextureDescriptor ( size = new easygpu.webgpu.GPUExtent3DDict( this.x3dContext.ctx3d.getCurrentTexture().width, this.x3dContext.ctx3d.getCurrentTexture().height ), mipLevelCount, sampleCount, dimension, format = `depth32float-stencil8`, usage = GPUTextureUsage.RENDER_ATTACHMENT, viewFormats, label )
+            {
+                this.depthTextureDescriptor = new easygpu.webgpu.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
+                return this.depthTextureDescriptor;
+            }*/
+            /*updateColorTextureSize ()
+            {
+                const ctx3dTexture = this.x3dContext.ctx3d.getCurrentTexture();
+                const colorTexture = this.colorTexture;
+                if ( colorTexture instanceof GPUTexture )
+                {
+                    if ( colorTexture.width === ctx3dTexture.width && colorTexture.height === ctx3dTexture.height )
+                    {
+                        return;
+                    }
+                    colorTexture.destroy();
+                }
+                //const newSize = new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height );
+                //this.depthTexture = this.x3dContext.device.createTexture( Object.assign( this.depthTextureDescriptor, {size: newSize} ) );
+                this.colorTextureDescriptor.setSize(new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height ));
+                this.colorTexture = this.x3dContext.device.createTexture(this.colorTextureDescriptor);
+                this.renderPassDescriptor.colorAttachments[ 0 ].view = this.colorTexture.createView();
+            }*/
+            
+            updateDepthTextureSize ()
+            {
+                const ctx3dTexture = this.x3dContext.ctx3d.getCurrentTexture();
+                const depthTexture = this.depthTexture;
+                if ( depthTexture instanceof GPUTexture )
+                {
+                    if ( depthTexture.width === ctx3dTexture.width && depthTexture.height === ctx3dTexture.height )
+                    {
+                        return;
+                    }
+                    depthTexture.destroy();
+                }
+                //const newSize = new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height );
+                //this.depthTexture = this.x3dContext.device.createTexture( Object.assign( this.depthTextureDescriptor, {size: newSize} ) );
+                this.depthTextureDescriptor.setSize(new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height ));
+                this.depthTexture = this.x3dContext.device.createTexture(this.depthTextureDescriptor);
+                this.renderPassDescriptor.depthStencilAttachment.view = this.depthTexture.createView();
+            }
+            
             initRenderPassDescriptor ()
             {
                 {
@@ -91,32 +136,6 @@ x3dom.gfx_webgpu = ( function ()
 
                     this.renderPassDescriptor = new easygpu.webgpu.GPURenderPassDescriptor( colorAttachments, depthStencilAttachment, occlusionQuerySet, timestampWrites, maxDrawCount, label );
                 }
-            }
-
-            initDepthTextureDescriptor ( size = new easygpu.webgpu.GPUExtent3DDict( this.x3dContext.ctx3d.getCurrentTexture().width, this.x3dContext.ctx3d.getCurrentTexture().height ), mipLevelCount, sampleCount, dimension, format = "depth32float-stencil8", usage = GPUTextureUsage.RENDER_ATTACHMENT, viewFormats, label )
-            {
-                this.depthTextureDescriptor = new easygpu.webgpu.GPUTextureDescriptor( size, mipLevelCount, sampleCount, dimension, format, usage, viewFormats, label );
-                return this.depthTextureDescriptor;
-            }
-
-            /*setupDepthTexture(){
-            this.depthTexture = x3dContext.device.createTexture( this.setupDepthTextureDescriptor() );
-          }*/
-            updateDepthTexture ()
-            {
-                const ctx3dTexture = this.x3dContext.ctx3d.getCurrentTexture();
-                const depthTexture = this.depthTexture;
-                if ( depthTexture instanceof GPUTexture )
-                {
-                    if ( depthTexture.width === ctx3dTexture.width && depthTexture.height === ctx3dTexture.height )
-                    {
-                        return;
-                    }
-                    depthTexture.destroy();
-                }
-                const newSize = new easygpu.webgpu.GPUExtent3DDict( ctx3dTexture.width, ctx3dTexture.height );
-                this.depthTexture = this.x3dContext.device.createTexture( Object.assign( this.depthTextureDescriptor, {size: newSize} ) );
-                this.renderPassDescriptor.depthStencilAttachment.view = this.depthTexture.createView();
             }
         }( this );
     }
@@ -153,7 +172,7 @@ x3dom.gfx_webgpu = ( function ()
             validContextNames.splice( 0, 1 );
         }*/
 
-        var ctx = null;
+        var ctx = null; //GPUCanvasContext
 
         // FIXME: this is an ugly hack, don't look for elements like this
         // (e.g., Bindable nodes may only exist in backend etc.)
@@ -216,7 +235,8 @@ description: ${adapterInfo.description}`}` );
             ctx.configure( {
                 device,
                 format    : navigator.gpu.getPreferredCanvasFormat(),
-                alphaMode : "premultiplied"
+                alphaMode : "premultiplied",
+                viewFormats :[navigator.gpu.getPreferredCanvasFormat(),`${navigator.gpu.getPreferredCanvasFormat()}-srgb`]
             } );
 
             return new Context( ctx, canvas, "webgpu", x3dElem, adapter, device );
@@ -2756,21 +2776,79 @@ description: ${adapterInfo.description}`}` );
             sp[ "light" + numLights + "_CutOffAngle" ] = 0.0;
             sp[ "light" + numLights + "_ShadowIntensity" ] = 0.0;
         }*/
-        //sp.bindGroupResources.numberOfLights = 1;
-        var lights = new sp.assets.Lights( 1 );
-        //lights.setNumber( 1 );
-        lights.setType( 0, 0 );
-        lights.setOn( 0, 1 );
-        lights.setColor( 0, [ 1.0, 1.0, 1.0 ] );
-        lights.setIntensity( 0, 1.0 );
-        lights.setAmbientIntensity( 0, 0.0 );
-        lights.setDirection( 0, [ 0.0, 0.0, -1.0 ] );
-        lights.setAttenuation( 0, [ 1.0, 1.0, 1.0 ] );
-        lights.setLocation( 0, [ 1.0, 1.0, 1.0 ] );
-        lights.setRadius( 0, 0.0 );
-        lights.setBeamWidth( 0, 0.0 );
-        lights.setCutOffAngle( 0, 0.0 );
-        lights.setShadowIntensity( 0, 0.0 );
+        changed = true; //temp
+        var physicalEnvironmentLight;
+        var lights;
+        var nav = scene.getNavigationInfo();
+        if ( nav._vf.headlight && changed )
+        {
+          lights = new sp.assets.Lights( numLights+1 );
+          var light = lights.getLight(numLights);
+          light.setType( 0 );
+          light.setOn( 1 );
+          light.setColor( [ 1.0, 1.0, 1.0 ] );
+          light.setIntensity( 1.0 );
+          light.setAmbientIntensity( 0.0 );
+          light.setDirection( [ 0.0, 0.0, -1.0 ] );
+          light.setAttenuation( [ 1.0, 1.0, 1.0 ] );
+          light.setLocation( [ 1.0, 1.0, 1.0 ] );
+          light.setRadius( 0.0 );
+          light.setBeamWidth( 0.0 );
+          light.setCutOffAngle( 0.0 );
+          light.setShadowIntensity( 0.0 );
+        }
+        else
+        {
+          lights = new sp.assets.Lights( numLights );
+        }
+        
+        for ( var p = 0; p < numLights && changed; p++ )
+        {
+          var light = lights.getLight(p);
+          var light_transform = mat_view.mult( slights[ p ].getCurrentTransform() );
+
+          light.setOn( slights[ p ]._vf.on );
+          light.setColor( slights[ p ]._vf.color.toGL() );
+          light.setIntensity( slights[ p ]._vf.intensity );
+          light.setAmbientIntensity( slights[ p ]._vf.ambientIntensity);
+          
+          light.setShadowIntensity( slights[ p ]._vf.shadowIntensity );
+          if ( x3dom.isa( slights[ p ], x3dom.nodeTypes.DirectionalLight ) )
+          {
+            light.setType( 0 );
+            
+            light.setDirection( light_transform.multMatrixVec( slights[ p ]._vf.direction ).toGL() );
+            light.setAttenuation( [ 1.0, 1.0, 1.0 ] );
+            light.setLocation( [ 1.0, 1.0, 1.0 ] );
+            light.setRadius( 0.0 );
+            light.setBeamWidth( 0.0 );
+            light.setCutOffAngle( 0.0 );
+          }
+          else if ( x3dom.isa( slights[ p ], x3dom.nodeTypes.PointLight ) )
+          {
+            light.setType( 1 );
+
+            light.setDirection( [ 1.0, 1.0, 1.0 ] );
+            light.setAttenuation( slights[ p ]._vf.attenuation.toGL() );
+            light.setLocation( light_transform.multMatrixPnt( slights[ p ]._vf.location ).toGL() );
+            light.setRadius( slights[ p ]._vf.radius );
+            light.setBeamWidth( 0.0 );
+            light.setCutOffAngle( 0.0 );
+          }
+          else if ( x3dom.isa( slights[ p ], x3dom.nodeTypes.SpotLight ) )
+          {
+            light.setType( 2 );
+            light.setDirection( light_transform.multMatrixVec( slights[ p ]._vf.direction ).toGL() );
+            light.setAttenuation( slights[ p ]._vf.attenuation.toGL() );
+            light.setLocation( light_transform.multMatrixPnt( slights[ p ]._vf.location ).toGL() );
+            light.setRadius( slights[ p ]._vf.radius );
+            light.setBeamWidth( slights[ p ]._vf.beamWidth );
+            light.setCutOffAngle( slights[ p ]._vf.cutOffAngle );
+          }
+        }
+        
+        //var lights = new sp.assets.Lights( 1 );
+        
         sp.bindGroupResources.lights = lights;
         /*
         // Set ClipPlanes
@@ -3351,11 +3429,11 @@ description: ${adapterInfo.description}`}` );
                 }
             }*/
         {
-            const colorFormats = [ this.ctx3d.getCurrentTexture().format];
+            const colorFormats = [ /*`rgba8unorm-srgb`*/`${this.ctx3d.getCurrentTexture().format}-srgb`];
             const depthStencilFormat = this.renderPassResource.depthTexture.format;//"depth32float-stencil8";
             const sampleCount = 1;
             var renderBundleEncoderDescriptor = new easygpu.webgpu.GPURenderBundleEncoderDescriptor( colorFormats, depthStencilFormat, sampleCount/*, depthReadOnly, stencilReadOnly, label*/ );
-                    var renderBundleEncoder = this.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
+            var renderBundleEncoder = this.device.createRenderBundleEncoder( renderBundleEncoderDescriptor );
             renderBundleEncoder.setPipeline( sp.renderPipeline );
             for ( var bindGroup of sp.bindGroups )
             {
@@ -4182,10 +4260,11 @@ description: ${adapterInfo.description}`}` );
         }*/
 
         var renderPassDescriptor = this.renderPassResource.renderPassDescriptor;
-        renderPassDescriptor.colorAttachments[ 0 ].view = this.ctx3d.getCurrentTexture().createView();
+        //this.renderPassResource.updateColorTextureSize ();
+        renderPassDescriptor.colorAttachments[ 0 ].view = this.ctx3d.getCurrentTexture().createView({format:`${navigator.gpu.getPreferredCanvasFormat()}-srgb`});
         renderPassDescriptor.colorAttachments[ 0 ].loadOp = "clear";
         renderPassDescriptor.colorAttachments[ 0 ].storeOp = "store";
-        this.renderPassResource.updateDepthTexture();
+        this.renderPassResource.updateDepthTextureSize();
         renderPassDescriptor.depthStencilAttachment.depthLoadOp = "clear";
         renderPassDescriptor.depthStencilAttachment.depthStoreOp = "store";
         renderPassDescriptor.depthStencilAttachment.stencilLoadOp = "clear";
@@ -4704,6 +4783,9 @@ description: ${adapterInfo.description}`}` );
 
             this.renderShape( drawable, viewarea, slights, numLights, mat_view, mat_scene, mat_light, mat_proj, ctx3d );
         }
+        /*var commandEncoder = this.device.createCommandEncoder();
+        commandEncoder.copyTextureToTexture({texture:this.renderPassResource.colorTexture},{texture:this.ctx3d.getCurrentTexture()},{width: this.renderPassResource.colorTexture.width, height: this.renderPassResource.colorTexture.height})
+        this.device.queue.submit( [ commandEncoder.finish() ] );*/
         /*
         if ( shadowCount > 0 )
         {this.renderShadows( ctx3d, viewarea, shadowedLights, WCToLCMatrices, lMatrices, mat_view, mat_proj, mat_scene );}
