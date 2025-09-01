@@ -17,18 +17,17 @@ x3dom.shader.DynamicShader = function ( context, properties )
         //.addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `alphaCutoff`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
 
+    //Material
         .addBindingParams( `diffuseColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `specularColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `emissiveColor`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `shininess`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `transparency`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `ambientIntensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
-        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
 
     var bindingParamsList1 = bindingListArray.newBindingParamsList()
         .addBindingParams( `screenWidth`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
         .addBindingParams( `cameraPosWS`, `vec3<f32>`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
-        //.addBindingParams( `numberOfLights`, `u32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
     //Positions
     //var vertexParamsList0 = vertexListArray.newVertexParamsList();
     if ( properties.POSCOMPONENTS == 3 )
@@ -118,8 +117,8 @@ x3dom.shader.DynamicShader = function ( context, properties )
 
     //Material
     bindingParamsList0.addBindingParams( `tonemappingOperator`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
-    fragmentShaderModuleDeclarationCode +=
-`fn tonemapReinhard(color: vec3<f32>)->vec3<f32>{
+    fragmentShaderModuleDeclarationCode += x3dom.shader.toneMapping;
+/*`fn tonemapReinhard(color: vec3<f32>)->vec3<f32>{
   return color / (color + vec3(1.0));
 }
 fn uncharted2Tonemap(color: vec3<f32>)->vec3<f32>{
@@ -161,7 +160,7 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
   }
   return color;
 }
-`;
+`;*/
     //Colors
     //VertexID
     //Textures
@@ -173,8 +172,8 @@ fn tonemap(color: vec3<f32>)->vec3<f32>{
     }*/
 
     //Lights
-    fragmentShaderModuleDeclarationCode +=
-`struct Light {
+    fragmentShaderModuleDeclarationCode += x3dom.shader.light;
+/*`struct Light {
   on : u32,
   _type : u32,
   location : vec3<f32>,
@@ -192,7 +191,7 @@ struct Lights {
   number : u32,
   lightArray : array<Light>,
 }
-`;
+`;*/
 
     bindingParamsList1.addBindingParams( `lights`, `Lights`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `read-only-storage` ) );
 
@@ -213,7 +212,7 @@ struct Lights {
                 .addBindingParams( `light${l}_CutOffAngle`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) )
                 .addBindingParams( `light${l}_ShadowIntensity`, `f32`, GPUShaderStage.FRAGMENT, new easygpu.webgpu.GPUBufferBindingLayout( `uniform` ) );
         }*/
-        var lighting =
+        /*var lighting =
 `fn lighting(lType: u32,
 lLocation: vec3<f32>,
 lDirection: vec3<f32>,
@@ -268,6 +267,7 @@ specular: ptr<function, vec3<f32>>){
 }
 `;
         fragmentShaderModuleDeclarationCode += lighting;
+        */
     }
 
     bindingListArray.addBindingList( bindingParamsList0.createBindingList() ).addBindingList( bindingParamsList1.createBindingList() );
@@ -655,7 +655,12 @@ if ( isOrthoView > 0 ) {
         }
 
         //Calculate lights
-        fs_mainFunctionBodyCode +=
+        fs_mainFunctionBodyCode += 
+`for(var i: u32 = 0; i < lights.number; i++){
+  lighting(&lights.lightArray[i],&normal,&eye,&_shininess,&_ambientIntensity,&ambient, &diffuse, &specular);
+}
+`
+/*
 `for(var i: u32 = 0; i < lights.number; i++){
   lighting(lights.lightArray[i]._type,
   lights.lightArray[i].location,
@@ -672,34 +677,38 @@ if ( isOrthoView > 0 ) {
   diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
   specular = max(specular, vec3(0.0, 0.0, 0.0));
 }
-`;
-        /*if ( properties.LIGHTS )
+`;*/
+
+        if ( properties.PBR_MATERIAL )
         {
-            for ( var l = 0; l < properties.LIGHTS; l++ )
+          if ( properties.PHYSICALENVLIGHT )
+          {
+            if ( x3dom.caps.TEXTURE_LOD || x3dom.caps.WEBGL_VERSION == 2 )
             {
-                fs_mainFunctionBodyCode +=
-`lighting(light${l}_Type,
-light${l}_Location,
-light${l}_Direction,
-light${l}_Color,
-light${l}_Attenuation,
-light${l}_Radius,
-light${l}_Intensity,
-light${l}_AmbientIntensity,
-light${l}_BeamWidth,
-light${l}_CutOffAngle,
-positionVS, normal, eye, _shininess, _ambientIntensity, _specularColor, &ambient, &diffuse, &specular);
-ambient = max(ambient, vec3(0.0, 0.0, 0.0));
-diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
-specular = max(specular, vec3(0.0, 0.0, 0.0));
-`;
             }
-        }*/
+            else
+            {
+            }
+          }
+        }
 
         fs_mainFunctionBodyCode += "color = vec4<f32>(_emissiveColor + ((ambient + diffuse) * color.rgb + specular * _specularColor) * _occlusion,color.a);\n";
+        if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
+        {
+            if ( properties.TEXTURED )
+            {
+            }
+            else
+            {
+            }
+        }
     }
     else
     {
+        if ( properties.APPMAT && !properties.VERTEXCOLOR && !properties.TEXTURED && !properties.PBR_MATERIAL )
+        {
+        }
+        
         if ( properties.TEXTURED && ( properties.DIFFUSEMAP || properties.DIFFPLACEMENTMAP || properties.TEXT ) )
         {
             if ( properties.PIXELTEX )

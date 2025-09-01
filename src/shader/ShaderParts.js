@@ -422,7 +422,7 @@ x3dom.shader.shadowRendering = function ()
 /*******************************************************************************
 * Light
 ********************************************************************************/
-x3dom.shader.light = function ( numLights )
+/*x3dom.shader.light = function ( numLights )
 {
     var shaderPart = "";
 
@@ -482,7 +482,226 @@ x3dom.shader.light = function ( numLights )
                     "}\n";
 
     return shaderPart;
-};
+};*/
+
+x3dom.shader.light =
+`struct Light {
+  on : u32,
+  _type : u32,
+  location : vec3<f32>,
+  direction : vec3<f32>,
+  color : vec3<f32>,
+  attenuation : vec3<f32>,
+  radius : f32,
+  intensity : f32,
+  ambientIntensity : f32,
+  beamWidth : f32,
+  cutOffAngle : f32,
+  shadowIntensity : f32,
+}
+struct Lights {
+  number : u32,
+  lightArray : array<Light>,
+}
+
+fn lighting(
+  light: ptr<storage, Light>,
+  N: ptr<function, vec3<f32>>,
+  eye: ptr<function, vec3<f32>>,
+  shin: ptr<function, f32>,
+  ambIntensity: ptr<function, f32>,
+  ambient: ptr<function, vec3<f32>>,
+  diffuse: ptr<function, vec3<f32>>,
+  specular: ptr<function, vec3<f32>>
+){
+  let lType: ptr<storage, u32> = &(*light)._type;
+  let lLocation: ptr<storage, vec3<f32>> = &(*light).location;
+  let lDirection: ptr<storage, vec3<f32>> = &(*light).direction;
+  let lColor: ptr<storage, vec3<f32>> = &(*light).color;
+  let lAttenuation: ptr<storage, vec3<f32>> = &(*light).attenuation;
+  let lRadius: ptr<storage, f32> = &(*light).radius;
+  let lIntensity: ptr<storage, f32> = &(*light).intensity;
+  let lAmbientIntensity: ptr<storage, f32> = &(*light).ambientIntensity;
+  let lBeamWidth: ptr<storage, f32> = &(*light).beamWidth;
+  let lCutOffAngle: ptr<storage, f32> = &(*light).cutOffAngle;
+
+  var L: vec3<f32>;
+  var V: vec3<f32>;
+  var spot: f32 = 1.0;
+  var attentuation: f32 = 0.0;
+  if(*lType == 0) {
+    L = -normalize(*lDirection);
+    V = normalize(*eye);
+    attentuation = 1.0;
+  }else{
+    L = (*lLocation - (-V));
+    var d: f32 = length(L);
+    L = normalize(L);
+    V = normalize(V);
+    if(*lRadius == 0.0 || d <= *lRadius){
+      attentuation = 1.0 / max((*lAttenuation).x + (*lAttenuation).y * d + (*lAttenuation).z * (d * d), 1.0);
+    }
+    if(*lType == 2){
+      var spotAngle: f32 = acos(max(0.0, dot(-L, normalize(*lDirection))));
+      if(spotAngle >= *lCutOffAngle){spot = 0.0;}
+      else if(spotAngle <= *lBeamWidth){spot = 1.0;}
+      else {spot = (spotAngle - *lCutOffAngle ) / (*lBeamWidth - *lCutOffAngle);}
+    }
+  }
+  var H: vec3<f32> = normalize( L + V );
+  var NdotL: f32 = clamp(dot(L, *N), 0.0, 1.0);
+  var NdotH: f32 = clamp(dot(H, *N), 0.0, 1.0);
+  var ambientFactor: f32 = *lAmbientIntensity * *ambIntensity;
+  var diffuseFactor: f32 = *lIntensity * NdotL;
+  var specularFactor: f32 = *lIntensity * pow(NdotH, *shin*128.0);
+  *ambient  += *lColor * ambientFactor * attentuation * spot;
+  *diffuse  += *lColor * diffuseFactor * attentuation * spot;
+  *specular += *lColor * specularFactor * attentuation * spot;
+
+  *ambient = max(*ambient, vec3(0.0, 0.0, 0.0));
+  *diffuse = max(*diffuse, vec3(0.0, 0.0, 0.0));
+  *specular = max(*specular, vec3(0.0, 0.0, 0.0));
+}
+`;
+
+/*
+`fn lighting(lights: ptr<storage, Lights>,
+N: ptr<function, vec3<f32>>,
+eye: ptr<function, vec3<f32>>,
+shin: ptr<function, f32>,
+ambIntensity: ptr<function, f32>,
+ambient: ptr<function, vec3<f32>>,
+diffuse: ptr<function, vec3<f32>>,
+specular: ptr<function, vec3<f32>>
+){
+  var lType: u32 = (*lights).lightArray[0]._type;
+  for(var i: u32 = 0; i < (*lights).number; i++){
+    let light: ptr<storage, Light> = &(*lights).lightArray[i];
+    let lType: ptr<storage, u32> = &(*light)._type;
+    let lLocation: ptr<storage, vec3<f32>> = &(*light).location;
+    let lDirection: ptr<storage, vec3<f32>> = &(*light).direction;
+    let lColor: ptr<storage, vec3<f32>> = &(*light).color;
+    let lAttenuation: ptr<storage, vec3<f32>> = &(*light).attenuation;
+    let lRadius: ptr<storage, f32> = &(*light).radius;
+    let lIntensity: ptr<storage, f32> = &(*light).intensity;
+    let lAmbientIntensity: ptr<storage, f32> = &(*light).ambientIntensity;
+    let lBeamWidth: ptr<storage, f32> = &(*light).beamWidth;
+    let lCutOffAngle: ptr<storage, f32> = &(*light).cutOffAngle;
+    
+    var L: vec3<f32>;
+    var V: vec3<f32>;
+    var spot: f32 = 1.0;
+    var attentuation: f32 = 0.0;
+    if(*lType == 0) {
+      L = -normalize(*lDirection);
+      V = normalize(*eye);
+      attentuation = 1.0;
+    }else{
+      L = (*lLocation - (-V));
+      var d: f32 = length(L);
+      L = normalize(L);
+      V = normalize(V);
+      if(*lRadius == 0.0 || d <= *lRadius){
+        attentuation = 1.0 / max((*lAttenuation).x + (*lAttenuation).y * d + (*lAttenuation).z * (d * d), 1.0);
+      }
+      if(*lType == 2){
+        var spotAngle: f32 = acos(max(0.0, dot(-L, normalize(*lDirection))));
+        if(spotAngle >= *lCutOffAngle){spot = 0.0;}
+        else if(spotAngle <= *lBeamWidth){spot = 1.0;}
+        else {spot = (spotAngle - *lCutOffAngle ) / (*lBeamWidth - *lCutOffAngle);}
+      }
+    }
+    var H: vec3<f32> = normalize( L + V );
+    var NdotL: f32 = clamp(dot(L, *N), 0.0, 1.0);
+    var NdotH: f32 = clamp(dot(H, *N), 0.0, 1.0);
+    var ambientFactor: f32 = *lAmbientIntensity * *ambIntensity;
+    var diffuseFactor: f32 = *lIntensity * NdotL;
+    var specularFactor: f32 = *lIntensity * pow(NdotH, *shin*128.0);
+    *ambient  += *lColor * ambientFactor * attentuation * spot;
+    *diffuse  += *lColor * diffuseFactor * attentuation * spot;
+    *specular += *lColor * specularFactor * attentuation * spot;
+    
+    *ambient = max(*ambient, vec3(0.0, 0.0, 0.0));
+    *diffuse = max(*diffuse, vec3(0.0, 0.0, 0.0));
+    *specular = max(*specular, vec3(0.0, 0.0, 0.0));
+  }
+}
+`
+*/
+
+/*
+for(var i: u32 = 0; i < lights.number; i++){
+  lighting(lights.lightArray[i]._type,
+  lights.lightArray[i].location,
+  lights.lightArray[i].direction,
+  lights.lightArray[i].color,
+  lights.lightArray[i].attenuation,
+  lights.lightArray[i].radius,
+  lights.lightArray[i].intensity,
+  lights.lightArray[i].ambientIntensity,
+  lights.lightArray[i].beamWidth,
+  lights.lightArray[i].cutOffAngle,
+  positionVS, normal, eye, _shininess, _ambientIntensity, _specularColor, &ambient, &diffuse, &specular);
+  ambient = max(ambient, vec3(0.0, 0.0, 0.0));
+  diffuse = max(diffuse, vec3(0.0, 0.0, 0.0));
+  specular = max(specular, vec3(0.0, 0.0, 0.0));
+}
+
+fn lighting(lType: u32,
+lLocation: vec3<f32>,
+lDirection: vec3<f32>,
+lColor: vec3<f32>,
+lAttenuation: vec3<f32>,
+lRadius: f32,
+lIntensity: f32,
+lAmbientIntensity: f32,
+lBeamWidth: f32,
+lCutOffAngle: f32,
+positionVS: vec3<f32>,
+N: vec3<f32>,
+V1: vec3<f32>,
+shin: f32,
+ambIntensity: f32,
+reflectivity: vec3<f32>,
+ambient: ptr<function, vec3<f32>>,
+diffuse: ptr<function, vec3<f32>>,
+specular: ptr<function, vec3<f32>>){
+  var V: vec3<f32> = V1;
+  var L: vec3<f32>;
+  var spot: f32 = 1.0;
+  var attentuation: f32 = 0.0;
+  if(lType == 0) {
+    L = -normalize(lDirection);
+    V = normalize(V);
+    attentuation = 1.0;
+  }else{
+    L = (lLocation - (-V));
+    var d: f32 = length(L);
+    L = normalize(L);
+    V = normalize(V);
+    if(lRadius == 0.0 || d <= lRadius){
+      attentuation = 1.0 / max(lAttenuation.x + lAttenuation.y * d + lAttenuation.z * (d * d), 1.0);
+    }
+    if(lType == 2){
+      var spotAngle: f32 = acos(max(0.0, dot(-L, normalize(lDirection))));
+      if(spotAngle >= lCutOffAngle){spot = 0.0;}
+      else if(spotAngle <= lBeamWidth){spot = 1.0;}
+      else {spot = (spotAngle - lCutOffAngle ) / (lBeamWidth - lCutOffAngle);}
+    }
+  }
+  var H: vec3<f32> = normalize( L + V );
+  var NdotL: f32 = clamp(dot(L, N), 0.0, 1.0);
+  var NdotH: f32 = clamp(dot(H, N), 0.0, 1.0);
+  var ambientFactor: f32 = lAmbientIntensity * ambIntensity;
+  var diffuseFactor: f32 = lIntensity * NdotL;
+  var specularFactor: f32 = lIntensity * pow(NdotH, shin*128.0);
+  *ambient  += lColor * ambientFactor * attentuation * spot;
+  *diffuse  += lColor * diffuseFactor * attentuation * spot;
+  *specular += lColor * specularFactor * attentuation * spot;
+}
+
+*/
+
 
 /*******************************************************************************
 * Light
@@ -621,6 +840,7 @@ x3dom.shader.TBNCalculation = function ()
 /*******************************************************************************
  * tonemapping
  ********************************************************************************/
+/*
 x3dom.shader.toneMapping = function ()
 {
     var shaderPart = "";
@@ -676,3 +896,49 @@ x3dom.shader.toneMapping = function ()
 
     return shaderPart;
 };
+*/
+
+x3dom.shader.toneMapping = 
+`fn tonemapReinhard(color: vec3<f32>)->vec3<f32>{
+  return color / (color + vec3(1.0));
+}
+fn uncharted2Tonemap(color: vec3<f32>)->vec3<f32>{
+  var A: f32 = 0.15;
+  var B: f32 = 0.50;
+  var C: f32 = 0.10;
+  var D: f32 = 0.20;
+  var E: f32 = 0.02;
+  var F: f32 = 0.30;
+  return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+}
+fn tonemapUncharted2(color: vec3<f32>)->vec3<f32>{
+  var W: f32 = 11.2;
+  var exposureBias: f32 = 2.0;
+  var curr: vec3<f32> = uncharted2Tonemap(exposureBias * color);
+  var whiteScale: vec3<f32> = 1.0 / uncharted2Tonemap(vec3<f32>(W));
+  return curr * whiteScale;
+}
+fn tonemapeFilmic(color: vec3<f32>)->vec3<f32>{
+  var a: f32 = 2.51;
+  var b: f32 = 0.03;
+  var c: f32 = 2.43;
+  var d: f32 = 0.59;
+  var e: f32 = 0.14;
+  return clamp((color * (a * color + b)) / (color * (c * color + d ) + e), vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));
+}
+fn tonemap(color: vec3<f32>)->vec3<f32>{
+  if(tonemappingOperator == 0.0) {
+    return color;
+  }
+  if(tonemappingOperator == 1.0) {
+    return tonemapReinhard(color);
+  }
+  if(tonemappingOperator == 2.0) {
+    return tonemapUncharted2(color);
+  }
+  if(tonemappingOperator == 3.0) {
+    return tonemapeFilmic(color);
+  }
+  return color;
+}
+`;
