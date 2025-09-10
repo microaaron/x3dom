@@ -1010,27 +1010,13 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
             }
             else if ( properties.DIFFUSEMAP || properties.TEXT )
             {
-                if ( properties.PIXELTEX )
+                if ( properties.DIFFUSEMAPCHANNEL )
                 {
-                    if ( properties.DIFFUSEMAPCHANNEL )
-                    {
-                        shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, texcoord2)" ) + ";\n";
-                    }
-                    else
-                    {
-                        shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, texcoord)" ) + ";\n";
-                    }
+                    shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, vec2(texcoord2.x, 1.0 - texcoord2.y))" ) + ";\n";
                 }
                 else
                 {
-                    if ( properties.DIFFUSEMAPCHANNEL )
-                    {
-                        shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, vec2(texcoord2.x, 1.0 - texcoord2.y))" ) + ";\n";
-                    }
-                    else
-                    {
-                        shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, vec2(texcoord.x, 1.0 - texcoord.y))" ) + ";\n";
-                    }
+                    shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, vec2(texcoord.x, 1.0 - texcoord.y))" ) + ";\n";
                 }
             }
 
@@ -1243,30 +1229,15 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
 
         if ( properties.TEXTURED && ( properties.DIFFUSEMAP || properties.DIFFPLACEMENTMAP || properties.TEXT ) )
         {
-            if ( properties.PIXELTEX )
+            if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
             {
-                if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
-                {
-                    shader += "vec2 texCoord = clamp(gl_PointCoord, 0.01, 0.99);\n";
-                }
-                else
-                {
-                    shader += "vec2 texCoord = fragTexcoord;\n";
-                }
+                shader += "vec2 texCoord = clamp(gl_PointCoord, 0.01, 0.99);\n";
             }
             else
             {
-                if ( properties.IS_PARTICLE || properties.POINTPROPERTIES )
-                {
-                    shader += "vec2 texCoord = clamp(gl_PointCoord, 0.01, 0.99);\n";
-                    shader += "texCoord.y = 1.0 - texCoord.y;\n";
-                }
-                else
-                {
-                    shader += "vec2 texCoord = vec2(fragTexcoord.x, 1.0-fragTexcoord.y);\n";
-                }
+                shader += "vec2 texCoord = fragTexcoord;\n";
             }
-            shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, texCoord)" ) + ";\n";
+            shader += "texColor = " + x3dom.shader.decodeGamma( properties, "texture2D(diffuseMap, vec2(texCoord.x, 1.0-texCoord.y))" ) + ";\n";
             shader += "color.a = texColor.a;\n";
 
             if ( properties.BLENDING || properties.IS_PARTICLE || properties.POINTPROPERTIES )
