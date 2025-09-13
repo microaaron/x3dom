@@ -38,6 +38,7 @@ x3dom.registerNodeType(
              */
             this.addField_SFBool( ctx, "hideChildren", true );
 
+            //Should it be moved to MovieTexture.js?
             this._video = null;
             this._intervalID = null;
             this._canvas = null;
@@ -100,6 +101,7 @@ x3dom.registerNodeType(
                 }
             },
 
+            //Should it be moved to MovieTexture.js?
             shutdown : function ()
             {
                 if ( this._video )

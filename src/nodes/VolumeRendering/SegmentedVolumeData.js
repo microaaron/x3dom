@@ -47,11 +47,11 @@ x3dom.registerNodeType(
              * The segmentIdentifiers field is an ImageTextureAtlas node of the same dimensions of the volume data. The segment identifiers are used to map each segment with a volume rendering style.
              * @var {x3dom.fields.SFNode} segmentIdentifiers
              * @memberof x3dom.nodeTypes.SegmentedVolumeData
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3dom
              * @instance
              */
-            this.addField_SFNode( "segmentIdentifiers", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "segmentIdentifiers", x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Specifies the number of segments on the volume data. It is used to correctly match each segment identifier to an index of the renderStyle list.

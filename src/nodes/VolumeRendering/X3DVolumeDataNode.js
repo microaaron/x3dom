@@ -45,11 +45,11 @@ x3dom.registerNodeType(
              * The voxels field is an ImageTextureAtlas node containing the volume data.
              * @var {x3dom.fields.SFNode} voxels
              * @memberof x3dom.nodeTypes.X3DVolumeDataNode
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3dom
              * @instance
              */
-            this.addField_SFNode( "voxels", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "voxels", x3dom.nodeTypes.X3DTexture2DNode );
             //this.addField_MFNode('voxels', x3dom.nodeTypes.X3DTexture3DNode);
             //this.addField_SFBool(ctx, 'swapped', false);
             //this.addField_SFVec3f(ctx, 'sliceThickness', 1, 1, 1);

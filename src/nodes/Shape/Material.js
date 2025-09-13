@@ -11,7 +11,7 @@
 x3dom.registerNodeType(
     "Material",
     "Shape",
-    defineClass( x3dom.nodeTypes.X3DMaterialNode,
+    defineClass( x3dom.nodeTypes.X3DOneSidedMaterialNode,
 
         /**
          * Constructor for Material
@@ -19,14 +19,15 @@ x3dom.registerNodeType(
          * @x3d 3.3
          * @component Shape
          * @status full
-         * @extends x3dom.nodeTypes.X3DMaterialNode
+         * @extends x3dom.nodeTypes.X3DOneSidedMaterialNode
          * @param {Object} [ctx=null] - context object, containing initial settings like namespace
          * @classdesc The Material node specifies surface material properties for associated geometry nodes and is used by the X3D lighting equations during rendering.
          * All of the fields in the Material node range from 0.0 to 1.0.
          */
         function ( ctx )
         {
-            x3dom.nodeTypes.Material.superClass.call( this, ctx );
+            //x3dom.nodeTypes.Material.superClass.call( this, ctx );
+            Object.assign( this, new x3dom.nodeTypes.X3DOneSidedMaterialNode( ctx ) );
 
             /**
              * The ambientIntensity field specifies how much ambient light from light sources this surface shall reflect.

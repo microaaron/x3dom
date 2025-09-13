@@ -666,7 +666,7 @@ x3dom.X3DDocument.prototype.removeX3DOMBackendGraph = function ( domNode )
         {
             this.cleanNodeBag( this._nodeBag.affectedPointingSensors, node );
         }
-        else if ( x3dom.isa( node, x3dom.nodeTypes.Texture ) )
+        else if ( x3dom.isa( node, x3dom.nodeTypes.X3DTexture2DNode ) )
         {
             node.shutdown();    // general texture might have video
         }

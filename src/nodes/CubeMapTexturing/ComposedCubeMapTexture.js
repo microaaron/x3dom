@@ -32,61 +32,61 @@ x3dom.registerNodeType(
              * Texture for the back of the cubemap
              * @var {x3dom.fields.SFNode} back
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "back",  x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "back",  x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Texture for the front of the cubemap
              * @var {x3dom.fields.SFNode} front
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "front",  x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "front",  x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Texture for the bottom of the cubemap
              * @var {x3dom.fields.SFNode} bottom
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "bottom", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "bottom", x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Texture for the top of the cubemap
              * @var {x3dom.fields.SFNode} top
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "top",    x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "top",    x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Texture for the left side of the cubemap
              * @var {x3dom.fields.SFNode} left
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "left",   x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "left",   x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * Texture for the right side of the cubemap
              * @var {x3dom.fields.SFNode} right
              * @memberof x3dom.nodeTypes.ComposedCubeMapTexture
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3d
              * @instance
              */
-            this.addField_SFNode( "right",  x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "right",  x3dom.nodeTypes.X3DTexture2DNode );
             this._type = "environmentMap";
         },
         {

@@ -11,7 +11,7 @@
 x3dom.registerNodeType(
     "PixelTexture",
     "Texturing",
-    defineClass( x3dom.nodeTypes.X3DTextureNode,
+    defineClass( x3dom.nodeTypes.X3DTexture2DNode,
 
         /**
          * Constructor for PixelTexture
@@ -19,13 +19,14 @@ x3dom.registerNodeType(
          * @x3d 3.3
          * @component Texturing
          * @status full
-         * @extends x3dom.nodeTypes.X3DTextureNode
+         * @extends x3dom.nodeTypes.X3DTexture2DNode
          * @param {Object} [ctx=null] - context object, containing initial settings like namespace
          * @classdesc The PixelTexture node defines a 2D image-based texture map as an explicit array of pixel values (image field) and parameters controlling tiling repetition of the texture onto geometry.
          */
         function ( ctx )
         {
-            x3dom.nodeTypes.PixelTexture.superClass.call( this, ctx );
+            //x3dom.nodeTypes.PixelTexture.superClass.call( this, ctx );
+            Object.assign( this, new x3dom.nodeTypes.X3DTexture2DNode( ctx ) );
 
             /**
              * The image that delivers the pixel data.

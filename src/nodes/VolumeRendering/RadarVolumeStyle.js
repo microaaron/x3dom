@@ -33,11 +33,11 @@ x3dom.registerNodeType(
              * The transferFunction field is a texture that is going to be used to map each voxel value to a specific color output.
              * @var {x3dom.fields.SFNode} transferFunction
              * @memberof x3dom.nodeTypes.RadarVolumeStyle
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3dom
              * @instance
              */
-            this.addField_SFNode( "transferFunction", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "transferFunction", x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * NYI!!

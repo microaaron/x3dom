@@ -35,11 +35,11 @@ x3dom.registerNodeType(
              * The transferFunction field is a texture that is going to be used to map each voxel value to a specific color output.
              * @var {x3dom.fields.SFNode} transferFunction
              * @memberof x3dom.nodeTypes.MPRVolumeStyle
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3dom
              * @instance
              */
-            this.addField_SFNode( "transferFunction", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "transferFunction", x3dom.nodeTypes.X3DTexture2DNode );
 
             /**
              * The forceOpaque field is a boolean flag that forces the reconstructed planes to be opaque, if false the opacity (alpha channel) from the transferFunction field will be applied.

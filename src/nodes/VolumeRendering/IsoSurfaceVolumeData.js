@@ -45,11 +45,11 @@ x3dom.registerNodeType(
              * The gradients field allows to provide the normals of the volume data. It takes an ImageTextureAtlas of the same dimensions of the volume data. If it is not provided, it is computed on the fly.
              * @var {x3dom.fields.SFNode} gradients
              * @memberof x3dom.nodeTypes.IsoSurfaceVolumeData
-             * @initvalue x3dom.nodeTypes.Texture
+             * @initvalue x3dom.nodeTypes.X3DTexture2DNode
              * @field x3dom
              * @instance
              */
-            this.addField_SFNode( "gradients", x3dom.nodeTypes.Texture );
+            this.addField_SFNode( "gradients", x3dom.nodeTypes.X3DTexture2DNode );
             //this.addField_SFNode('gradients', x3dom.nodeTypes.X3DTexture3DNode);
 
             /**

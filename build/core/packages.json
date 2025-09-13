@@ -131,11 +131,13 @@
             "LineProperties.js",
             "PointProperties.js",
             "X3DMaterialNode.js",
+            "X3DOneSidedMaterialNode.js",
             "Material.js",
             "TwoSidedMaterial.js",
             "PhysicalMaterial.js",
             "X3DShapeNode.js",
-            "Shape.js"
+            "Shape.js",
+            "UnlitMaterial.js"
         ],
         "src/nodes/Lighting/":
         [
@@ -182,6 +184,7 @@
         ],
         "src/nodes/Networking/":
         [
+            "X3DUrlObject.js",
             "Anchor.js",
             "Inline.js"
         ],
@@ -232,8 +235,9 @@
             "MatrixTextureTransform.js",
             "TextureProperties.js",
             "X3DTextureNode.js",
+            "X3DSingleTextureNode.js",
+            "X3DTexture2DNode.js",
             "MultiTexture.js",
-            "Texture.js",
             "RenderedTexture.js",
             "RefinementTexture.js",
             "PixelTexture.js",

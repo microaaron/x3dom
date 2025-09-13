@@ -11,21 +11,22 @@
 x3dom.registerNodeType(
     "PhysicalMaterial",
     "Shape",
-    defineClass( x3dom.nodeTypes.X3DMaterialNode,
+    defineClass( x3dom.nodeTypes.X3DOneSidedMaterialNode,
 
         /**
-         * Constructor for X3DMaterialNode
+         * Constructor for PhysicalMaterial
          * @constructs x3dom.nodeTypes.PhysicalMaterial
          * @x3d x.x
          * @component Shape
          * @status experimental
-         * @extends x3dom.nodeTypes.X3DMaterialNode
+         * @extends x3dom.nodeTypes.X3DOneSidedMaterialNode
          * @param {Object} [ctx=null] - context object, containing initial settings like namespace
          * @classdesc This is the base node type for all Material nodes.
          */
         function ( ctx )
         {
-            x3dom.nodeTypes.X3DMaterialNode.superClass.call( this, ctx );
+            //x3dom.nodeTypes.PhysicalMaterial.superClass.call( this, ctx );
+            Object.assign( this, new x3dom.nodeTypes.X3DOneSidedMaterialNode( ctx ) );
 
             /**
              * The material model used. Valid values are "roughnessMetallic" and "specularGlossiness".

@@ -11,20 +11,21 @@
 x3dom.registerNodeType(
     "ImageTextureAtlas",
     "Texturing",
-    defineClass( x3dom.nodeTypes.Texture,
+    defineClass( x3dom.nodeTypes.X3DTexture2DNode,
 
         /**
          * Constructor for ImageTextureAtlas
          * @constructs x3dom.nodeTypes.ImageTextureAtlas
          * @x3d x.x
          * @component Texturing
-         * @extends x3dom.nodeTypes.Texture
+         * @extends x3dom.nodeTypes.X3DTexture2DNode
          * @param {Object} [ctx=null] - context object, containing initial settings like namespace
          * @classdesc This is a special helper node to represent tiles for volume rendering.
          */
         function ( ctx )
         {
-            x3dom.nodeTypes.ImageTextureAtlas.superClass.call( this, ctx );
+            //x3dom.nodeTypes.ImageTextureAtlas.superClass.call( this, ctx );
+            Object.assign( this, new x3dom.nodeTypes.X3DTexture2DNode( ctx ) );
 
             /**
              * Specifies the number of slices in the texture atlas.

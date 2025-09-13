@@ -11,7 +11,7 @@
 x3dom.registerNodeType(
     "MovieTexture",
     "Texturing",
-    defineClass( x3dom.nodeTypes.Texture,
+    defineClass( x3dom.nodeTypes.X3DTexture2DNode,
 
         /**
          * Constructor for MovieTexture
@@ -19,13 +19,14 @@ x3dom.registerNodeType(
          * @x3d 3.3
          * @component Texturing
          * @status experimental
-         * @extends x3dom.nodeTypes.Texture
+         * @extends x3dom.nodeTypes.X3DTexture2DNode
          * @param {Object} [ctx=null] - context object, containing initial settings like namespace
          * @classdesc The MovieTexture node defines a time dependent texture map (contained in a movie file) and parameters for controlling the movie and the texture mapping.
          */
         function ( ctx )
         {
-            x3dom.nodeTypes.MovieTexture.superClass.call( this, ctx );
+            //x3dom.nodeTypes.MovieTexture.superClass.call( this, ctx );
+            Object.assign( this, new x3dom.nodeTypes.X3DTexture2DNode( ctx ) );
 
             /**
              * Specifies whether the playback restarts after finished.
