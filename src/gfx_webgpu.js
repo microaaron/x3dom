@@ -2784,6 +2784,7 @@ description: ${adapterInfo.description}`}` );
         {
           lights = new sp.assets.Lights( numLights+1 );
           var light = lights.getLight(numLights);
+          //Ref. https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/navigation.html#NavigationInfo
           light.setType( 0 );
           light.setOn( 1 );
           light.setColor( [ 1.0, 1.0, 1.0 ] );

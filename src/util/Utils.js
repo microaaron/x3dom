@@ -1227,6 +1227,10 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
         property.CSSHADER         = ( appearance && appearance._shader &&
                                      x3dom.isa( appearance._shader, x3dom.nodeTypes.CommonSurfaceShader ) ) ? 1 : 0;
 
+        property.LIGHTING_MODEL   = ( geometry.needLighting() && ( material /*&& !x3dom.isa( material, x3dom.nodeTypes.UnlitMaterial )*/ || property.CSSHADER ) && !material._vf.unlit) ? 
+                                      ( x3dom.isa( material, x3dom.nodeTypes.Material )? `PHONG` :
+                                        ( x3dom.isa( material, x3dom.nodeTypes.PhysicalMaterial ) ? `PHYSICAL` : `UNKNOW`)
+                                      ) : `UNLIT`;
         property.LIGHTS           = ( !property.POINTLINE2D && appearance && shape.isLit() && ( material || property.CSSHADER ) ) ?
             viewarea.getLights().length + ( viewarea._scene.getNavigationInfo()._vf.headlight ) : 0;
         property.TEXTURED         = ( texture || property.TEXT || ( property.CSSHADER && appearance._shader.needTexcoords() ) ||

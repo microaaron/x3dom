@@ -845,7 +845,7 @@ fn ${fragmentShaderModuleEntryPoint}(
 
         constructor ( number )
         {
-            //At least one light size. ref: https://www.w3.org/TR/webgpu/#minimum-buffer-binding-size
+            //At least one light size. Ref. https://www.w3.org/TR/webgpu/#minimum-buffer-binding-size
             super( new ArrayBuffer( Lights.offset + Math.max(number,1) * Lights.stride ) );
             this.setUint32( 0, number, true );
         }
