@@ -1139,6 +1139,109 @@ x3dom.Utils.blendEquation = function ( gl, func )
 /*****************************************************************************
 *
 *****************************************************************************/
+x3dom.Utils.Property = class Property extends Map{
+  constructor(viewarea, shape) {
+    super();  
+  }
+  static availableBooleanStatus = [false,true];
+  
+  get COMPOSED_SHADER(){return this.get('COMPOSED_SHADER');}
+  set COMPOSED_SHADER(val){this.set('COMPOSED_SHADER',val);}
+  
+  
+  get VERTEX_COLOR(){return Property.availableBooleanStatus[this.get('VERTEX_COLOR')];}
+  set VERTEX_COLOR(val){this.set('VERTEX_COLOR',Property.availableBooleanStatus.indexOf(val));}
+
+  get SOLID(){return Property.availableBooleanStatus[this.get('SOLID')];}
+  set SOLID(val){this.set('SOLID',Property.availableBooleanStatus.indexOf(val));}
+  
+  get BACK_MATERIAL(){return Property.availableBooleanStatus[this.get('BACK_MATERIAL')];}
+  set BACK_MATERIAL(val){this.set('BACK_MATERIAL',Property.availableBooleanStatus.indexOf(val));}
+  
+  get SHADOW(){return Property.availableBooleanStatus[this.get('SHADOW')];}
+  set SHADOW(val){this.set('SHADOW',Property.availableBooleanStatus.indexOf(val));}
+  
+  get FOG(){return Property.availableBooleanStatus[this.get('FOG')];}
+  set FOG(val){this.set('FOG',Property.availableBooleanStatus.indexOf(val));}
+  
+  //
+  get COMMON_SURFACE_SHADER(){return Property.availableBooleanStatus[this.get('COMMON_SURFACE_SHADER')];}
+  set COMMON_SURFACE_SHADER(val){this.set('COMMON_SURFACE_SHADER',Property.availableBooleanStatus.indexOf(val));} 
+
+  static availableLightingModels = [`UNLIT`,`PHONG`,`PHYSICAL`];
+  get LIGHTING_MODEL(){return Property.availableLightingModels[this.get('LIGHTING_MODEL')];}
+  set LIGHTING_MODEL(val){this.set('LIGHTING_MODEL',Property.availableLightingModels.indexOf(val.toUpperCase()));}
+  
+  get LIGHTS(){return this.get('LIGHTS');}
+  set LIGHTS(val){this.set('LIGHTS',val);}
+  
+  get CUBEMAP(){return Property.availableBooleanStatus[this.get('CUBEMAP')];}
+  set CUBEMAP(val){this.set('CUBEMAP',Property.availableBooleanStatus.indexOf(val));} 
+  
+  get DIFFUSE_MAP(){return Property.availableBooleanStatus[this.get('DIFFUSE_MAP')];}
+  set DIFFUSE_MAP(val){this.set('DIFFUSE_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get NORMAL_MAP(){return Property.availableBooleanStatus[this.get('NORMAL_MAP')];}
+  set NORMAL_MAP(val){this.set('NORMAL_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get SPECULAR_MAP(){return Property.availableBooleanStatus[this.get('SPECULAR_MAP')];}
+  set SPECULAR_MAP(val){this.set('SPECULAR_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get SHININESS_MAP(){return Property.availableBooleanStatus[this.get('SHININESS_MAP')];}
+  set SHININESS_MAP(val){this.set('SHININESS_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get EMISSIVE_MAP(){return Property.availableBooleanStatus[this.get('EMISSIVE_MAP')];}
+  set EMISSIVE_MAP(val){this.set('EMISSIVE_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get OCCLUSION_MAP(){return Property.availableBooleanStatus[this.get('OCCLUSION_MAP')];}
+  set OCCLUSION_MAP(val){this.set('OCCLUSION_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get DISPLACEMENT_MAP(){return Property.availableBooleanStatus[this.get('DISPLACEMENT_MAP')];}
+  set DISPLACEMENT_MAP(val){this.set('DISPLACEMENT_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  static availableAlphaModes = [`AUTO`,`OPAQUE`,`BLEND`,`MASK`];
+  get ALPHA_MODE(){return Property.availableAlphaModes[this.get('ALPHA_MODE')];}
+  set ALPHA_MODE(val){this.set('ALPHA_MODE',Property.availableAlphaModes.indexOf(val.toUpperCase()));}
+  
+  static availablePbrWorkflows = [`METALLIC_ROUGHNESS`,`SPECULAR_GLOSSINESS`];
+  get PBR_WORKFLOW(){return Property.availablePbrWorkflows[this.get('PBR_WORKFLOW')];}
+  set PBR_WORKFLOW(val){this.set('PBR_WORKFLOW',Property.availablePbrWorkflows.indexOf(val.toUpperCase()));}
+  
+  get METALLIC_ROUGHNESS_MAP(){return Property.availableBooleanStatus[this.get('METALLIC_ROUGHNESS_MAP')];}
+  set METALLIC_ROUGHNESS_MAP(val){this.set('METALLIC_ROUGHNESS_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get SPECULAR_GLOSSINESS_MAP(){return Property.availableBooleanStatus[this.get('SPECULAR_GLOSSINESS_MAP')];}
+  set SPECULAR_GLOSSINESS_MAP(val){this.set('SPECULAR_GLOSSINESS_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  //Maybe it can be omitted. WebGPU can bind occlusion and metallicRoughness to one texture.
+  get OCCLUSION_METALLIC_ROUGHNESS_MAP(){return Property.availableBooleanStatus[this.get('OCCLUSION_METALLIC_ROUGHNESS_MAP')];}
+  set OCCLUSION_METALLIC_ROUGHNESS_MAP(val){this.set('OCCLUSION_METALLIC_ROUGHNESS_MAP',Property.availableBooleanStatus.indexOf(val));}
+  
+  get PHYSICAL_ENVIRONMENT_LIGHT(){return Property.availableBooleanStatus[this.get('PHYSICAL_ENVIRONMENT_LIGHT')];}
+  set PHYSICAL_ENVIRONMENT_LIGHT(val){this.set('PHYSICAL_ENVIRONMENT_LIGHT',Property.availableBooleanStatus.indexOf(val));}
+  
+  static availableNormalSpaces = [`TANGENT`,`OBJECT`];
+  get NORMAL_SPACE(){return Property.availableNormalSpaces[this.get('NORMAL_SPACE')];}
+  set NORMAL_SPACE(val){this.set('NORMAL_SPACE',Property.availableNormalSpaces.indexOf(val.toUpperCase()));}
+
+  get BLENDING(){return Property.availableBooleanStatus[this.get('BLENDING')];}
+  set BLENDING(val){this.set('BLENDING',Property.availableBooleanStatus.indexOf(val));}
+  
+  get COLOR_COMPONENTS(){return this.get('COLOR_COMPONENTS');}
+  set COLOR_COMPONENTS(val){this.set('COLOR_COMPONENTS',val);}
+  
+  static availableTextureCoordinateGenerationModes = [`SPHERE`,`CAMERASPACENORMAL`,`CAMERASPACEPOSITION`,`CAMERASPACEREFLECTIONVECTOR`,`SPHERE-LOCAL`,`COORD`,`COORD-EYE`,`NOISE`,`NOISE-EYE`,`SPHERE-REFLECT`,`SPHERE-REFLECT-LOCAL`];
+  get TEXTURE_COORDINATE_GENERATION_MODE(){return Property.availableTextureCoordinateGenerationModes[this.get('TEXTURE_COORDINATE_GENERATION_MODE')];}
+  set TEXTURE_COORDINATE_GENERATION_MODE(val){this.set('TEXTURE_COORDINATE_GENERATION_MODE',Property.availableTextureCoordinateGenerationModes.indexOf(val.toUpperCase()));}
+  
+  get VERTEX_COLOR(){return Property.availableBooleanStatus[this.get('VERTEX_COLOR')];}
+  set VERTEX_COLOR(val){this.set('VERTEX_COLOR',Property.availableBooleanStatus.indexOf(val));}
+  
+  get CLIP_PLANE(){return Property.availableBooleanStatus[this.get('CLIP_PLANE')];}
+  set CLIP_PLANE(val){this.set('CLIP_PLANE',Property.availableBooleanStatus.indexOf(val));}
+  
+};
+
 x3dom.Utils.generateProperties = function ( viewarea, shape )
 {
     var property = {};
@@ -1157,25 +1260,25 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
     }
     else if ( geometry )
     {
-        property.CSHADER          = -1;
-        property.APPMAT           = material || property.CSSHADER ? 1 : 0;
-        property.SOLID            = ( shape.isSolid() ) ? 1 : 0;
-        property.TEXT             = ( x3dom.isa( geometry, x3dom.nodeTypes.Text ) ) ? 1 : 0;
-        property.POPGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.PopGeometry ) ) ? 1 : 0;
-        property.BUFFERGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.BufferGeometry ) ) ? 1 : 0;
-        property.BINARYGEOMETRY   = ( x3dom.isa( geometry, x3dom.nodeTypes.BinaryGeometry ) )  ? 1 : 0;
-        property.POINTLINE2D      = !geometry.needLighting() ? 1 : 0;
-        property.VERTEXID         = ( ( property.BINARYGEOMETRY ) && geometry._vf.idsPerVertex ) ? 1 : 0;
+        property.CSHADER          = -1;//
+        property.APPMAT           = material || property.CSSHADER ? 1 : 0;//
+        property.SOLID            = ( shape.isSolid() ) ? 1 : 0;//
+        property.TEXT             = ( x3dom.isa( geometry, x3dom.nodeTypes.Text ) ) ? 1 : 0;//x
+        property.POPGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.PopGeometry ) ) ? 1 : 0;//x
+        property.BUFFERGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.BufferGeometry ) ) ? 1 : 0;//x
+        property.BINARYGEOMETRY   = ( x3dom.isa( geometry, x3dom.nodeTypes.BinaryGeometry ) )  ? 1 : 0;//x
+        property.POINTLINE2D      = !geometry.needLighting() ? 1 : 0;//?
+        property.VERTEXID         = ( ( property.BINARYGEOMETRY ) && geometry._vf.idsPerVertex ) ? 1 : 0;//?
         property.IS_PARTICLE      = ( x3dom.isa( geometry, x3dom.nodeTypes.ParticleSet ) ) ? 1 : 0;
         property.POINTPROPERTIES  = ( appearance && appearance._cf.pointProperties.node ) ? 1 : 0;
         property.TANGENTDATA      = ( geometry._mesh._tangents[ 0 ].length > 0 && geometry._mesh._binormals[ 0 ].length > 0 ) ? 1 : 0;
-        property.PBR_MATERIAL     = x3dom.isa( material, x3dom.nodeTypes.PhysicalMaterial ) ? 1 : 0;
-        property.TWOSIDEDMAT      = x3dom.isa( material, x3dom.nodeTypes.TwoSidedMaterial ) ? 1 : 0;
-        property.SEPARATEBACKMAT  = ( property.TWOSIDEDMAT && material._vf.separateBackColor ) ? 1 : 0;
-        property.SHADOW           = ( viewarea.getLightsShadow() ) ? 1 : 0;
-        property.FOG              = ( viewarea._scene.getFog()._vf.visibilityRange > 0 ) ? 1 : 0;
+        property.PBR_MATERIAL     = x3dom.isa( material, x3dom.nodeTypes.PhysicalMaterial ) ? 1 : 0;//x
+        property.TWOSIDEDMAT      = x3dom.isa( material, x3dom.nodeTypes.TwoSidedMaterial ) ? 1 : 0;//x
+        property.SEPARATEBACKMAT  = ( property.TWOSIDEDMAT && material._vf.separateBackColor ) ? 1 : 0;//BACK_MATERIAL
+        property.SHADOW           = ( viewarea.getLightsShadow() ) ? 1 : 0;//y
+        property.FOG              = ( viewarea._scene.getFog()._vf.visibilityRange > 0 ) ? 1 : 0;//y
         property.CSSHADER         = ( appearance && appearance._shader &&
-                                     x3dom.isa( appearance._shader, x3dom.nodeTypes.CommonSurfaceShader ) ) ? 1 : 0;
+                                     x3dom.isa( appearance._shader, x3dom.nodeTypes.CommonSurfaceShader ) ) ? 1 : 0;//?
 
         property.LIGHTING_MODEL   = ( geometry.needLighting() && ( material && !x3dom.isa( material, x3dom.nodeTypes.UnlitMaterial ) || property.CSSHADER ) && !material._vf.unlit ) ?
             ( x3dom.isa( material, x3dom.nodeTypes.Material ) ? `PHONG` :
@@ -1183,7 +1286,7 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
             ) : `UNLIT`;
         property.LIGHTS           = property.LIGHTING_MODEL == `PHONG` || property.LIGHTING_MODEL == `PHYSICAL` ? viewarea.getLights().length + ( viewarea._scene.getNavigationInfo()._vf.headlight ) : 0;
         property.TEXTURED         = ( texture || property.TEXT || ( property.CSSHADER && appearance._shader.needTexcoords() ) ||
-                                    ( property.PBR_MATERIAL && material.hasTextures() ) ) ? 1 : 0;
+                                    ( property.PBR_MATERIAL && material.hasTextures() ) ) ? 1 : 0;//?
         property.CUBEMAP          = ( texture && x3dom.isa( texture, x3dom.nodeTypes.X3DEnvironmentTextureNode ) ) ||
                                     ( property.CSSHADER && appearance._shader.getEnvironmentMap() ) ? 1 : 0;
         property.TEXTRAFO         = ( appearance && appearance._cf.textureTransform.node ) ? 1 : 0;
@@ -1210,6 +1313,8 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
             ( property.NORMALMAP && property.PBR_MATERIAL ) ? material._vf.normalSpace.toUpperCase() : "TANGENT";
 
         property.BLENDING         = ( property.TEXT || property.CUBEMAP || property.CSSHADER || ( property.PBR_MATERIAL ) || ( texture && texture._blending ) ) ? 1 : 0;
+        
+        //for BinaryGeometry    Ref. https://doc.x3dom.org/tutorials/models/aopt/index.html
         property.REQUIREBBOX      = ( geometry._vf.coordType !== undefined && geometry._vf.coordType != "Float32" ) ? 1 : 0;
         property.REQUIREBBOXNOR   = ( geometry._vf.normalType !== undefined && geometry._vf.normalType != "Float32" ) ? 1 : 0;
         property.REQUIREBBOXCOL   = ( geometry._vf.colorType !== undefined && geometry._vf.colorType != "Float32" ) ? 1 : 0;
