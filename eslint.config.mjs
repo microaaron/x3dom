@@ -6,7 +6,7 @@ export default [
     },
     {
         languageOptions: {
-            ecmaVersion: 6,
+            ecmaVersion: "latest",
             sourceType: "script",
         },
 

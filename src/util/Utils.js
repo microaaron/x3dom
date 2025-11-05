@@ -1139,107 +1139,368 @@ x3dom.Utils.blendEquation = function ( gl, func )
 /*****************************************************************************
 *
 *****************************************************************************/
-x3dom.Utils.Property = class Property extends Map{
-  constructor(viewarea, shape) {
-    super();  
-  }
-  static availableBooleanStatus = [false,true];
-  
-  get COMPOSED_SHADER(){return this.get('COMPOSED_SHADER');}
-  set COMPOSED_SHADER(val){this.set('COMPOSED_SHADER',val);}
-  
-  
-  get VERTEX_COLOR(){return Property.availableBooleanStatus[this.get('VERTEX_COLOR')];}
-  set VERTEX_COLOR(val){this.set('VERTEX_COLOR',Property.availableBooleanStatus.indexOf(val));}
+x3dom.Utils.Property = class Property extends Map
+{
+    constructor ( viewarea, shape )
+    {
+        super();
+        var geometry    = shape._cf.geometry.node;
+        var appearance  = shape._cf.appearance.node;
+        var texture     = appearance ? appearance._cf.texture.node : null;
+        var material    = appearance ? appearance._cf.material.node : null;
+        var backMaterial = appearance ? appearance._cf.backMaterial.node : null;
+        var environment = viewarea._scene.getEnvironment();
+        var bufferGeometry = x3dom.isa( geometry, x3dom.nodeTypes.BufferGeometry );
 
-  get SOLID(){return Property.availableBooleanStatus[this.get('SOLID')];}
-  set SOLID(val){this.set('SOLID',Property.availableBooleanStatus.indexOf(val));}
-  
-  get BACK_MATERIAL(){return Property.availableBooleanStatus[this.get('BACK_MATERIAL')];}
-  set BACK_MATERIAL(val){this.set('BACK_MATERIAL',Property.availableBooleanStatus.indexOf(val));}
-  
-  get SHADOW(){return Property.availableBooleanStatus[this.get('SHADOW')];}
-  set SHADOW(val){this.set('SHADOW',Property.availableBooleanStatus.indexOf(val));}
-  
-  get FOG(){return Property.availableBooleanStatus[this.get('FOG')];}
-  set FOG(val){this.set('FOG',Property.availableBooleanStatus.indexOf(val));}
-  
-  //
-  get COMMON_SURFACE_SHADER(){return Property.availableBooleanStatus[this.get('COMMON_SURFACE_SHADER')];}
-  set COMMON_SURFACE_SHADER(val){this.set('COMMON_SURFACE_SHADER',Property.availableBooleanStatus.indexOf(val));} 
+        //Check if it's a composed shader
+        if ( appearance && appearance._shader && x3dom.isa( appearance._shader, x3dom.nodeTypes.ComposedShader ) )
+        {
+            this.COMPOSED_SHADER  = appearance._shader._id; //shape._objectID;
+        }
+        else if ( geometry )
+        {
+            this.SOLID = ( geometry._vf.solid ) ? true : false; //X3D v4.x 11.3.2 X3DComposedGeometryNode
+            this.VERTEXCOLOR = ( geometry._mesh._colors[ 0 ].length > 0 ||
+                                  //( property.POPGEOMETRY    && geometry.hasColor() ) ||
+                                  ( bufferGeometry && geometry.hasColor() )//gltf
+                                  /*( geometry._vf.color !== undefined && geometry._vf.color.length > 0 ) *//*BinaryGeometry ?*/ ) ? true : false;
+            this.SOLID = geometry._vf.solid ? true : false;
+            this.BACK_MATERIAL = this.SOLID && backMaterial ? true : false;
+            this.FOG = ( viewarea._scene.getFog()._vf.visibilityRange > 0 ) ? true : false;
+            this.COMMON_SURFACE_SHADER = ( appearance && appearance._shader &&
+                                     x3dom.isa( appearance._shader, x3dom.nodeTypes.CommonSurfaceShader ) ) ? true : false;
 
-  static availableLightingModels = [`UNLIT`,`PHONG`,`PHYSICAL`];
-  get LIGHTING_MODEL(){return Property.availableLightingModels[this.get('LIGHTING_MODEL')];}
-  set LIGHTING_MODEL(val){this.set('LIGHTING_MODEL',Property.availableLightingModels.indexOf(val.toUpperCase()));}
-  
-  get LIGHTS(){return this.get('LIGHTS');}
-  set LIGHTS(val){this.set('LIGHTS',val);}
-  
-  get CUBEMAP(){return Property.availableBooleanStatus[this.get('CUBEMAP')];}
-  set CUBEMAP(val){this.set('CUBEMAP',Property.availableBooleanStatus.indexOf(val));} 
-  
-  get DIFFUSE_MAP(){return Property.availableBooleanStatus[this.get('DIFFUSE_MAP')];}
-  set DIFFUSE_MAP(val){this.set('DIFFUSE_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get NORMAL_MAP(){return Property.availableBooleanStatus[this.get('NORMAL_MAP')];}
-  set NORMAL_MAP(val){this.set('NORMAL_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get SPECULAR_MAP(){return Property.availableBooleanStatus[this.get('SPECULAR_MAP')];}
-  set SPECULAR_MAP(val){this.set('SPECULAR_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get SHININESS_MAP(){return Property.availableBooleanStatus[this.get('SHININESS_MAP')];}
-  set SHININESS_MAP(val){this.set('SHININESS_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get EMISSIVE_MAP(){return Property.availableBooleanStatus[this.get('EMISSIVE_MAP')];}
-  set EMISSIVE_MAP(val){this.set('EMISSIVE_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get OCCLUSION_MAP(){return Property.availableBooleanStatus[this.get('OCCLUSION_MAP')];}
-  set OCCLUSION_MAP(val){this.set('OCCLUSION_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get DISPLACEMENT_MAP(){return Property.availableBooleanStatus[this.get('DISPLACEMENT_MAP')];}
-  set DISPLACEMENT_MAP(val){this.set('DISPLACEMENT_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  static availableAlphaModes = [`AUTO`,`OPAQUE`,`BLEND`,`MASK`];
-  get ALPHA_MODE(){return Property.availableAlphaModes[this.get('ALPHA_MODE')];}
-  set ALPHA_MODE(val){this.set('ALPHA_MODE',Property.availableAlphaModes.indexOf(val.toUpperCase()));}
-  
-  static availablePbrWorkflows = [`METALLIC_ROUGHNESS`,`SPECULAR_GLOSSINESS`];
-  get PBR_WORKFLOW(){return Property.availablePbrWorkflows[this.get('PBR_WORKFLOW')];}
-  set PBR_WORKFLOW(val){this.set('PBR_WORKFLOW',Property.availablePbrWorkflows.indexOf(val.toUpperCase()));}
-  
-  get METALLIC_ROUGHNESS_MAP(){return Property.availableBooleanStatus[this.get('METALLIC_ROUGHNESS_MAP')];}
-  set METALLIC_ROUGHNESS_MAP(val){this.set('METALLIC_ROUGHNESS_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get SPECULAR_GLOSSINESS_MAP(){return Property.availableBooleanStatus[this.get('SPECULAR_GLOSSINESS_MAP')];}
-  set SPECULAR_GLOSSINESS_MAP(val){this.set('SPECULAR_GLOSSINESS_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  //Maybe it can be omitted. WebGPU can bind occlusion and metallicRoughness to one texture.
-  get OCCLUSION_METALLIC_ROUGHNESS_MAP(){return Property.availableBooleanStatus[this.get('OCCLUSION_METALLIC_ROUGHNESS_MAP')];}
-  set OCCLUSION_METALLIC_ROUGHNESS_MAP(val){this.set('OCCLUSION_METALLIC_ROUGHNESS_MAP',Property.availableBooleanStatus.indexOf(val));}
-  
-  get PHYSICAL_ENVIRONMENT_LIGHT(){return Property.availableBooleanStatus[this.get('PHYSICAL_ENVIRONMENT_LIGHT')];}
-  set PHYSICAL_ENVIRONMENT_LIGHT(val){this.set('PHYSICAL_ENVIRONMENT_LIGHT',Property.availableBooleanStatus.indexOf(val));}
-  
-  static availableNormalSpaces = [`TANGENT`,`OBJECT`];
-  get NORMAL_SPACE(){return Property.availableNormalSpaces[this.get('NORMAL_SPACE')];}
-  set NORMAL_SPACE(val){this.set('NORMAL_SPACE',Property.availableNormalSpaces.indexOf(val.toUpperCase()));}
+            this.LIGHTING_MODEL = this.COMMON_SURFACE_SHADER ? `PHONG` :
+                !material || x3dom.isa( material, x3dom.nodeTypes.UnlitMaterial ) ? `UNLIT` :
+                    x3dom.isa( material, x3dom.nodeTypes.Material ) ? `PHONG` :
+                        x3dom.isa( material, x3dom.nodeTypes.PhysicalMaterial ) ? `PHYSICAL` :
+                            `UNKNOW`;
+            this.LIGHTS = property.LIGHTING_MODEL == `PHONG` || property.LIGHTING_MODEL == `PHYSICAL` ? viewarea.getLights().length + ( viewarea._scene.getNavigationInfo()._vf.headlight ) : 0;
 
-  get BLENDING(){return Property.availableBooleanStatus[this.get('BLENDING')];}
-  set BLENDING(val){this.set('BLENDING',Property.availableBooleanStatus.indexOf(val));}
-  
-  get COLOR_COMPONENTS(){return this.get('COLOR_COMPONENTS');}
-  set COLOR_COMPONENTS(val){this.set('COLOR_COMPONENTS',val);}
-  
-  static availableTextureCoordinateGenerationModes = [`SPHERE`,`CAMERASPACENORMAL`,`CAMERASPACEPOSITION`,`CAMERASPACEREFLECTIONVECTOR`,`SPHERE-LOCAL`,`COORD`,`COORD-EYE`,`NOISE`,`NOISE-EYE`,`SPHERE-REFLECT`,`SPHERE-REFLECT-LOCAL`];
-  get TEXTURE_COORDINATE_GENERATION_MODE(){return Property.availableTextureCoordinateGenerationModes[this.get('TEXTURE_COORDINATE_GENERATION_MODE')];}
-  set TEXTURE_COORDINATE_GENERATION_MODE(val){this.set('TEXTURE_COORDINATE_GENERATION_MODE',Property.availableTextureCoordinateGenerationModes.indexOf(val.toUpperCase()));}
-  
-  get VERTEX_COLOR(){return Property.availableBooleanStatus[this.get('VERTEX_COLOR')];}
-  set VERTEX_COLOR(val){this.set('VERTEX_COLOR',Property.availableBooleanStatus.indexOf(val));}
-  
-  get CLIP_PLANE(){return Property.availableBooleanStatus[this.get('CLIP_PLANE')];}
-  set CLIP_PLANE(val){this.set('CLIP_PLANE',Property.availableBooleanStatus.indexOf(val));}
-  
+            switch ( this.LIGHTING_MODEL )
+            {
+                //UNLIT
+                case `UNLIT`:
+                    break;
+                //PHONG
+                case `PHONG`:
+                    //FRONT_DIFFUSE_MAP
+                    let diffuseTexture;
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        diffuseTexture = appearance._shader.getDiffuseMap();
+                    }
+                    else
+                    {
+                        diffuseTexture = material._cf.diffuseTexture.node;
+                        if ( !diffuseTexture ) {diffuseTexture = appearance ? appearance._cf.texture.node : null;}
+                    }
+                    this.MULTI_TEXTURE = x3dom.isa( diffuseTexture, x3dom.nodeTypes.MultiTexture ) ? true : false;
+                    //is MultiTexture(v4.1_18.4.3)
+                    if ( this.MULTI_TEXTURE )
+                    {
+                    }
+                    //is X3DSingleTextureNode(v4.1_18.3.2)
+                    else
+                    {
+                        this.FRONT_DIFFUSE_MAP = Property.getSingleTextureType( diffuseTexture );
+                    }
+
+                    //FRONT_NORMAL_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_NORMAL_MAP = Property.getSingleTextureType( appearance._shader.getNormalMap() );
+                    }
+                    else
+                    {
+                        this.FRONT_NORMAL_MAP = Property.getSingleTextureType( material._cf.normalTexture.node );
+                    }
+
+                    //FRONT_SPECULAR_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_SPECULAR_MAP = Property.getSingleTextureType( appearance._shader.getSpecularMap() );
+                    }
+                    else
+                    {
+                        this.FRONT_SPECULAR_MAP = Property.getSingleTextureType( material._cf.specularTexture.node );
+                    }
+
+                    //FRONT_SHININESS_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_SHININESS_MAP = Property.getSingleTextureType( appearance._shader.getShininessMap() );
+                    }
+                    else
+                    {
+                        this.FRONT_SHININESS_MAP = Property.getSingleTextureType( material._cf.shininessTexture.node );
+                    }
+
+                    //FRONT_EMISSIVE_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_EMISSIVE_MAP = `NULL`;
+                    }
+                    else
+                    {
+                        this.FRONT_EMISSIVE_MAP = Property.getSingleTextureType( material._cf.emissiveTexture.node );
+                    }
+
+                    //FRONT_OCCLUSION_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_OCCLUSION_MAP = `NULL`;
+                    }
+                    else
+                    {
+                        this.FRONT_OCCLUSION_MAP = Property.getSingleTextureType( material._cf.occlusionTexture.node );
+                    }
+
+                    //FRONT_AMBIENT_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_AMBIENT_MAP = `NULL`;
+                    }
+                    else
+                    {
+                        this.FRONT_AMBIENT_MAP = Property.getSingleTextureType( material._cf.ambientTexture.node );
+                    }
+
+                    //FRONT_DISPLACEMENT_MAP
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_DISPLACEMENT_MAP = Property.getSingleTextureType( appearance._shader.getDisplacementMap() );
+                    }
+                    else
+                    {
+                        this.FRONT_DISPLACEMENT_MAP = `NULL`;
+                    }
+
+                    //FRONT_PARALLAX_MAP
+                    /*if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_PARALLAX_MAP = `NULL`;
+                    }
+                    else
+                    {
+                        this.FRONT_PARALLAX_MAP = Property.getSingleTextureType (material._cf.parallaxTexture.node );
+                    }*/
+                    break;
+                //PHYSICAL
+                case `PHYSICAL`:
+                    let baseTexture = material._cf.baseTexture.node;
+                    if ( !baseTexture ) {baseTexture = appearance ? appearance._cf.texture.node : null;}
+                    this.MULTI_TEXTURE = x3dom.isa( baseTexture, x3dom.nodeTypes.MultiTexture ) ? true : false;
+                    //is MultiTexture(v4.1_18.4.3)
+                    if ( this.MULTI_TEXTURE )
+                    {
+                    }
+                    //is X3DSingleTextureNode(v4.1_18.3.2)
+                    else
+                    {
+                        this.FRONT_BASE_MAP = Property.getSingleTextureType( baseTexture );
+                    }
+
+                    //FRONT_NORMAL_MAP
+                    this.FRONT_NORMAL_MAP = Property.getSingleTextureType( material._cf.normalTexture.node );
+
+                    //FRONT_EMISSIVE_MAP
+                    this.FRONT_EMISSIVE_MAP = Property.getSingleTextureType( material._cf.emissiveTexture.node );
+
+                    //FRONT_OCCLUSION_MAP
+                    this.FRONT_OCCLUSION_MAP = Property.getSingleTextureType( material._cf.occlusionTexture.node );
+
+                    //FRONT_PBR_WORKFLOW
+                    this.FRONT_PBR_WORKFLOW = material._vf.model;
+                    switch ( FRONT_PBR_WORKFLOW )
+                    {
+                        //METALLIC_ROUGHNESS
+                        case `FRONT_METALLIC_ROUGHNESS_MAP`:
+                            //FRONT_METALLIC_ROUGHNESS_MAP
+                            this.FRONT_METALLIC_ROUGHNESS_MAP = Property.getSingleTextureType( material._cf.metallicRoughnessTexture.node );
+
+                            //FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP
+                            this.FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP = Property.getSingleTextureType( material._cf.occlusionMetallicRoughnessTexture.node );
+
+                            break;
+                        //SPECULAR_GLOSSINESS
+                        case `FRONT_SPECULAR_GLOSSINESS_MAP`:
+                        //FRONT_SPECULAR_GLOSSINESS_MAP
+                            this.FRONT_SPECULAR_GLOSSINESS_MAP = Property.getSingleTextureType( material._cf.specularGlossinessTexture.node );
+                            break;
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+
+            if ( this.BACK_MATERIAL )
+            {
+
+            }
+        }
+    }
+
+    static availableBooleanStatus = [ false, true ];
+
+    static availableSingleTextureTypes = [ `NULL`, `TEXTURE_2D`, `TEXTURE_3D`, `ENVIRONMENT_TEXTURE` ];
+
+    static getSingleTextureType ( singleTexture )
+    {
+        return x3dom.isa( singleTexture, x3dom.nodeTypes.X3DTexture2DNode ) ? `TEXTURE_2D` :
+            x3dom.isa( singleTexture, x3dom.nodeTypes.X3DTexture3DNode ) ? `TEXTURE_3D` :
+                x3dom.isa( singleTexture, x3dom.nodeTypes.X3DEnvironmentTextureNode ) ? `ENVIRONMENT_TEXTURE` :
+                    `NULL`;
+    };
+
+    get COMPOSED_SHADER (){return this.get( "COMPOSED_SHADER" );}
+
+    set COMPOSED_SHADER ( val ){this.set( "COMPOSED_SHADER", val );}
+
+    get VERTEX_COLOR (){return Property.availableBooleanStatus[ this.get( "VERTEX_COLOR" ) ];}
+
+    set VERTEX_COLOR ( val ){this.set( "VERTEX_COLOR", Property.availableBooleanStatus.indexOf( val ) );}
+
+    get SOLID (){return Property.availableBooleanStatus[ this.get( "SOLID" ) ];}
+
+    set SOLID ( val ){this.set( "SOLID", Property.availableBooleanStatus.indexOf( val ) );}
+
+    get BACK_MATERIAL (){return Property.availableBooleanStatus[ this.get( "BACK_MATERIAL" ) ];}
+
+    set BACK_MATERIAL ( val ){this.set( "BACK_MATERIAL", Property.availableBooleanStatus.indexOf( val ) );}
+
+    //get SHADOW(){return Property.availableBooleanStatus[this.get('SHADOW')];}
+    //set SHADOW(val){this.set('SHADOW',Property.availableBooleanStatus.indexOf(val));}
+
+    get FOG (){return Property.availableBooleanStatus[ this.get( "FOG" ) ];}
+
+    set FOG ( val ){this.set( "FOG", Property.availableBooleanStatus.indexOf( val ) );}
+
+    //merge CommonSurfaceShader into Material?  https://github.com/x3dom/x3dom/issues/1347
+    get COMMON_SURFACE_SHADER (){return Property.availableBooleanStatus[ this.get( "COMMON_SURFACE_SHADER" ) ];}
+
+    set COMMON_SURFACE_SHADER ( val ){this.set( "COMMON_SURFACE_SHADER", Property.availableBooleanStatus.indexOf( val ) );}
+
+    static availableLightingModels = [ `UNLIT`, `PHONG`, `PHYSICAL` ];
+
+    get LIGHTING_MODEL (){return Property.availableLightingModels[ this.get( "LIGHTING_MODEL" ) ];}
+
+    set LIGHTING_MODEL ( val ){this.set( "LIGHTING_MODEL", Property.availableLightingModels.indexOf( val.toUpperCase() ) );}
+
+    get LIGHTS (){return this.get( "LIGHTS" );}
+
+    set LIGHTS ( val ){this.set( "LIGHTS", val );}
+
+    //get CUBEMAP(){return Property.availableBooleanStatus[this.get('CUBEMAP')];}
+    //set CUBEMAP(val){this.set('CUBEMAP',Property.availableBooleanStatus.indexOf(val));}
+
+    get MULTI_TEXTURE (){return Property.availableBooleanStatus[ this.get( "MULTI_TEXTURE" ) ];}
+
+    set MULTI_TEXTURE ( val ){this.set( "MULTI_TEXTURE", Property.availableBooleanStatus.indexOf( val ) );}
+
+    get FRONT_BASE_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_BASE_MAP" ) ];}
+
+    set FRONT_BASE_MAP ( val ){this.set( "FRONT_BASE_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_DIFFUSE_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_DIFFUSE_MAP" ) ];}
+
+    set FRONT_DIFFUSE_MAP ( val ){this.set( "FRONT_DIFFUSE_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_NORMAL_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_NORMAL_MAP" ) ];}
+
+    set FRONT_NORMAL_MAP ( val ){this.set( "FRONT_NORMAL_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_SPECULAR_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_SPECULAR_MAP" ) ];}
+
+    set FRONT_SPECULAR_MAP ( val ){this.set( "FRONT_SPECULAR_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_SHININESS_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_SHININESS_MAP" ) ];}
+
+    set FRONT_SHININESS_MAP ( val ){this.set( "FRONT_SHININESS_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_EMISSIVE_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_EMISSIVE_MAP" ) ];}
+
+    set FRONT_EMISSIVE_MAP ( val ){this.set( "FRONT_EMISSIVE_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_OCCLUSION_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_OCCLUSION_MAP" ) ];}
+
+    set FRONT_OCCLUSION_MAP ( val ){this.set( "FRONT_OCCLUSION_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_AMBIENT_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_AMBIENT_MAP" ) ];}
+
+    set FRONT_AMBIENT_MAP ( val ){this.set( "FRONT_AMBIENT_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_DISPLACEMENT_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_DISPLACEMENT_MAP" ) ];}
+
+    set FRONT_DISPLACEMENT_MAP ( val ){this.set( "FRONT_DISPLACEMENT_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    //get FRONT_PARALLAX_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_PARALLAX_MAP" ) ];}
+
+    //set FRONT_PARALLAX_MAP ( val ){this.set( "FRONT_PARALLAX_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    static availableAlphaModes = [ `AUTO`, `OPAQUE`, `BLEND`, `MASK` ];
+
+    get FRONT_ALPHA_MODE (){return Property.availableAlphaModes[ this.get( "FRONT_ALPHA_MODE" ) ];}
+
+    set FRONT_ALPHA_MODE ( val ){this.set( "FRONT_ALPHA_MODE", Property.availableAlphaModes.indexOf( val.toUpperCase() ) );}
+
+    static availablePbrWorkflows = [ `METALLIC_ROUGHNESS`, `SPECULAR_GLOSSINESS` ];
+
+    get FRONT_PBR_WORKFLOW (){return Property.availablePbrWorkflows[ this.get( "FRONT_PBR_WORKFLOW" ) ];}
+
+    set FRONT_PBR_WORKFLOW ( val ){this.set( "FRONT_PBR_WORKFLOW", Property.availablePbrWorkflows.indexOf( val.toUpperCase() ) );}
+
+    get FRONT_METALLIC_ROUGHNESS_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_METALLIC_ROUGHNESS_MAP" ) ];}
+
+    set FRONT_METALLIC_ROUGHNESS_MAP ( val ){this.set( "FRONT_METALLIC_ROUGHNESS_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get FRONT_SPECULAR_GLOSSINESS_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_SPECULAR_GLOSSINESS_MAP" ) ];}
+
+    set FRONT_SPECULAR_GLOSSINESS_MAP ( val ){this.set( "FRONT_SPECULAR_GLOSSINESS_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    //Maybe it can be omitted for WebGPU. WebGPU can bind occlusion and metallicRoughness to one texture.
+    get FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP (){return Property.availableSingleTextureTypes[ this.get( "FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP" ) ];}
+
+    set FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP ( val ){this.set( "FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
+
+    get PHYSICAL_ENVIRONMENT_LIGHT (){return Property.availableBooleanStatus[ this.get( "PHYSICAL_ENVIRONMENT_LIGHT" ) ];}
+
+    set PHYSICAL_ENVIRONMENT_LIGHT ( val ){this.set( "PHYSICAL_ENVIRONMENT_LIGHT", Property.availableBooleanStatus.indexOf( val ) );}
+
+    static availableNormalSpaces = [ `TANGENT`, `OBJECT` ];
+
+    get NORMAL_SPACE (){return Property.availableNormalSpaces[ this.get( "NORMAL_SPACE" ) ];}
+
+    set NORMAL_SPACE ( val ){this.set( "NORMAL_SPACE", Property.availableNormalSpaces.indexOf( val.toUpperCase() ) );}
+
+    //get BLENDING(){return Property.availableBooleanStatus[this.get('BLENDING')];}
+    //set BLENDING(val){this.set('BLENDING',Property.availableBooleanStatus.indexOf(val));}
+
+    get COLOR_COMPONENTS (){return this.get( "COLOR_COMPONENTS" );}
+
+    set COLOR_COMPONENTS ( val ){this.set( "COLOR_COMPONENTS", val );}
+
+    static availableTextureCoordinateGenerationModes = [ `SPHERE`, `CAMERASPACENORMAL`, `CAMERASPACEPOSITION`, `CAMERASPACEREFLECTIONVECTOR`, `SPHERE-LOCAL`, `COORD`, `COORD-EYE`, `NOISE`, `NOISE-EYE`, `SPHERE-REFLECT`, `SPHERE-REFLECT-LOCAL` ];
+
+    get TEXTURE_COORDINATE_GENERATION_MODE (){return Property.availableTextureCoordinateGenerationModes[ this.get( "TEXTURE_COORDINATE_GENERATION_MODE" ) ];}
+
+    set TEXTURE_COORDINATE_GENERATION_MODE ( val ){this.set( "TEXTURE_COORDINATE_GENERATION_MODE", Property.availableTextureCoordinateGenerationModes.indexOf( val.toUpperCase() ) );}
+
+    get VERTEX_COLOR (){return Property.availableBooleanStatus[ this.get( "VERTEX_COLOR" ) ];}
+
+    set VERTEX_COLOR ( val ){this.set( "VERTEX_COLOR", Property.availableBooleanStatus.indexOf( val ) );}
+
+    get CLIP_PLANE (){return Property.availableBooleanStatus[ this.get( "CLIP_PLANE" ) ];}
+
+    set CLIP_PLANE ( val ){this.set( "CLIP_PLANE", Property.availableBooleanStatus.indexOf( val ) );}
+
+    //WebGL1/2 and WebGPU support sRGB format. No need to do gamma correction in shaders.
+    static availableGammaCorrection = [ `LINEAR`, `FASTLINEAR`, `NONE` ];
+
+    get GAMMA_CORRECTION (){return Property.availableGammaCorrection[ this.get( "GAMMA_CORRECTION" ) ];}
+
+    set GAMMA_CORRECTION ( val ){this.set( "GAMMA_CORRECTION", Property.availableGammaCorrection.indexOf( val.toUpperCase() ) );}
 };
 
 x3dom.Utils.generateProperties = function ( viewarea, shape )
@@ -1260,9 +1521,9 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
     }
     else if ( geometry )
     {
-        property.CSHADER          = -1;//
-        property.APPMAT           = material || property.CSSHADER ? 1 : 0;//
-        property.SOLID            = ( shape.isSolid() ) ? 1 : 0;//
+        property.CSHADER          = -1;//keep
+        property.APPMAT           = material || property.CSSHADER ? 1 : 0;//x
+        property.SOLID            = ( shape.isSolid() ) ? 1 : 0;//SOLID
         property.TEXT             = ( x3dom.isa( geometry, x3dom.nodeTypes.Text ) ) ? 1 : 0;//x
         property.POPGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.PopGeometry ) ) ? 1 : 0;//x
         property.BUFFERGEOMETRY      = ( x3dom.isa( geometry, x3dom.nodeTypes.BufferGeometry ) ) ? 1 : 0;//x
@@ -1271,12 +1532,12 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
         property.VERTEXID         = ( ( property.BINARYGEOMETRY ) && geometry._vf.idsPerVertex ) ? 1 : 0;//?
         property.IS_PARTICLE      = ( x3dom.isa( geometry, x3dom.nodeTypes.ParticleSet ) ) ? 1 : 0;
         property.POINTPROPERTIES  = ( appearance && appearance._cf.pointProperties.node ) ? 1 : 0;
-        property.TANGENTDATA      = ( geometry._mesh._tangents[ 0 ].length > 0 && geometry._mesh._binormals[ 0 ].length > 0 ) ? 1 : 0;
+        property.TANGENTDATA      = ( geometry._mesh._tangents[ 0 ].length > 0 && geometry._mesh._binormals[ 0 ].length > 0 ) ? 1 : 0;//bug
         property.PBR_MATERIAL     = x3dom.isa( material, x3dom.nodeTypes.PhysicalMaterial ) ? 1 : 0;//x
         property.TWOSIDEDMAT      = x3dom.isa( material, x3dom.nodeTypes.TwoSidedMaterial ) ? 1 : 0;//x
         property.SEPARATEBACKMAT  = ( property.TWOSIDEDMAT && material._vf.separateBackColor ) ? 1 : 0;//BACK_MATERIAL
-        property.SHADOW           = ( viewarea.getLightsShadow() ) ? 1 : 0;//y
-        property.FOG              = ( viewarea._scene.getFog()._vf.visibilityRange > 0 ) ? 1 : 0;//y
+        property.SHADOW           = ( viewarea.getLightsShadow() ) ? 1 : 0;//SHADOW  not used?
+        property.FOG              = ( viewarea._scene.getFog()._vf.visibilityRange > 0 ) ? 1 : 0;//FOG
         property.CSSHADER         = ( appearance && appearance._shader &&
                                      x3dom.isa( appearance._shader, x3dom.nodeTypes.CommonSurfaceShader ) ) ? 1 : 0;//?
 
@@ -1288,50 +1549,50 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
         property.TEXTURED         = ( texture || property.TEXT || ( property.CSSHADER && appearance._shader.needTexcoords() ) ||
                                     ( property.PBR_MATERIAL && material.hasTextures() ) ) ? 1 : 0;//?
         property.CUBEMAP          = ( texture && x3dom.isa( texture, x3dom.nodeTypes.X3DEnvironmentTextureNode ) ) ||
-                                    ( property.CSSHADER && appearance._shader.getEnvironmentMap() ) ? 1 : 0;
-        property.TEXTRAFO         = ( appearance && appearance._cf.textureTransform.node ) ? 1 : 0;
+                                    ( property.CSSHADER && appearance._shader.getEnvironmentMap() ) ? 1 : 0;//ENVIRONMENT_TEXTURE
+        property.TEXTRAFO         = ( appearance && appearance._cf.textureTransform.node ) ? 1 : 0;//move to init
         property.DIFFUSEMAP       = ( texture && !x3dom.isa( texture, x3dom.nodeTypes.X3DEnvironmentTextureNode ) ) ||
                                     ( property.CSSHADER && appearance._shader.getDiffuseMap() ) ||
-                                    ( property.PBR_MATERIAL && material._cf.baseColorTexture.node ) ? 1 : 0;
+                                    ( property.PBR_MATERIAL && material._cf.baseColorTexture.node ) ? 1 : 0;//FRONT_DIFFUSE_MAP
         property.NORMALMAP        = ( property.CSSHADER && appearance._shader.getNormalMap() ) ||
-                                    ( property.PBR_MATERIAL && material._cf.normalTexture.node ) ? 1 : 0;
-        property.SPECMAP          = ( property.CSSHADER && appearance._shader.getSpecularMap() ) ? 1 : 0;
-        property.SHINMAP          = ( property.CSSHADER && appearance._shader.getShininessMap() ) ? 1 : 0;
-        property.EMISSIVEMAP      = ( property.PBR_MATERIAL && material._cf.emissiveTexture.node ) ? 1 : 0;
-        property.OCCLUSIONMAP     = ( property.PBR_MATERIAL && material._cf.occlusionTexture.node ) ? 1 : 0;
-        property.DISPLACEMENTMAP  = ( property.CSSHADER && appearance._shader.getDisplacementMap() ) ? 1 : 0;
-        property.DIFFPLACEMENTMAP = ( property.CSSHADER && appearance._shader.getDiffuseDisplacementMap() ) ? 1 : 0;
+                                    ( property.PBR_MATERIAL && material._cf.normalTexture.node ) ? 1 : 0;//FRONT_NORMAL_MAP
+        property.SPECMAP          = ( property.CSSHADER && appearance._shader.getSpecularMap() ) ? 1 : 0;//FRONT_SPECULAR_MAP
+        property.SHINMAP          = ( property.CSSHADER && appearance._shader.getShininessMap() ) ? 1 : 0;//FRONT_SHININESS_MAP
+        property.EMISSIVEMAP      = ( property.PBR_MATERIAL && material._cf.emissiveTexture.node ) ? 1 : 0;//FRONT_EMISSIVE_MAP
+        property.OCCLUSIONMAP     = ( property.PBR_MATERIAL && material._cf.occlusionTexture.node ) ? 1 : 0;//FRONT_OCCLUSION_MAP
+        property.DISPLACEMENTMAP  = ( property.CSSHADER && appearance._shader.getDisplacementMap() ) ? 1 : 0;//DISPLACEMENT_MAP
+        property.DIFFPLACEMENTMAP = ( property.CSSHADER && appearance._shader.getDiffuseDisplacementMap() ) ? 1 : 0;//?x
 
-        property.ALPHAMODE            = ( property.PBR_MATERIAL ) ? material._vf.alphaMode : "BLEND";
-        property.ISROUGHNESSMETALLIC  = ( property.PBR_MATERIAL && material._vf.model == "roughnessMetallic" ) ? 1 : 0;
-        property.ROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.roughnessMetallicTexture.node ) ? 1 : 0;
-        property.SPECULARGLOSSINESSMAP = ( property.PBR_MATERIAL && material._cf.specularGlossinessTexture.node ) ? 1 : 0;
-        property.OCCLUSIONROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.occlusionRoughnessMetallicTexture.node ) ? 1 : 0;
-        property.PHYSICALENVLIGHT = viewarea.hasPhysicalEnvironmentLight() ? 1 : 0;
+        property.ALPHAMODE            = ( property.PBR_MATERIAL ) ? material._vf.alphaMode : "BLEND";//ALPHA_MODE
+        property.ISROUGHNESSMETALLIC  = ( property.PBR_MATERIAL && material._vf.model == "roughnessMetallic" ) ? 1 : 0;//PBR_WORKFLOW
+        property.ROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.roughnessMetallicTexture.node ) ? 1 : 0;//METALLIC_ROUGHNESS_MAP
+        property.SPECULARGLOSSINESSMAP = ( property.PBR_MATERIAL && material._cf.specularGlossinessTexture.node ) ? 1 : 0;//SPECULAR_GLOSSINESS_MAP
+        property.OCCLUSIONROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.occlusionRoughnessMetallicTexture.node ) ? 1 : 0;//OCCLUSION_METALLIC_ROUGHNESS_MAP
+        property.PHYSICALENVLIGHT = viewarea.hasPhysicalEnvironmentLight() ? 1 : 0;//PHYSICAL_ENVIRONMENT_LIGHT
 
         property.NORMALSPACE      = ( property.NORMALMAP && property.CSSHADER ) ? appearance._shader._vf.normalSpace.toUpperCase() :
-            ( property.NORMALMAP && property.PBR_MATERIAL ) ? material._vf.normalSpace.toUpperCase() : "TANGENT";
+            ( property.NORMALMAP && property.PBR_MATERIAL ) ? material._vf.normalSpace.toUpperCase() : "TANGENT";//NORMAL_SPACE
 
-        property.BLENDING         = ( property.TEXT || property.CUBEMAP || property.CSSHADER || ( property.PBR_MATERIAL ) || ( texture && texture._blending ) ) ? 1 : 0;
-        
+        property.BLENDING         = ( property.TEXT || property.CUBEMAP || property.CSSHADER || ( property.PBR_MATERIAL ) || ( texture && texture._blending ) ) ? 1 : 0;//x
+
         //for BinaryGeometry    Ref. https://doc.x3dom.org/tutorials/models/aopt/index.html
         property.REQUIREBBOX      = ( geometry._vf.coordType !== undefined && geometry._vf.coordType != "Float32" ) ? 1 : 0;
         property.REQUIREBBOXNOR   = ( geometry._vf.normalType !== undefined && geometry._vf.normalType != "Float32" ) ? 1 : 0;
         property.REQUIREBBOXCOL   = ( geometry._vf.colorType !== undefined && geometry._vf.colorType != "Float32" ) ? 1 : 0;
         property.REQUIREBBOXTEX   = ( geometry._vf.texCoordType !== undefined && geometry._vf.texCoordType != "Float32" ) ? 1 : 0;
-        property.COLCOMPONENTS    = geometry._mesh._numColComponents;
-        property.NORCOMPONENTS    = geometry._mesh._numNormComponents;
-        property.POSCOMPONENTS    = geometry._mesh._numPosComponents;
+        property.COLCOMPONENTS    = geometry._mesh._numColComponents;//COLOR_COMPONENTS
+        property.NORCOMPONENTS    = geometry._mesh._numNormComponents;//x
+        property.POSCOMPONENTS    = geometry._mesh._numPosComponents;//x
         property.SPHEREMAPPING    = ( geometry._cf.texCoord !== undefined && geometry._cf.texCoord.node !== null &&
                                      geometry._cf.texCoord.node._vf.mode &&
-                                     geometry._cf.texCoord.node._vf.mode.toLowerCase() == "sphere" ) ? 1 : 0;
+                                     geometry._cf.texCoord.node._vf.mode.toLowerCase() == "sphere" ) ? 1 : 0;//? TEXTURE_COORDINATE_GENERATION_MODE
         property.VERTEXCOLOR      = ( geometry._mesh._colors[ 0 ].length > 0 ||
                                      ( property.POPGEOMETRY    && geometry.hasColor() ) ||
                                      ( property.BUFFERGEOMETRY && geometry.hasColor() ) ||
-                                     ( geometry._vf.color !== undefined && geometry._vf.color.length > 0 ) ) ? 1 : 0;
-        property.CLIPPLANES       = shape._clipPlanes.length;
-        property.ALPHATHRESHOLD   = ( appearance ) ? appearance._vf.alphaClipThreshold.toFixed( 2 ) : 0.1;
-        property.MULTITEXCOORD    = ( property.BUFFERGEOMETRY && geometry.hasMultiTexCoord() ) ? 1 : 0;
+                                     ( geometry._vf.color !== undefined && geometry._vf.color.length > 0 ) ) ? 1 : 0;//VERTEX_COLOR
+        property.CLIPPLANES       = shape._clipPlanes.length;//CLIP_PLANE
+        property.ALPHATHRESHOLD   = ( appearance ) ? appearance._vf.alphaClipThreshold.toFixed( 2 ) : 0.1;//x
+        property.MULTITEXCOORD    = ( property.BUFFERGEOMETRY && geometry.hasMultiTexCoord() ) ? 1 : 0;//x
 
         property.DIFFUSEMAPCHANNEL = ( property.PBR_MATERIAL && property.DIFFUSEMAP && material._cf.baseColorTexture.node._vf.channel === 1 ) ? 1 : 0;
         property.NORMALMAPCHANNEL  = ( property.PBR_MATERIAL && property.NORMALMAP && material._cf.normalTexture.node._vf.channel === 1 ) ? 1 : 0;
@@ -1340,12 +1601,12 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
         property.ROUGHNESSMETALLICMAPCHANNEL = ( property.PBR_MATERIAL && property.ROUGHNESSMETALLICMAP && material._cf.roughnessMetallicTexture.node._vf.channel === 1 ) ? 1 : 0;
         property.OCCLUSIONROUGHNESSMETALLICMAPCHANNEL = ( property.PBR_MATERIAL && property.OCCLUSIONROUGHNESSMETALLICMAP && material._cf.occlusionRoughnessMetallicTexture.node._vf.channel === 1 ) ? 1 : 0;
         property.SPECULARGLOSSINESSMAPCHANNEL = ( property.PBR_MATERIAL && property.SPECULARGLOSSINESSMAP && material._cf.specularGlossinessTexture.node._vf.channel === 1 ) ? 1 : 0;
-        property.ALPHAMASK                    = ( property.PBR_MATERIAL && material._vf.alphaMode == "MASK" ) ? 1 : 0;
-        property.UNLIT = ( property.PBR_MATERIAL && material._vf.unlit ) ? 1 : 0;
+        property.ALPHAMASK                    = ( property.PBR_MATERIAL && material._vf.alphaMode == "MASK" ) ? 1 : 0;//x
+        property.UNLIT = ( property.PBR_MATERIAL && material._vf.unlit ) ? 1 : 0;//x
 
         property.GAMMACORRECTION  = environment._vf.gammaCorrectionDefault;
 
-        property.KHR_MATERIAL_COMMONS = 0;
+        property.KHR_MATERIAL_COMMONS = 0; //what's this?
     }
 
     property.toIdentifier = function ()
