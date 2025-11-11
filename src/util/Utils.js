@@ -1215,6 +1215,16 @@ x3dom.Utils.Property = class Property extends Map
                     {
                         this.FRONT_NORMAL_MAP = Property.getSingleTextureType( material._cf.normalTexture.node );
                     }
+                    
+                    //FRONT_NORMAL_SPACE
+                    if ( this.COMMON_SURFACE_SHADER )
+                    {
+                        this.FRONT_NORMAL_SPACE = appearance._shader._vf.normalSpace.toUpperCase();
+                    }
+                    else
+                    {
+                        this.FRONT_NORMAL_SPACE = Property.getSingleTextureType( material._cf.normalTexture.node );
+                    }
 
                     //FRONT_SPECULAR_MAP
                     if ( this.COMMON_SURFACE_SHADER )
@@ -1288,6 +1298,7 @@ x3dom.Utils.Property = class Property extends Map
                     break;
                 //PHYSICAL
                 case `PHYSICAL`:
+                    //FRONT_BASE_MAP
                     let baseTexture = material._cf.baseTexture.node;
                     if ( !baseTexture ) {baseTexture = appearance ? appearance._cf.texture.node : null;}
                     this.MULTI_TEXTURE = x3dom.isa( baseTexture, x3dom.nodeTypes.MultiTexture ) ? true : false;
@@ -1329,6 +1340,9 @@ x3dom.Utils.Property = class Property extends Map
                             this.FRONT_SPECULAR_GLOSSINESS_MAP = Property.getSingleTextureType( material._cf.specularGlossinessTexture.node );
                             break;
                     }
+                    
+                    //FRONT_ENVIRONMENT_LIGHT
+                    this.FRONT_ENVIRONMENT_LIGHT = viewarea.hasPhysicalEnvironmentLight() ? true : false;
 
                     break;
                 default:
@@ -1464,15 +1478,15 @@ x3dom.Utils.Property = class Property extends Map
 
     set FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP ( val ){this.set( "FRONT_OCCLUSION_METALLIC_ROUGHNESS_MAP", Property.availableSingleTextureTypes.indexOf( val ) );}
 
-    get PHYSICAL_ENVIRONMENT_LIGHT (){return Property.availableBooleanStatus[ this.get( "PHYSICAL_ENVIRONMENT_LIGHT" ) ];}
+    get FRONT_ENVIRONMENT_LIGHT (){return Property.availableBooleanStatus[ this.get( "FRONT_ENVIRONMENT_LIGHT" ) ];}
 
-    set PHYSICAL_ENVIRONMENT_LIGHT ( val ){this.set( "PHYSICAL_ENVIRONMENT_LIGHT", Property.availableBooleanStatus.indexOf( val ) );}
+    set FRONT_ENVIRONMENT_LIGHT ( val ){this.set( "FRONT_ENVIRONMENT_LIGHT", Property.availableBooleanStatus.indexOf( val ) );}
 
     static availableNormalSpaces = [ `TANGENT`, `OBJECT` ];
 
-    get NORMAL_SPACE (){return Property.availableNormalSpaces[ this.get( "NORMAL_SPACE" ) ];}
+    get FRONT_NORMAL_SPACE (){return Property.availableNormalSpaces[ this.get( "FRONT_NORMAL_SPACE" ) ];}
 
-    set NORMAL_SPACE ( val ){this.set( "NORMAL_SPACE", Property.availableNormalSpaces.indexOf( val.toUpperCase() ) );}
+    set FRONT_NORMAL_SPACE ( val ){this.set( "FRONT_NORMAL_SPACE", Property.availableNormalSpaces.indexOf( val.toUpperCase() ) );}
 
     //get BLENDING(){return Property.availableBooleanStatus[this.get('BLENDING')];}
     //set BLENDING(val){this.set('BLENDING',Property.availableBooleanStatus.indexOf(val));}
@@ -1487,9 +1501,9 @@ x3dom.Utils.Property = class Property extends Map
 
     set TEXTURE_COORDINATE_GENERATION_MODE ( val ){this.set( "TEXTURE_COORDINATE_GENERATION_MODE", Property.availableTextureCoordinateGenerationModes.indexOf( val.toUpperCase() ) );}
 
-    get VERTEX_COLOR (){return Property.availableBooleanStatus[ this.get( "VERTEX_COLOR" ) ];}
+    /*get VERTEX_COLOR (){return Property.availableBooleanStatus[ this.get( "VERTEX_COLOR" ) ];}
 
-    set VERTEX_COLOR ( val ){this.set( "VERTEX_COLOR", Property.availableBooleanStatus.indexOf( val ) );}
+    set VERTEX_COLOR ( val ){this.set( "VERTEX_COLOR", Property.availableBooleanStatus.indexOf( val ) );}*/
 
     get CLIP_PLANE (){return Property.availableBooleanStatus[ this.get( "CLIP_PLANE" ) ];}
 
@@ -1568,7 +1582,7 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
         property.ROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.roughnessMetallicTexture.node ) ? 1 : 0;//METALLIC_ROUGHNESS_MAP
         property.SPECULARGLOSSINESSMAP = ( property.PBR_MATERIAL && material._cf.specularGlossinessTexture.node ) ? 1 : 0;//SPECULAR_GLOSSINESS_MAP
         property.OCCLUSIONROUGHNESSMETALLICMAP = ( property.PBR_MATERIAL && material._cf.occlusionRoughnessMetallicTexture.node ) ? 1 : 0;//OCCLUSION_METALLIC_ROUGHNESS_MAP
-        property.PHYSICALENVLIGHT = viewarea.hasPhysicalEnvironmentLight() ? 1 : 0;//PHYSICAL_ENVIRONMENT_LIGHT
+        property.PHYSICALENVLIGHT = viewarea.hasPhysicalEnvironmentLight() ? 1 : 0;//PHYSICAL_    ENVIRONMENT_LIGHT
 
         property.NORMALSPACE      = ( property.NORMALMAP && property.CSSHADER ) ? appearance._shader._vf.normalSpace.toUpperCase() :
             ( property.NORMALMAP && property.PBR_MATERIAL ) ? material._vf.normalSpace.toUpperCase() : "TANGENT";//NORMAL_SPACE
