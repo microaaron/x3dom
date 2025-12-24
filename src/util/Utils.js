@@ -1606,7 +1606,7 @@ x3dom.Utils.generateProperties = function ( viewarea, shape )
                                      ( geometry._vf.color !== undefined && geometry._vf.color.length > 0 ) ) ? 1 : 0;//VERTEX_COLOR
         property.CLIPPLANES       = shape._clipPlanes.length;//CLIP_PLANE
         property.ALPHATHRESHOLD   = ( appearance ) ? appearance._vf.alphaClipThreshold.toFixed( 2 ) : 0.1;//x
-        property.MULTITEXCOORD    = ( property.BUFFERGEOMETRY && geometry.hasMultiTexCoord() ) ? 1 : 0;//x
+        property.MULTITEXCOORD    = ( property.BUFFERGEOMETRY && geometry.hasMultiTexCoord() ) ? 1 : 0;//x BufferAccessor？
 
         property.DIFFUSEMAPCHANNEL = ( property.PBR_MATERIAL && property.DIFFUSEMAP && material._cf.baseColorTexture.node._vf.channel === 1 ) ? 1 : 0;
         property.NORMALMAPCHANNEL  = ( property.PBR_MATERIAL && property.NORMALMAP && material._cf.normalTexture.node._vf.channel === 1 ) ? 1 : 0;
