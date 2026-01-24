@@ -468,6 +468,10 @@ x3dom.shader.DynamicShader.prototype.generateVertexShader = function ( gl, prope
         else if ( properties.TEXTRAFO )
         {
             shader += " fragTexcoord = (texTrafoMatrix * vec4(vertTexCoord, 1.0, 1.0)).xy;\n";
+            if ( properties.MULTITEXCOORD )
+            {
+                shader += " fragTexcoord2 = (texTrafoMatrix * vec4(vertTexCoord2, 1.0, 1.0)).xy;\n";
+            }
         }
         else
         {
@@ -975,6 +979,14 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
                     if ( !properties.TANGENTDATA && ( x3dom.caps.STD_DERIVATIVES || x3dom.caps.WEBGL_VERSION == 2 ) )
                     {
                         shader += "normal = perturb_normal( n, fragPosition.xyz, vec2(texcoord.x, 1.0 - texcoord.y), _normalBias);\n";
+                        if ( properties.NORMALMAPCHANNEL )
+                        {
+                            shader += "normal = perturb_normal( n, fragPosition.xyz, vec2(texcoord2.x, 1.0 - texcoord2.y), _normalBias);\n";
+                        }
+                        else
+                        {
+                            shader += "normal = perturb_normal( n, fragPosition.xyz, vec2(texcoord.x, 1.0 - texcoord.y), _normalBias);\n";
+                        }
                     }
                     else
                     {
@@ -982,15 +994,28 @@ x3dom.shader.DynamicShader.prototype.generateFragmentShader = function ( gl, pro
                         shader += "vec3 b = normalize( fragBinormal );\n";
                         shader += "mat3 tangentToWorld = mat3(t, b, n);\n";
 
-                        shader += "normal = texture2D( normalMap, vec2(texcoord.x, 1.0-texcoord.y) ).rgb;\n";
+                        if ( properties.NORMALMAPCHANNEL )
+                        {
+                            shader += "normal = texture2D( normalMap, vec2(texcoord2.x, 1.0-texcoord2.y) ).rgb;\n";
+                        }
+                        else
+                        {
+                            shader += "normal = texture2D( normalMap, vec2(texcoord.x, 1.0-texcoord.y) ).rgb;\n";
+                        }
                         shader += "normal = 2.0 * normal - 1.0;\n";
                         shader += "normal = normalize( normal * tangentToWorld );\n";
                     }
                 }
                 else if ( properties.NORMALSPACE == "OBJECT" )
                 {
-                    shader += "normal = texture2D( normalMap, vec2(texcoord.x, 1.0-texcoord.y) ).rgb;\n";
-
+                    if ( properties.NORMALMAPCHANNEL )
+                    {
+                        shader += "normal = texture2D( normalMap, vec2(texcoord2.x, 1.0-texcoord2.y) ).rgb;\n";
+                    }
+                    else
+                    {
+                        shader += "normal = texture2D( normalMap, vec2(texcoord.x, 1.0-texcoord.y) ).rgb;\n";
+                    }
                     shader += "normal = 2.0 * normal - 1.0;\n";
                     shader += "normal = (mat_n * vec4(normal, 0.0)).xyz;\n";
                     shader += "normal = normalize(normal);\n";

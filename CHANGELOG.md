@@ -29,6 +29,7 @@
   * update cycleInterval behaviour to X3Dv4
   * more accurate startTime update
   * tune PhysicalMaterial for compatible light intensity
+  * improved the issue where UV1 was not displayed in some cases (#1350)
 * Bugfixes
   * fix for key buffer reuse in glTF animation (#1349)
   * fix Rectangle2D size updates
